@@ -5,13 +5,16 @@
   // src/course-outline/card-header/TitleButton.jsx as
   // `${namePrefix}-card-title`
   .unit-card-title {
-    font-size: var(--pgn-typography-font-size-h5-base);
-    font-family: var(--pgn-typography-headings-font-family);
-    font-weight: var(--pgn-typography-headings-font-weight);
-    line-height: var(--pgn-typography-headings-line-height);
-    color: var(--pgn-color-headings-base);
-    align-self: center;
-    min-width: 10px !important;
-    max-width: 300px;
+    font-size: 1.04rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    line-height: 1.25;
+    color: #303745;
+    letter-spacing: -.01em;
+  }
+
+  .unit-card__content {
+    margin-left: 1.1rem;
+    margin-top: .28rem;
   }
 }

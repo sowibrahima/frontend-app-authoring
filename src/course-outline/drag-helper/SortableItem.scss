@@ -3,3 +3,43 @@
     margin-right: -2.75rem;
   }
 }
+
+.outline-sortable-item {
+  margin-bottom: 1rem;
+  padding: 1rem 1.2rem;
+  border-radius: 1.25rem;
+  border: 1px solid #E6E8ED;
+  background: #FFFFFF;
+  box-shadow: none;
+  transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+
+  &:hover {
+    border-color: #D8DCE5;
+    box-shadow: 0 10px 22px rgba(17, 24, 39, .06);
+  }
+
+  .outline-sortable-item__drag-btn {
+    opacity: 0;
+    margin-left: .75rem;
+    margin-top: .1rem;
+    border-radius: 999px;
+    border: 0;
+    background: #F3F4F6;
+    color: #6B7280;
+    transition: opacity 140ms ease, background-color 120ms ease, color 120ms ease;
+
+    &:hover {
+      background: #ECEFF4;
+      color: #374151;
+    }
+  }
+
+  &:hover .outline-sortable-item__drag-btn,
+  &:focus-within .outline-sortable-item__drag-btn {
+    opacity: 1;
+  }
+}
+
+.outline-sortable-item--dragging {
+  box-shadow: 0 16px 26px rgba(17, 24, 39, .11);
+}

@@ -2,3 +2,21 @@
   font-size: 14px;
   font-weight: 400;
 }
+
+.xblock-status-row {
+  color: #6B7280 !important;
+  font-size: .72rem !important;
+  line-height: 1.32;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: .01em;
+
+  a {
+    color: #7A223B;
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: #9A3652;
+    text-decoration: none;
+  }
+}

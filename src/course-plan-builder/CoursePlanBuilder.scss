@@ -1,0 +1,289 @@
+.ws-plan-builder {
+  border: 1px solid var(--wuti-color-border, #E5E7EB);
+  border-radius: 1.4rem;
+  background: var(--wuti-color-surface, #FFFFFF);
+  padding: 1.1rem;
+}
+
+.ws-plan-builder__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  @media (width <= 800px) {
+    flex-direction: column;
+  }
+}
+
+.ws-plan-builder__eyebrow {
+  margin: 0 0 .35rem;
+  color: var(--wuti-color-brand, #590D22);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.ws-plan-builder__title {
+  margin: 0;
+  color: var(--wuti-color-text, #111827);
+  font-size: clamp(1.3rem, 2vw, 1.9rem);
+  font-weight: 800;
+  letter-spacing: -.02em;
+  line-height: 1.15;
+}
+
+.ws-plan-builder__description {
+  margin: .45rem 0 0;
+  max-width: 62ch;
+  color: var(--wuti-color-muted, #6B7280);
+  font-size: .94rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.ws-plan-builder__stats {
+  display: flex;
+  align-items: flex-start;
+  gap: .5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+
+  span {
+    border: 1px solid var(--wuti-color-border, #E5E7EB);
+    border-radius: 999px;
+    background: var(--wuti-color-hover, #F9FAFB);
+    color: var(--wuti-color-muted, #6B7280);
+    padding: .34rem .62rem;
+    font-size: .75rem;
+    font-weight: 800;
+  }
+}
+
+.ws-plan-builder__sections,
+.ws-plan-builder__subsections,
+.ws-plan-builder__units,
+.ws-plan-builder__components {
+  display: grid;
+  gap: .85rem;
+}
+
+.ws-plan-builder__section,
+.ws-plan-builder__subsection,
+.ws-plan-builder__unit {
+  border: 1px solid var(--wuti-color-border, #E5E7EB);
+  border-radius: 1.1rem;
+  background: var(--wuti-color-surface, #FFFFFF);
+}
+
+.ws-plan-builder__section {
+  padding: 1rem;
+  box-shadow: var(--wuti-shadow-soft);
+}
+
+.ws-plan-builder__subsections {
+  margin-top: .85rem;
+}
+
+.ws-plan-builder__subsection {
+  padding: .85rem;
+  background: var(--wuti-color-surface-subtle);
+}
+
+.ws-plan-builder__units {
+  margin-top: .75rem;
+}
+
+.ws-plan-builder__unit {
+  padding: .75rem;
+  background: var(--wuti-color-surface, #FFFFFF);
+}
+
+.ws-plan-builder__item-head,
+.ws-plan-builder__unit-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+}
+
+.ws-plan-builder__item-head {
+  margin-bottom: .55rem;
+}
+
+.ws-plan-builder__unit-main {
+  align-items: flex-start;
+}
+
+.ws-plan-builder__kicker {
+  color: var(--wuti-color-muted, #6B7280);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.ws-plan-builder__actions,
+.ws-plan-builder__unit-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  flex-shrink: 0;
+}
+
+.ws-plan-builder__icon-btn {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid transparent;
+  border-radius: .5rem;
+  background: transparent;
+  color: var(--wuti-color-muted, #6B7280);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+
+  .pgn__icon {
+    width: .92rem;
+    height: .92rem;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: var(--wuti-color-border, #E5E7EB);
+    background: var(--wuti-color-hover, #F9FAFB);
+    color: var(--wuti-color-text, #111827);
+  }
+
+  &:disabled {
+    opacity: .35;
+    cursor: not-allowed;
+  }
+}
+
+.ws-plan-builder__icon-btn--danger:hover:not(:disabled) {
+  color: var(--wuti-color-danger);
+  background: var(--wuti-color-danger-bg);
+  border-color: var(--wuti-color-danger-border);
+}
+
+.ws-plan-builder__input,
+.ws-plan-builder__select {
+  width: 100%;
+  border: 1px solid var(--wuti-color-border, #E5E7EB);
+  border-radius: .85rem;
+  background: var(--wuti-color-surface-subtle);
+  color: var(--wuti-color-text, #111827);
+  outline: 0;
+  font-weight: 700;
+  transition: border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
+
+  &:focus {
+    border-color: var(--wuti-color-brand, #590D22);
+    box-shadow: 0 0 0 3px var(--wuti-color-focus, rgb(89 13 34 / .18));
+    background: var(--wuti-color-surface, #FFFFFF);
+  }
+}
+
+.ws-plan-builder__input {
+  padding: .72rem .8rem;
+}
+
+.ws-plan-builder__input--section {
+  font-size: 1.08rem;
+}
+
+.ws-plan-builder__input--unit,
+.ws-plan-builder__input--component {
+  min-width: 0;
+}
+
+.ws-plan-builder__select {
+  padding: .72rem .8rem;
+  min-width: 9rem;
+}
+
+.ws-plan-builder__components {
+  margin-top: .65rem;
+}
+
+.ws-plan-builder__component {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(8rem, .35fr) auto;
+  gap: .5rem;
+  align-items: center;
+
+  @media (width <= 760px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ws-plan-builder__link,
+.ws-plan-builder__secondary {
+  border: 0;
+  background: transparent;
+  color: var(--wuti-color-brand, #590D22);
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  width: fit-content;
+  cursor: pointer;
+  font-weight: 800;
+
+  .pgn__icon {
+    width: .92rem;
+    height: .92rem;
+  }
+
+  &:hover {
+    color: var(--wuti-color-brand-hover, #7A1E3A);
+  }
+}
+
+.ws-plan-builder__link {
+  margin-top: .75rem;
+  padding: 0;
+  font-size: .86rem;
+}
+
+.ws-plan-builder__secondary {
+  border: 1px solid var(--wuti-color-border, #E5E7EB);
+  border-radius: 999px;
+  background: var(--wuti-color-surface, #FFFFFF);
+  padding: .65rem .95rem;
+  color: var(--wuti-color-text, #111827);
+}
+
+.ws-plan-builder__footer {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--wuti-color-border, #E5E7EB);
+  display: flex;
+  flex-wrap: wrap;
+  gap: .7rem;
+}
+
+.ws-plan-builder__empty {
+  border: 1px dashed var(--wuti-color-border, #E5E7EB);
+  border-radius: 1rem;
+  background: var(--wuti-color-hover, #F9FAFB);
+  padding: 1.2rem;
+}
+
+.ws-plan-builder__empty-title {
+  margin: 0;
+  color: var(--wuti-color-text, #111827);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.ws-plan-builder__empty-copy {
+  margin: .4rem 0 0;
+  color: var(--wuti-color-muted, #6B7280);
+  font-size: .88rem;
+  font-weight: 600;
+  line-height: 1.5;
+}

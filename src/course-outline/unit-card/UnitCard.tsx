@@ -245,7 +245,10 @@ const UnitCard = ({
         isDraggable={isDraggable}
         isDroppable={subsection.actions.childAddable}
         componentStyle={{
-          background: '#fdfdfd',
+          padding: '.68rem .9rem',
+          borderRadius: '.9rem',
+          border: '1px solid #ECEEF3',
+          background: '#FFFFFF',
           ...borderStyle,
         }}
         onClick={onClickCard}

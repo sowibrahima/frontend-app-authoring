@@ -7,7 +7,6 @@ import {
 } from 'react';
 import { Helmet } from 'react-helmet';
 import classNames from 'classnames';
-import { StudioFooterSlot } from '@edx/frontend-component-footer';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import {
   Alert,
@@ -26,6 +25,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useModulestoreMigrationStatus } from '@src/data/apiHooks';
 import Loading from '@src/generic/Loading';
 import SubHeader from '@src/generic/sub-header/SubHeader';
+import WutiFooter from '@src/footer/WutiFooter';
 import Header from '@src/header';
 import NotFoundAlert from '@src/generic/NotFoundAlert';
 import { useStudioHome } from '@src/studio-home/hooks';
@@ -402,7 +402,7 @@ const LibraryAuthoringPage = ({
             <LibraryContent contentType={activeKey} />
           </SearchContextProvider>
         </Container>
-        {!componentPickerMode && <StudioFooterSlot containerProps={{ size: undefined }} />}
+        {!componentPickerMode && <WutiFooter />}
       </div>
       {!!sidebarItemInfo?.type && (
         <div className="library-authoring-sidebar box-shadow-left-1 bg-white" data-testid="library-sidebar">

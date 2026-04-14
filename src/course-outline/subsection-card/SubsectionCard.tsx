@@ -276,7 +276,10 @@ const SubsectionCard = ({
         isDraggable={isDraggable}
         isDroppable={actions.childAddable || section.actions.childAddable}
         componentStyle={{
-          background: '#f8f7f6',
+          padding: '.9rem 1rem',
+          borderRadius: '1rem',
+          border: '1px solid #ECEEF3',
+          background: '#FAFAF7',
           ...borderStyle,
         }}
         onClick={(e) => onClickCard(e, true)}

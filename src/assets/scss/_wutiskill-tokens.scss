@@ -1,0 +1,81 @@
+:root {
+  --wuti-color-brand: var(--color-brand, var(--pgn-color-brand-500, #590D22));
+  --wuti-color-brand-hover: var(--color-brand-light, var(--pgn-color-brand-600, #7A1E3A));
+  --wuti-color-primary: var(--color-primary, var(--pgn-color-primary-500, var(--wuti-color-brand)));
+  --wuti-color-action: var(--color-action, var(--color-action-gold, #FFBA08));
+  --wuti-color-action-hover: var(--color-action-hover, #E5A707);
+  --wuti-color-action-active: var(--color-action-active, #CC9506);
+  --wuti-color-action-text: var(--color-action-text, #1A1A2E);
+  --wuti-color-bg: var(--color-bg-primary, var(--pgn-color-light-100, #FAFAF7));
+  --wuti-color-surface: var(--color-bg-surface, var(--pgn-color-white, #FFFFFF));
+  --wuti-color-surface-subtle: var(--color-bg-surface-subtle, #FCFCFD);
+  --wuti-color-text: var(--color-text-primary, var(--pgn-color-gray-900, #111827));
+  --wuti-color-muted: var(--color-text-secondary, var(--pgn-color-gray-600, #6B7280));
+  --wuti-color-border: var(--color-border, var(--pgn-color-light-300, #E5E7EB));
+  --wuti-color-hover: var(--color-bg-hover, var(--pgn-color-light-200, #F9FAFB));
+  --wuti-color-focus: var(--color-focus, color-mix(in srgb, var(--wuti-color-brand) 28%, transparent));
+  --wuti-color-disabled-bg: var(--color-bg-disabled, #F3F4F6);
+  --wuti-color-disabled-text: var(--color-text-disabled, #9CA3AF);
+  --wuti-color-danger: var(--color-danger, #B91C1C);
+  --wuti-color-danger-bg: var(--color-danger-bg, #FEF2F2);
+  --wuti-color-danger-border: var(--color-danger-border, #FECACA);
+  --wuti-shadow-soft: 0 8px 18px color-mix(in srgb, var(--wuti-color-text) 3%, transparent);
+  --wuti-shadow-action: 0 10px 24px color-mix(in srgb, var(--wuti-color-action) 26%, transparent);
+}
+
+.btn-primary {
+  --pgn-btn-color: var(--wuti-color-action-text);
+  --pgn-btn-bg: var(--wuti-color-action);
+  --pgn-btn-border-color: var(--wuti-color-action);
+  --pgn-btn-hover-color: var(--wuti-color-action-text);
+  --pgn-btn-hover-bg: var(--wuti-color-action-hover);
+  --pgn-btn-hover-border-color: var(--wuti-color-action-hover);
+  --pgn-btn-active-color: var(--wuti-color-action-text);
+  --pgn-btn-active-bg: var(--wuti-color-action-active);
+  --pgn-btn-active-border-color: var(--wuti-color-action-active);
+  --pgn-btn-focus-color: var(--wuti-color-action-text);
+  --pgn-btn-focus-bg: var(--wuti-color-action);
+  --pgn-btn-focus-border-color: var(--wuti-color-action);
+  --pgn-btn-focus-outline-color: var(--wuti-color-focus);
+  --pgn-btn-disabled-color: var(--pgn-color-gray-500, #9CA3AF);
+  --pgn-btn-disabled-bg: var(--pgn-color-light-300, #E5E7EB);
+  --pgn-btn-disabled-border-color: var(--pgn-color-light-300, #E5E7EB);
+  background-color: var(--pgn-btn-bg);
+  border-color: var(--pgn-btn-border-color);
+  color: var(--pgn-btn-color);
+}
+
+.btn-primary:hover:not(:disabled):not(.disabled) {
+  background-color: var(--pgn-btn-hover-bg);
+  border-color: var(--pgn-btn-hover-border-color);
+  color: var(--pgn-btn-hover-color);
+}
+
+.btn-primary:active:not(:disabled):not(.disabled) {
+  background-color: var(--pgn-btn-active-bg);
+  border-color: var(--pgn-btn-active-border-color);
+  color: var(--pgn-btn-active-color);
+}
+
+.btn-primary:disabled,
+.btn-primary.disabled {
+  background-color: var(--pgn-btn-disabled-bg);
+  border-color: var(--pgn-btn-disabled-border-color);
+  color: var(--pgn-btn-disabled-color);
+}
+
+.btn-outline-primary {
+  --pgn-btn-color: var(--wuti-color-brand);
+  --pgn-btn-border-color: color-mix(in srgb, var(--wuti-color-brand) 35%, var(--wuti-color-border));
+  --pgn-btn-hover-color: var(--wuti-color-brand);
+  --pgn-btn-hover-bg: color-mix(in srgb, var(--wuti-color-brand) 8%, var(--wuti-color-surface));
+  --pgn-btn-hover-border-color: color-mix(in srgb, var(--wuti-color-brand) 55%, var(--wuti-color-border));
+  color: var(--pgn-btn-color);
+  border-color: var(--pgn-btn-border-color);
+}
+
+.btn-outline-primary:hover:not(:disabled):not(.disabled) {
+  background-color: var(--pgn-btn-hover-bg);
+  border-color: var(--pgn-btn-hover-border-color);
+  color: var(--pgn-btn-hover-color);
+}

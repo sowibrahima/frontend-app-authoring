@@ -1,0 +1,50 @@
+.ws-minimal-footer {
+  margin-top: auto;
+  border-top: 1px solid #eef2f6;
+  background: #fafaf7;
+}
+
+.ws-minimal-footer__inner {
+  width: min(100% - 2.5rem, 80rem);
+  margin: 0 auto;
+  padding: 1rem 0 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem 1.6rem;
+  flex-wrap: wrap;
+}
+
+.ws-minimal-footer__copyright,
+.ws-minimal-footer__link {
+  margin: 0;
+  color: #98a2b3;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0.025em;
+  line-height: 1.45;
+}
+
+.ws-minimal-footer__links {
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+  flex-wrap: wrap;
+}
+
+.ws-minimal-footer__link {
+  text-decoration: none;
+  transition: color 160ms ease;
+
+  &:hover,
+  &:focus-visible {
+    color: #667085;
+    text-decoration: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .ws-minimal-footer__inner {
+    width: min(100% - 2rem, 80rem);
+  }
+}

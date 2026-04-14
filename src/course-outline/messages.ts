@@ -3,12 +3,11 @@ import { defineMessages } from '@edx/frontend-platform/i18n';
 const messages = defineMessages({
   headingTitle: {
     id: 'course-authoring.course-outline.headingTitle',
-    defaultMessage: 'Course outline',
+    defaultMessage: 'Plan du cours',
   },
   headingSubtitle: {
     id: 'course-authoring.course-outline.subTitle',
-    defaultMessage: 'Course Outline',
-    description: 'Course Outline heading subTitle.',
+    defaultMessage: 'Contenu',
   },
   alertSuccessTitle: {
     id: 'course-authoring.course-outline.reindex.alert.success.title',
@@ -28,12 +27,12 @@ const messages = defineMessages({
   },
   newSectionButton: {
     id: 'course-authoring.course-outline.section-list.button.new-section',
-    defaultMessage: 'New section',
+    defaultMessage: 'Nouveau module',
     description: 'Text of button to create new section in course outline',
   },
   useSectionFromLibraryButton: {
     id: 'course-authoring.course-outline.button.use-section-from-library',
-    defaultMessage: 'Use section from library',
+    defaultMessage: 'Utiliser un module de la bibliothèque',
     description: 'Text of the button to add a section from a library in a course.',
   },
   exportTagsCreatingToastMessage: {
@@ -53,48 +52,28 @@ const messages = defineMessages({
   },
   newUnitButton: {
     id: 'course-authoring.course-outline.button.new-unit',
-    defaultMessage: 'New unit',
+    defaultMessage: 'Nouvelle page d activite',
     description: 'Message of the button to create a new unit in a subsection.',
   },
   useUnitFromLibraryButton: {
     id: 'course-authoring.course-outline.button.use-unit-from-library',
-    defaultMessage: 'Use unit from library',
+    defaultMessage: 'Utiliser une activite de la bibliothèque',
     description: 'Message of the button to add a new unit from a library in a subsection.',
   },
   newSubsectionButton: {
     id: 'course-authoring.course-outline.button.new-subsection',
-    defaultMessage: 'New subsection',
+    defaultMessage: 'Nouvelle lecon',
     description: 'Text of button to create new subsection in a section',
   },
   useSubsectionFromLibraryButton: {
     id: 'course-authoring.course-outline.button.use-subsection-from-library',
-    defaultMessage: 'Use subsection from library',
+    defaultMessage: 'Utiliser une lecon de la bibliothèque',
     description: 'Message of the button to add a new subsection from a library in a subsection.',
   },
   sectionPickerModalTitle: {
     id: 'course-authoring.course-outline.button.section-modal.title',
-    defaultMessage: 'Select section',
+    defaultMessage: 'Selectionner un module',
     description: 'Section modal picker title text in outline',
-  },
-  subsectionPickerModalTitle: {
-    id: 'course-authoring.course-outline.section.subsection-modal.title',
-    defaultMessage: 'Select subsection',
-    description: 'Subsection modal picker title text in outline',
-  },
-  placeholderSectionText: {
-    id: 'course-authoring.course-outline.placeholder.section.title',
-    defaultMessage: 'Adding Library Section',
-    description: 'Placeholder section text while adding library section',
-  },
-  placeholderSubsectionText: {
-    id: 'course-authoring.course-outline.placeholder.subsection.title',
-    defaultMessage: 'Adding Library Subsection',
-    description: 'Placeholder subsection text while adding library subsection',
-  },
-  placeholderUnitText: {
-    id: 'course-authoring.course-outline.placeholder.unit.title',
-    defaultMessage: 'Adding Library Unit',
-    description: 'Placeholder unit text while adding library unit',
   },
 });
 

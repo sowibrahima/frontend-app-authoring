@@ -3,6 +3,7 @@ import { getAuthenticatedHttpClient } from '@edx/frontend-platform/auth';
 import isEmpty from 'lodash/isEmpty';
 
 import { getLibraryContainerCopyApiUrl } from '@src/library-authoring/data/api';
+import { getStudioHomeData } from '@src/studio-home/data/api';
 import { convertObjectToSnakeCase } from '@src/utils';
 
 export const getApiBaseUrl = () => getConfig().STUDIO_BASE_URL;
@@ -24,10 +25,38 @@ export const getTagsCountApiUrl = (contentPattern: string) =>
  * Get's organizations data. Returns list of organization names.
  */
 export async function getOrganizations(): Promise<string[]> {
-  const { data } = await getAuthenticatedHttpClient().get(
-    getOrganizationsUrl(),
-  );
-  return camelCaseObject(data);
+  let primaryError: unknown;
+
+  try {
+    const { data } = await getAuthenticatedHttpClient().get(
+      getOrganizationsUrl(),
+    );
+    const organizations = camelCaseObject(data);
+
+    if (Array.isArray(organizations)) {
+      return organizations;
+    }
+
+    primaryError = new Error('Organizations endpoint returned an unexpected payload.');
+  } catch (error) {
+    primaryError = error;
+  }
+
+  const studioHomeData = await getStudioHomeData() as {
+    allowedOrganizations?: string[];
+    allowedOrganizationsForLibraries?: string[];
+  };
+  if (Array.isArray(studioHomeData?.allowedOrganizations) && studioHomeData.allowedOrganizations.length > 0) {
+    return studioHomeData.allowedOrganizations;
+  }
+  if (
+    Array.isArray(studioHomeData?.allowedOrganizationsForLibraries)
+    && studioHomeData.allowedOrganizationsForLibraries.length > 0
+  ) {
+    return studioHomeData.allowedOrganizationsForLibraries;
+  }
+
+  throw primaryError;
 }
 
 /**

@@ -1,4 +1,3 @@
-import { StudioFooterSlot } from '@edx/frontend-component-footer';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import {
   ActionRow,
@@ -29,6 +28,7 @@ import { useOrganizationListData } from '@src/generic/data/apiHooks';
 import FormikControl from '@src/generic/FormikControl';
 import FormikErrorFeedback from '@src/generic/FormikErrorFeedback';
 import SubHeader from '@src/generic/sub-header/SubHeader';
+import WutiFooter from '@src/footer/WutiFooter';
 import Header from '@src/header';
 import { useStudioHome } from '@src/studio-home/hooks';
 
@@ -50,9 +50,9 @@ export const CreateLibrary = ({
   handleCancel,
   handlePostCreate,
 }: {
-  showInModal?: boolean;
-  handleCancel?: () => void;
-  handlePostCreate?: (library: ContentLibrary) => void;
+  showInModal?: boolean,
+  handleCancel?: () => void,
+  handlePostCreate?: (library: ContentLibrary) => void,
 }) => {
   const intl = useIntl();
   const navigate = useNavigate();
@@ -152,21 +152,19 @@ export const CreateLibrary = ({
 
   return (
     <>
-      {!showInModal && <Header isHiddenMainMenu />}
+      {!showInModal && (<Header isHiddenMainMenu />)}
       <Container size="md" className="p-4 mt-3">
         {!showInModal && (
           <SubHeader
             title={intl.formatMessage(messages.createLibrary)}
-            headerActions={!isFromArchive ?
-              (
-                <Button
-                  variant="outline-primary"
-                  onClick={handleCreateFromArchive}
-                >
-                  {intl.formatMessage(messages.createFromArchiveButton)}
-                </Button>
-              ) :
-              null}
+            headerActions={!isFromArchive ? (
+              <Button
+                variant="outline-primary"
+                onClick={handleCreateFromArchive}
+              >
+                {intl.formatMessage(messages.createFromArchiveButton)}
+              </Button>
+            ) : null}
           />
         )}
 
@@ -223,17 +221,19 @@ export const CreateLibrary = ({
                           })}
                         </span>
                       </div>
-                      {(restoreStatus.result.createdBy?.email && restoreStatus.result.createdOnServer) && (
-                        <div className="d-flex align-items-md-center gap-2">
-                          <Icon src={PersonOutline} className="mr-2" style={{ width: '20px', height: '20px' }} />
-                          <span className="x-small">
-                            {intl.formatMessage(messages.archiveRestoredCreatedBy, {
-                              createdBy: restoreStatus.result.createdBy?.email,
-                              server: restoreStatus.result.createdOnServer,
-                            })}
-                          </span>
-                        </div>
-                      )}
+                      {
+                        (restoreStatus.result.createdBy?.email && restoreStatus.result.createdOnServer) && (
+                          <div className="d-flex align-items-md-center gap-2">
+                            <Icon src={PersonOutline} className="mr-2" style={{ width: '20px', height: '20px' }} />
+                            <span className="x-small">
+                              {intl.formatMessage(messages.archiveRestoredCreatedBy, {
+                                createdBy: restoreStatus.result.createdBy?.email,
+                                server: restoreStatus.result.createdOnServer,
+                              })}
+                            </span>
+                          </div>
+                        )
+                      }
                       <div className="d-flex align-items-md-center gap-2">
                         <Icon src={AccessTime} className="mr-2" style={{ width: '20px', height: '20px' }} />
                         <span className="x-small">
@@ -254,7 +254,7 @@ export const CreateLibrary = ({
         {(restoreTaskId || isError || restoreMutation.isError) && (
           <div className="mb-4">
             {(restoreStatus?.state === LibraryRestoreStatus.Pending
-              || restoreStatus?.state === LibraryRestoreStatus.InProgress) && (
+            || restoreStatus?.state === LibraryRestoreStatus.InProgress) && (
               <Alert variant="info">
                 {intl.formatMessage(messages.restoreInProgress)}
               </Alert>
@@ -290,23 +290,25 @@ export const CreateLibrary = ({
             org: '',
             slug: '',
           }}
-          validationSchema={Yup.object().shape({
-            title: Yup.string()
-              .required(intl.formatMessage(messages.requiredFieldError)),
-            org: Yup.string()
-              .required(intl.formatMessage(messages.requiredFieldError))
-              .matches(
-                specialCharsRule,
-                intl.formatMessage(messages.disallowedCharsError),
-              )
-              .matches(noSpaceRule, intl.formatMessage(messages.noSpaceError)),
-            slug: Yup.string()
-              .required(intl.formatMessage(messages.requiredFieldError))
-              .matches(
-                validSlugIdRegex,
-                intl.formatMessage(messages.invalidSlugError),
-              ),
-          })}
+          validationSchema={
+            Yup.object().shape({
+              title: Yup.string()
+                .required(intl.formatMessage(messages.requiredFieldError)),
+              org: Yup.string()
+                .required(intl.formatMessage(messages.requiredFieldError))
+                .matches(
+                  specialCharsRule,
+                  intl.formatMessage(messages.disallowedCharsError),
+                )
+                .matches(noSpaceRule, intl.formatMessage(messages.noSpaceError)),
+              slug: Yup.string()
+                .required(intl.formatMessage(messages.requiredFieldError))
+                .matches(
+                  validSlugIdRegex,
+                  intl.formatMessage(messages.invalidSlugError),
+                ),
+            })
+          }
           onSubmit={(values) => {
             const submitData = { ...values } as CreateContentLibraryArgs;
 
@@ -334,17 +336,17 @@ export const CreateLibrary = ({
                 <Form.Autosuggest
                   name="org"
                   isLoading={isOrganizationListLoading}
-                  onChange={(event) =>
-                    formikProps.setFieldValue(
-                      'org',
-                      allowToCreateNewOrg
-                        ? (event.selectionId || event.userProvidedText)
-                        : event.selectionId,
-                    )}
+                  onChange={(event) => formikProps.setFieldValue(
+                    'org',
+                    allowToCreateNewOrg
+                      ? (event.selectionId || event.userProvidedText)
+                      : event.selectionId,
+                  )}
                   placeholder={intl.formatMessage(messages.orgPlaceholder)}
                 >
-                  {organizations.map((org) => <Form.AutosuggestOption key={org} id={org}>{org}
-                  </Form.AutosuggestOption>)}
+                  {organizations.map((org) => (
+                    <Form.AutosuggestOption key={org} id={org}>{org}</Form.AutosuggestOption>
+                  ))}
                 </Form.Autosuggest>
                 <FormikErrorFeedback name="org">
                   <Form.Text>{intl.formatMessage(messages.orgHelp)}</Form.Text>
@@ -359,13 +361,14 @@ export const CreateLibrary = ({
                 className=""
                 controlClasses="pb-2"
               />
-              <ActionRow
-                className={classNames(
+              <ActionRow className={
+                classNames(
                   {
                     'justify-content-start': !showInModal,
                     'justify-content-end': showInModal,
                   },
-                )}
+                )
+              }
               >
                 <Button
                   variant="outline-primary"
@@ -388,9 +391,10 @@ export const CreateLibrary = ({
             </Form>
           )}
         </Formik>
-        {isError && <AlertError error={error} />}
+        {isError && (<AlertError error={error} />)}
+
       </Container>
-      {!showInModal && <StudioFooterSlot />}
+      {!showInModal && (<WutiFooter />)}
     </>
   );
 };

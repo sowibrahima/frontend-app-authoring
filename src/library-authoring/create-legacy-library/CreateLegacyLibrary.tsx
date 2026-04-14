@@ -1,17 +1,14 @@
-import { StudioFooterSlot } from '@edx/frontend-component-footer';
 import { getConfig } from '@edx/frontend-platform';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import {
-  Alert,
   Container,
   Form,
   Button,
   StatefulButton,
   ActionRow,
 } from '@openedx/paragon';
-import { Warning } from '@openedx/paragon/icons';
 import { Formik } from 'formik';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
 import classNames from 'classnames';
 
@@ -23,6 +20,7 @@ import SubHeader from '@src/generic/sub-header/SubHeader';
 import FormikControl from '@src/generic/FormikControl';
 import FormikErrorFeedback from '@src/generic/FormikErrorFeedback';
 import AlertError from '@src/generic/alert-error';
+import WutiFooter from '@src/footer/WutiFooter';
 
 import messages from '@src/library-authoring/create-library/messages';
 import type { LibraryV1Data } from '@src/studio-home/data/api';
@@ -41,9 +39,9 @@ export const CreateLegacyLibrary = ({
   handleCancel,
   handlePostCreate,
 }: {
-  showInModal?: boolean;
-  handleCancel?: () => void;
-  handlePostCreate?: (library: LibraryV1Data) => void;
+  showInModal?: boolean,
+  handleCancel?: () => void,
+  handlePostCreate?: (library: LibraryV1Data) => void,
 }) => {
   const intl = useIntl();
   const navigate = useNavigate();
@@ -95,50 +93,38 @@ export const CreateLegacyLibrary = ({
 
   return (
     <>
-      {!showInModal && <Header isHiddenMainMenu />}
+      {!showInModal && (<Header isHiddenMainMenu />)}
       <Container size="xl" className="p-4 mt-3">
         {!showInModal && (
           <SubHeader
             title={intl.formatMessage(legacyMessages.createLibrary)}
           />
         )}
-        <Alert variant="warning" icon={Warning}>
-          <Alert.Heading>{intl.formatMessage(legacyMessages.warningTitle)}</Alert.Heading>
-          {intl.formatMessage(legacyMessages.warningBody, {
-            libraryLink: (
-              <Alert.Link
-                as={Link}
-                // @ts-ignore
-                to="/libraries"
-              >
-                {intl.formatMessage(legacyMessages.warningLibraryFeature)}
-              </Alert.Link>
-            ),
-          })}
-        </Alert>
         <Formik
           initialValues={{
             displayName: '',
             org: '',
             number: '',
           }}
-          validationSchema={Yup.object().shape({
-            displayName: Yup.string()
-              .required(intl.formatMessage(messages.requiredFieldError)),
-            org: Yup.string()
-              .required(intl.formatMessage(messages.requiredFieldError))
-              .matches(
-                specialCharsRule,
-                intl.formatMessage(messages.disallowedCharsError),
-              )
-              .matches(noSpaceRule, intl.formatMessage(messages.noSpaceError)),
-            number: Yup.string()
-              .required(intl.formatMessage(messages.requiredFieldError))
-              .matches(
-                validSlugIdRegex,
-                intl.formatMessage(messages.invalidSlugError),
-              ),
-          })}
+          validationSchema={
+            Yup.object().shape({
+              displayName: Yup.string()
+                .required(intl.formatMessage(messages.requiredFieldError)),
+              org: Yup.string()
+                .required(intl.formatMessage(messages.requiredFieldError))
+                .matches(
+                  specialCharsRule,
+                  intl.formatMessage(messages.disallowedCharsError),
+                )
+                .matches(noSpaceRule, intl.formatMessage(messages.noSpaceError)),
+              number: Yup.string()
+                .required(intl.formatMessage(messages.requiredFieldError))
+                .matches(
+                  validSlugIdRegex,
+                  intl.formatMessage(messages.invalidSlugError),
+                ),
+            })
+          }
           onSubmit={(values) => mutate(values)}
         >
           {(formikProps) => (
@@ -157,17 +143,17 @@ export const CreateLegacyLibrary = ({
                 <Form.Autosuggest
                   name="org"
                   isLoading={isOrganizationListLoading}
-                  onChange={(event) =>
-                    formikProps.setFieldValue(
-                      'org',
-                      allowToCreateNewOrg
-                        ? (event.selectionId || event.userProvidedText)
-                        : event.selectionId,
-                    )}
+                  onChange={(event) => formikProps.setFieldValue(
+                    'org',
+                    allowToCreateNewOrg
+                      ? (event.selectionId || event.userProvidedText)
+                      : event.selectionId,
+                  )}
                   placeholder={intl.formatMessage(messages.orgPlaceholder)}
                 >
-                  {organizations.map((org) => <Form.AutosuggestOption key={org} id={org}>{org}
-                  </Form.AutosuggestOption>)}
+                  {organizations.map((org) => (
+                    <Form.AutosuggestOption key={org} id={org}>{org}</Form.AutosuggestOption>
+                  ))}
                 </Form.Autosuggest>
                 <FormikErrorFeedback name="org">
                   <Form.Text>{intl.formatMessage(messages.orgHelp)}</Form.Text>
@@ -182,13 +168,14 @@ export const CreateLegacyLibrary = ({
                 className=""
                 controlClasses="pb-2"
               />
-              <ActionRow
-                className={classNames(
+              <ActionRow className={
+                classNames(
                   {
                     'justify-content-start': !showInModal,
                     'justify-content-end': showInModal,
                   },
-                )}
+                )
+              }
               >
                 <Button
                   variant="outline-primary"
@@ -211,9 +198,9 @@ export const CreateLegacyLibrary = ({
             </Form>
           )}
         </Formik>
-        {isError && <AlertError error={error} />}
+        {isError && (<AlertError error={error} />)}
       </Container>
-      {!showInModal && <StudioFooterSlot />}
+      {!showInModal && (<WutiFooter />)}
     </>
   );
 };

@@ -1,10 +1,28 @@
 .courses-tab-container {
-  min-height: 80vh;
+  min-height: 68vh;
+}
 
-  .previously-migrated-chip {
-    .pgn__chip {
-      border: 0;
-      background-color: var(--pgn-color-warning-500);
-    }
+.ws-home-courses-toolbar {
+  margin: 1.2rem 0 1.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+
+  @media (max-width: 980px) {
+    flex-direction: column;
+    align-items: stretch;
   }
+}
+
+.ws-home-courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.ws-home-courses-pagination {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
 }

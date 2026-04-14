@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
-import { StudioFooterSlot } from '@edx/frontend-component-footer';
 import { Outlet, ScrollRestoration } from 'react-router-dom';
 import { Toast } from '@openedx/paragon';
 
 import AlertError, { type AlertErrorProps } from '../generic/alert-error';
+import WutiFooter from '../footer/WutiFooter';
 import Header from '../header';
 import { TaxonomyContext } from './common/context';
 
@@ -31,7 +31,7 @@ export const TaxonomyLayout = () => {
           />
         )}
         <Outlet />
-        <StudioFooterSlot />
+        <WutiFooter />
         {toastMessage && (
           <Toast
             show

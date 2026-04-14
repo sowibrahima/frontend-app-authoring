@@ -1,15 +1,18 @@
 .item-card-header {
   display: flex;
   align-items: center;
+  gap: .35rem;
 
   .item-card-header__title-btn {
     justify-content: flex-start;
     padding: 0;
     flex: 1 1 0;
-    height: 1.75rem;
+    min-height: 1.95rem;
+    height: auto;
     margin-right: .25rem;
     background: transparent;
-    color: var(--pgn-color-black);
+    color: #111827;
+    border: 0;
 
       .truncate-1-line {
         -webkit-line-clamp: 1;  /* stylelint-disable-line value-no-vendor-prefix */
@@ -25,16 +28,55 @@
   .item-card-button-icon {
     opacity: 0;
     transition: opacity .3s linear;
-    margin-right: .5rem;
+    margin-right: .35rem;
+    width: 1.85rem;
+    height: 1.85rem;
+    border-radius: 999px;
+    color: #9CA3AF;
 
     &:focus {
       opacity: 1;
+      color: #374151;
+      background: #F3F4F6;
     }
   }
 
   &:hover {
     .item-card-button-icon {
       opacity: 1;
+    }
+  }
+
+  .item-card-header__menu.btn-icon {
+    width: 1.95rem;
+    height: 1.95rem;
+    border-radius: 999px;
+    border: 0;
+    background: transparent;
+    color: #9CA3AF;
+
+    &:hover {
+      color: #374151;
+      background: #F3F4F6;
+    }
+  }
+
+  .outline-status-badge {
+    border-radius: 999px !important;
+    border-color: #E5E7EB !important;
+    background: #F9FAFB !important;
+    color: #4B5563;
+    padding: .2rem .55rem !important;
+    margin-right: .45rem !important;
+
+    .small {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .64rem;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      font-weight: 700;
+      line-height: 1;
+      margin-left: .2rem !important;
     }
   }
 

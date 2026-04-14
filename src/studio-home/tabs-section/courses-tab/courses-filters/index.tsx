@@ -1,48 +1,28 @@
 import { useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
+import PropTypes from 'prop-types';
 import { SearchField } from '@openedx/paragon';
 import { debounce } from 'lodash';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import type { Dispatch } from 'redux';
 
-import { getStudioHomeCoursesParams } from '@src/studio-home/data/selectors';
-import { updateStudioHomeCoursesCustomParams } from '@src/studio-home/data/slice';
-import { fetchStudioHomeData } from '@src/studio-home/data/thunks';
-import { LoadingSpinner } from '@src/generic/Loading';
-import CoursesTypesFilterMenu from './courses-types-filter-menu';
-import CoursesOrderFilterMenu from './courses-order-filter-menu';
+import { getStudioHomeCoursesParams } from '../../../data/selectors';
+import { updateStudioHomeCoursesCustomParams } from '../../../data/slice';
+import { fetchStudioHomeData } from '../../../data/thunks';
+import { LoadingSpinner } from '../../../../generic/Loading';
 import './index.scss';
 import messages from './messages';
-import { CourseImportFilter } from './courses-imported-filter-modal';
-
-interface BaseFilter {
-  currentPage: number;
-  search: string | undefined;
-  order: string | undefined;
-  isFiltered: boolean;
-  archivedOnly: boolean | undefined;
-  activeOnly: boolean | undefined;
-  cleanFilters: boolean;
-}
 
 /* regex to check if a string has only whitespace
   example "    "
 */
 const regexOnlyWhiteSpaces = /^\s+$/;
 
-interface Props {
-  dispatch: Dispatch<any>;
-  locationValue: string;
-  onSubmitSearchField?: () => void;
-  isLoading?: boolean;
-}
-
 const CoursesFilters = ({
   dispatch,
-  locationValue = '',
+  locationValue,
   onSubmitSearchField,
   isLoading,
-}: Props) => {
+}) => {
   const studioHomeCoursesParams = useSelector(getStudioHomeCoursesParams);
   const {
     order,
@@ -55,43 +35,7 @@ const CoursesFilters = ({
 
   const intl = useIntl();
 
-  const getFilterTypeData = (baseFilters: BaseFilter) => ({
-    archivedCourses: { ...baseFilters, archivedOnly: true, activeOnly: undefined },
-    activeCourses: { ...baseFilters, activeOnly: true, archivedOnly: undefined },
-    allCourses: { ...baseFilters, archivedOnly: undefined, activeOnly: undefined },
-    azCourses: { ...baseFilters, order: 'display_name' },
-    zaCourses: { ...baseFilters, order: '-display_name' },
-    newestCourses: { ...baseFilters, order: '-created' },
-    oldestCourses: { ...baseFilters, order: 'created' },
-  });
-
-  const handleMenuFilterItemSelected = (filterType: string | number) => {
-    const baseFilters: BaseFilter = {
-      currentPage: 1,
-      search,
-      order,
-      isFiltered: true,
-      archivedOnly,
-      activeOnly,
-      cleanFilters: false,
-    };
-
-    const filterParams = getFilterTypeData(baseFilters);
-    const filterParamsFormat = filterParams[filterType] || baseFilters;
-    const {
-      coursesOrderLabel,
-      coursesTypesLabel,
-      isFiltered,
-      orderTypeLabel,
-      cleanFilters: cleanFilterParams,
-      currentPage,
-      ...customParams
-    } = filterParamsFormat;
-    dispatch(updateStudioHomeCoursesCustomParams(filterParamsFormat));
-    dispatch(fetchStudioHomeData(locationValue, false, { page: 1, ...customParams }, true));
-  };
-
-  const handleSearchCourses = (searchValueDebounced: string) => {
+  const handleSearchCourses = (searchValueDebounced) => {
     const valueFormatted = searchValueDebounced.trim();
     const filterParams = {
       search: valueFormatted.length > 0 ? valueFormatted : '',
@@ -121,13 +65,13 @@ const CoursesFilters = ({
   );
 
   return (
-    <div className="d-flex">
-      <div className="d-flex flex-row">
+    <div className="ws-home-courses-filters">
+      <div className="ws-home-courses-search">
         <SearchField
           onSubmit={onSubmitSearchField}
           onChange={handleSearchCoursesDebounced}
           value={cleanFilters ? '' : inputSearchValue}
-          className="mr-4"
+          className="ws-home-courses-search-field"
           data-testid="input-filter-courses-search"
           placeholder={intl.formatMessage(messages.coursesSearchPlaceholder)}
         />
@@ -137,12 +81,21 @@ const CoursesFilters = ({
           </span>
         )}
       </div>
-
-      <CoursesTypesFilterMenu onItemMenuSelected={handleMenuFilterItemSelected} />
-      <CoursesOrderFilterMenu onItemMenuSelected={handleMenuFilterItemSelected} />
-      <CourseImportFilter />
     </div>
   );
+};
+
+CoursesFilters.defaultProps = {
+  locationValue: '',
+  onSubmitSearchField: () => {},
+  isLoading: false,
+};
+
+CoursesFilters.propTypes = {
+  dispatch: PropTypes.func.isRequired,
+  locationValue: PropTypes.string,
+  onSubmitSearchField: PropTypes.func,
+  isLoading: PropTypes.bool,
 };
 
 export default CoursesFilters;

@@ -3,15 +3,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getConfig } from '@edx/frontend-platform';
 import { useIntl, FormattedMessage } from '@edx/frontend-platform/i18n';
 import {
-  ActionRow,
-  Button,
-  StandardModal,
-  useToggle,
+  ActionRow, Button, Icon, StandardModal, useToggle,
 } from '@openedx/paragon';
+import { ArrowRight } from '@openedx/paragon/icons';
 
 import { useWaffleFlags } from '@src/data/apiHooks';
-import { COMPONENT_TYPES } from '@src/generic/block-type-utils/constants';
-import { LibraryAndComponentPicker } from '@src/library-authoring/component-picker';
+import { COMPONENT_TYPE_ICON_MAP, COMPONENT_TYPES } from '@src/generic/block-type-utils/constants';
+import { ComponentPicker } from '@src/library-authoring/component-picker';
 import { ContentType } from '@src/library-authoring/routes';
 import { useIframe } from '@src/generic/hooks/context/hooks';
 import { useEventListener } from '@src/generic/hooks';
@@ -26,43 +24,45 @@ import ComponentModalView from './add-component-modals/ComponentModalView';
 import { getCourseSectionVertical, getCourseUnitData } from '../data/selectors';
 
 type ComponentTemplateData = {
-  displayName: string;
-  category?: string;
-  type: string;
-  beta?: boolean;
+  displayName: string,
+  category?: string,
+  type: string,
+  beta?: boolean,
   templates: Array<{
-    boilerplateName?: string;
-    category?: string;
-    displayName: string;
-    supportLevel?: string | boolean;
-  }>;
+    boilerplateName?: string,
+    category?: string,
+    displayName: string,
+    supportLevel?: string | boolean,
+  }>,
   supportLegend: {
-    allowUnsupportedXblocks?: boolean;
-    documentationLabel?: string;
-    showLegend?: boolean;
-  };
+    allowUnsupportedXblocks?: boolean,
+    documentationLabel?: string,
+    showLegend?: boolean,
+  },
 };
 
 export interface AddComponentProps {
-  isSplitTestType?: boolean;
-  isUnitVerticalType?: boolean;
-  parentLocator: string;
+  isSplitTestType?: boolean,
+  isUnitVerticalType?: boolean,
+  isEmptyUnit?: boolean,
+  parentLocator: string,
   handleCreateNewCourseXBlock: (
     args: object,
-    callback?: (args: { courseKey: string; locator: string; }) => void,
-  ) => void;
-  isProblemBankType?: boolean;
+    callback?: (args: { courseKey: string, locator: string }) => void
+  ) => void,
+  isProblemBankType?: boolean,
   addComponentTemplateData?: {
-    blockId: string;
-    parentLocator?: string;
-    model: ComponentTemplateData;
-  };
+    blockId: string,
+    parentLocator?: string,
+    model: ComponentTemplateData,
+  },
 }
 
 const AddComponent = ({
   parentLocator,
   isSplitTestType,
   isUnitVerticalType,
+  isEmptyUnit,
   isProblemBankType,
   addComponentTemplateData,
   handleCreateNewCourseXBlock,
@@ -86,7 +86,7 @@ const AddComponent = ({
   const [selectedComponents, setSelectedComponents] = useState<SelectedComponent[]>([]);
   const [usageId, setUsageId] = useState(null);
   const { sendMessageToIframe } = useIframe();
-  const { useVideoGalleryFlow, useNewPdfEditor } = useWaffleFlags(courseId ?? undefined);
+  const { useVideoGalleryFlow } = useWaffleFlags(courseId ?? undefined);
 
   const courseUnit = useSelector(getCourseUnitData);
   const sequenceId = courseUnit?.ancestorInfo?.ancestors?.[0]?.id;
@@ -173,28 +173,7 @@ const AddComponent = ({
         showAddLibraryContentModal();
         break;
       case COMPONENT_TYPES.advanced:
-        // TODO: The 'advanced components' concept warrants examination.
-        // 'Advanced' is a bucket where we chuck all the blocks that are
-        // uncommon, or third-party installs. Until now, none of these have
-        // had special editors in this MFE. This is the first.
-        // The fact that advanced modules are handled as a special category
-        // *in code* and not just in UI seems like a mistake in retrospect.
-        //
-        // There will be more of these, and soon.
-        if (moduleName === COMPONENT_TYPES.pdf && useNewPdfEditor) {
-          handleCreateNewCourseXBlock(
-            { type: moduleName, parentLocator: blockId },
-            /* istanbul ignore next */
-            ({ courseKey, locator }) => {
-              setCourseId(courseKey);
-              setBlockType(moduleName);
-              setNewBlockId(locator);
-              showXBlockEditorModal();
-            },
-          );
-        } else {
-          handleCreateNewCourseXBlock({ type: moduleName, category: moduleName, parentLocator: blockId });
-        }
+        handleCreateNewCourseXBlock({ type: moduleName, category: moduleName, parentLocator: blockId });
         break;
       case COMPONENT_TYPES.openassessment:
         handleCreateNewCourseXBlock({ boilerplate: moduleName, category: type, parentLocator: blockId });
@@ -215,74 +194,157 @@ const AddComponent = ({
     }
   };
 
+  const lessonBuilderActions = [
+    {
+      key: 'read',
+      title: intl.formatMessage(messages.lessonBuilderReadTitle),
+      description: intl.formatMessage(messages.lessonBuilderReadDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.html],
+      onClick: () => handleCreateNewXBlock(COMPONENT_TYPES.html, COMPONENT_TYPES.html),
+    },
+    {
+      key: 'watch',
+      title: intl.formatMessage(messages.lessonBuilderWatchTitle),
+      description: intl.formatMessage(messages.lessonBuilderWatchDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.video],
+      onClick: () => handleCreateNewXBlock(COMPONENT_TYPES.video),
+    },
+    {
+      key: 'practice',
+      title: intl.formatMessage(messages.lessonBuilderPracticeTitle),
+      description: intl.formatMessage(messages.lessonBuilderPracticeDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.problem],
+      onClick: () => handleCreateNewXBlock(COMPONENT_TYPES.problem),
+    },
+    {
+      key: 'answer',
+      title: intl.formatMessage(messages.lessonBuilderAnswerTitle),
+      description: intl.formatMessage(messages.lessonBuilderAnswerDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.problem],
+      onClick: () => handleCreateNewXBlock(COMPONENT_TYPES.problem),
+    },
+    {
+      key: 'discuss',
+      title: intl.formatMessage(messages.lessonBuilderDiscussTitle),
+      description: intl.formatMessage(messages.lessonBuilderDiscussDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.discussion],
+      onClick: () => handleCreateNewXBlock(COMPONENT_TYPES.discussion),
+    },
+    {
+      key: 'submit',
+      title: intl.formatMessage(messages.lessonBuilderSubmitTitle),
+      description: intl.formatMessage(messages.lessonBuilderSubmitDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.openassessment],
+      onClick: () => handleCreateNewXBlock(COMPONENT_TYPES.openassessment, 'peer-assessment'),
+    },
+  ];
+
   if (isUnitVerticalType || isSplitTestType || isProblemBankType) {
     return (
       <div className="py-4">
-        {Object.keys(componentTemplates).length && isUnitVerticalType ?
-          (
-            <>
-              <h5 className="h3 mb-4 text-center">{intl.formatMessage(messages.title)}</h5>
-              <ul className="new-component-type list-unstyled m-0 d-flex flex-wrap justify-content-center">
-                {componentTemplates.map((component: ComponentTemplateData) => {
-                  const { type, displayName, beta } = component;
-                  let modalParams: { open: () => void; close: () => void; isOpen: boolean; };
+        {Object.keys(componentTemplates).length && isUnitVerticalType ? (
+          <>
+            {isEmptyUnit && (
+              <section className="ws-lesson-builder">
+                <div className="ws-lesson-builder__header">
+                  <p className="ws-lesson-builder__eyebrow">
+                    {intl.formatMessage(messages.lessonBuilderEyebrow)}
+                  </p>
+                  <h5 className="ws-lesson-builder__title">
+                    {intl.formatMessage(messages.lessonBuilderTitle)}
+                  </h5>
+                  <p className="ws-lesson-builder__description">
+                    {intl.formatMessage(messages.lessonBuilderDescription)}
+                  </p>
+                </div>
 
-                  if (!component.templates.length) {
-                    return null;
-                  }
+                <div className="ws-lesson-builder__grid">
+                  {lessonBuilderActions.map((action) => (
+                    <button
+                      key={action.key}
+                      type="button"
+                      className="ws-lesson-builder__card"
+                      onClick={action.onClick}
+                    >
+                      <span className="ws-lesson-builder__card-icon" aria-hidden="true">
+                        <Icon src={action.icon} />
+                      </span>
+                      <span className="ws-lesson-builder__card-title">{action.title}</span>
+                      <span className="ws-lesson-builder__card-description">{action.description}</span>
+                      <span className="ws-lesson-builder__card-link">
+                        {intl.formatMessage(messages.lessonBuilderCreateAction)}
+                        <Icon src={ArrowRight} />
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
+            <h5 className={`mb-4 ${isEmptyUnit ? 'ws-lesson-builder__advanced-title h4' : 'h3 text-center'}`}>
+              {intl.formatMessage(isEmptyUnit ? messages.advancedTitle : messages.title)}
+            </h5>
+            <ul className="new-component-type list-unstyled m-0 d-flex flex-wrap justify-content-center">
+              {componentTemplates.map((component: ComponentTemplateData) => {
+                const { type, displayName, beta } = component;
+                let modalParams: { open: () => void, close: () => void, isOpen: boolean };
 
-                  switch (type) {
-                    case COMPONENT_TYPES.advanced:
-                      modalParams = {
-                        open: openAdvanced,
-                        close: closeAdvanced,
-                        isOpen: isOpenAdvanced,
-                      };
-                      break;
-                    case COMPONENT_TYPES.html:
-                      modalParams = {
-                        open: openHtml,
-                        close: closeHtml,
-                        isOpen: isOpenHtml,
-                      };
-                      break;
-                    case COMPONENT_TYPES.openassessment:
-                      modalParams = {
-                        open: openOpenAssessment,
-                        close: closeOpenAssessment,
-                        isOpen: isOpenOpenAssessment,
-                      };
-                      break;
-                    default:
-                      return (
-                        <li key={type}>
-                          <AddComponentButton
-                            onClick={() => handleCreateNewXBlock(type)}
-                            displayName={displayName}
-                            type={type}
-                            beta={beta}
-                          />
-                        </li>
-                      );
-                  }
+                if (!component.templates.length) {
+                  return null;
+                }
 
-                  return (
-                    <ComponentModalView
-                      key={type}
-                      component={component}
-                      handleCreateNewXBlock={handleCreateNewXBlock}
-                      modalParams={modalParams}
-                    />
-                  );
-                })}
-              </ul>
-            </>
-          ) :
-          null}
+                switch (type) {
+                  case COMPONENT_TYPES.advanced:
+                    modalParams = {
+                      open: openAdvanced,
+                      close: closeAdvanced,
+                      isOpen: isOpenAdvanced,
+                    };
+                    break;
+                  case COMPONENT_TYPES.html:
+                    modalParams = {
+                      open: openHtml,
+                      close: closeHtml,
+                      isOpen: isOpenHtml,
+                    };
+                    break;
+                  case COMPONENT_TYPES.openassessment:
+                    modalParams = {
+                      open: openOpenAssessment,
+                      close: closeOpenAssessment,
+                      isOpen: isOpenOpenAssessment,
+                    };
+                    break;
+                  default:
+                    return (
+                      <li key={type}>
+                        <AddComponentButton
+                          onClick={() => handleCreateNewXBlock(type)}
+                          displayName={displayName}
+                          type={type}
+                          beta={beta}
+                        />
+                      </li>
+                    );
+                }
+
+                return (
+                  <ComponentModalView
+                    key={type}
+                    component={component}
+                    handleCreateNewXBlock={handleCreateNewXBlock}
+                    modalParams={modalParams}
+                  />
+                );
+              })}
+            </ul>
+          </>
+        ) : null}
         <StandardModal
-          title={isAddLibraryContentModalOpen
-            ? intl.formatMessage(messages.singleComponentPickerModalTitle)
-            : intl.formatMessage(messages.multipleComponentPickerModalTitle)}
+          title={
+            isAddLibraryContentModalOpen
+              ? intl.formatMessage(messages.singleComponentPickerModalTitle)
+              : intl.formatMessage(messages.multipleComponentPickerModalTitle)
+          }
           isOpen={isAddLibraryContentModalOpen || isSelectLibraryContentModalOpen}
           onClose={() => {
             closeAddLibraryContentModal();
@@ -290,15 +352,17 @@ const AddComponent = ({
           }}
           isOverflowVisible={false}
           size="xl"
-          footerNode={isSelectLibraryContentModalOpen && (
-            <ActionRow>
-              <Button onClick={onComponentSelectionSubmit}>
-                <FormattedMessage {...messages.multipleComponentPickerModalBtn} />
-              </Button>
-            </ActionRow>
-          )}
+          footerNode={
+            isSelectLibraryContentModalOpen && (
+              <ActionRow>
+                <Button onClick={onComponentSelectionSubmit}>
+                  <FormattedMessage {...messages.multipleComponentPickerModalBtn} />
+                </Button>
+              </ActionRow>
+            )
+          }
         >
-          <LibraryAndComponentPicker
+          <ComponentPicker
             showOnlyPublished
             extraFilter={['NOT block_type = "unit"', 'NOT block_type = "section"', 'NOT block_type = "subsection"']}
             visibleTabs={[ContentType.home, ContentType.components, ContentType.collections]}

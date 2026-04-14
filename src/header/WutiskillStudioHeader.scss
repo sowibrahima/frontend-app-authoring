@@ -1,0 +1,235 @@
+$ws-brand: #590D22;
+$ws-surface: #FFFFFF;
+$ws-bg: #FAFAF7;
+$ws-text: #111827;
+$ws-muted: #6B7280;
+$ws-border: #E5E7EB;
+$ws-hover: #F3F4F6;
+$ws-brand-soft: rgba(89, 13, 34, 0.08);
+
+.ws-studio-shell {
+  position: sticky;
+  top: 0;
+  z-index: var(--wutiskill-header-z-index, 1100);
+  background: $ws-surface;
+}
+
+.ws-studio-shell__subnav {
+  border-bottom: 1px solid $ws-border;
+  padding-top: 0.3rem;
+  background:
+    linear-gradient(180deg, rgba(250, 250, 247, 0.96) 0%, rgba(255, 255, 255, 0.98) 100%);
+}
+
+.site-header-desktop__brand-supplement {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  margin-right: 1.05rem;
+  padding-block: 0.08rem 0.04rem;
+
+  @media (max-width: 1040px) {
+    display: none;
+  }
+}
+
+.ws-studio-shell__inner {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0 clamp(1rem, 1.6vw, 1.75rem);
+  display: flex;
+  align-items: stretch;
+
+  @media (max-width: 1100px) {
+    padding-top: 0;
+  }
+
+  @media (max-width: 640px) {
+    padding: 0 1rem;
+  }
+}
+
+.ws-studio-shell__tabs-frame {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.ws-studio-shell__brand-link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover,
+  &:focus-visible {
+    color: inherit;
+    text-decoration: none;
+  }
+}
+
+.ws-studio-shell__brand-meta {
+  color: $ws-muted;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.ws-studio-shell__brand-title {
+  color: $ws-text;
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  font-weight: 780;
+  letter-spacing: -0.026em;
+  line-height: 1.02;
+  max-width: 16.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ws-studio-shell__tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  flex: 1;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.ws-studio-shell__tabs-scrollbar {
+  display: block;
+  width: 100%;
+  height: 0.35rem;
+  margin: 0.08rem 0 0.28rem;
+  border-radius: 999px;
+  background: rgba(17, 24, 39, 0.08);
+  overflow: hidden;
+}
+
+.ws-studio-shell__tabs-scrollbar-thumb {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: rgba(89, 13, 34, 0.42);
+  transition: transform 120ms linear;
+}
+
+.ws-studio-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.36rem;
+  min-height: 2.95rem;
+  padding: 0 0.04rem 0.72rem;
+  margin-right: 1.3rem;
+  border: 0;
+  background: transparent;
+  color: $ws-muted;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.845rem;
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 180ms ease;
+
+  .pgn__icon {
+    width: 0.88rem;
+    height: 0.88rem;
+    flex-shrink: 0;
+    transition: color 180ms ease, transform 180ms ease;
+  }
+
+  &:hover {
+    color: $ws-text;
+    text-decoration: none;
+
+    .pgn__icon {
+      color: $ws-brand;
+      transform: translateY(-1px);
+    }
+
+    .ws-studio-tab__underline {
+      opacity: 0.45;
+    }
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: inset 0 -2px 0 $ws-brand;
+    text-decoration: none;
+  }
+}
+
+.ws-studio-tab--active {
+  color: $ws-brand;
+  font-weight: 700;
+
+  .pgn__icon {
+    color: $ws-brand;
+  }
+
+  .ws-studio-tab__underline {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+.ws-studio-tab__underline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 999px 999px 0 0;
+  background: $ws-brand;
+  opacity: 0;
+  transform: scaleX(0.55);
+  transform-origin: center;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+@media (max-width: 640px) {
+  .ws-studio-tab {
+    margin-right: 1rem;
+    font-size: 0.81rem;
+  }
+
+  .ws-studio-shell__brand-title {
+    max-width: none;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 1480px) {
+  .ws-studio-tab {
+    margin-right: 1rem;
+    font-size: 0.825rem;
+  }
+}
+
+@media (max-width: 1280px) {
+  .ws-studio-tab {
+    margin-right: 0.72rem;
+    font-size: 0.79rem;
+    gap: 0.3rem;
+  }
+}
