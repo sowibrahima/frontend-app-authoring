@@ -20,7 +20,7 @@ const OutlineAddChildButtons = ({
   handleUseFromLibraryClick,
   childType,
   btnVariant = 'outline-primary',
-  btnClasses = 'mt-4 border-gray-500 rounded-0',
+  btnClasses = 'ws-outline-add-btn mt-3',
   btnSize,
 }: NewChildButtonsProps) => {
   // WARNING: Do not use "useStudioHome" to get "librariesV2Enabled" flag below,
@@ -59,7 +59,7 @@ const OutlineAddChildButtons = ({
   }
 
   return (
-    <Stack direction="horizontal" gap={3}>
+    <Stack direction="horizontal" gap={3} className="ws-outline-add-buttons">
       <Button
         className={btnClasses}
         variant={btnVariant}

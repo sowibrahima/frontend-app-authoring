@@ -1,4 +1,3 @@
-import { StudioFooterSlot } from '@edx/frontend-component-footer';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import {
   ActionRow,
@@ -29,6 +28,7 @@ import { useOrganizationListData } from '@src/generic/data/apiHooks';
 import FormikControl from '@src/generic/FormikControl';
 import FormikErrorFeedback from '@src/generic/FormikErrorFeedback';
 import SubHeader from '@src/generic/sub-header/SubHeader';
+import WutiFooter from '@src/footer/WutiFooter';
 import Header from '@src/header';
 import { useStudioHome } from '@src/studio-home/hooks';
 
@@ -394,7 +394,7 @@ export const CreateLibrary = ({
         {isError && (<AlertError error={error} />)}
 
       </Container>
-      {!showInModal && (<StudioFooterSlot />)}
+      {!showInModal && (<WutiFooter />)}
     </>
   );
 };

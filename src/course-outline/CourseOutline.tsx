@@ -17,7 +17,6 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { useLocation } from 'react-router-dom';
-import { CourseAuthoringOutlineSidebarSlot } from '@src/plugin-slots/CourseAuthoringOutlineSidebarSlot';
 
 import { LoadingSpinner } from '@src/generic/Loading';
 import { getProcessingNotification } from '@src/generic/processing-notification/data/selectors';
@@ -285,8 +284,8 @@ const CourseOutline = ({ courseId }: CourseOutlineProps) => {
       <Helmet>
         <title>{getPageHeadTitle(courseName, intl.formatMessage(messages.headingTitle))}</title>
       </Helmet>
-      <Container size="xl" className="px-4">
-        <section className="course-outline-container mb-4 mt-5">
+      <Container size="xl" className="px-4 ws-course-outline-page">
+        <section className="course-outline-container ws-course-outline-container mb-4 mt-5">
           <PageAlerts
             courseId={courseId}
             notificationDismissUrl={notificationDismissUrl}
@@ -332,16 +331,16 @@ const CourseOutline = ({ courseId }: CourseOutlineProps) => {
             )}
           />
           <Layout
-            lg={[{ span: 9 }, { span: 3 }]}
-            md={[{ span: 9 }, { span: 3 }]}
-            sm={[{ span: 12 }, { span: 12 }]}
-            xs={[{ span: 12 }, { span: 12 }]}
-            xl={[{ span: 9 }, { span: 3 }]}
+            lg={[{ span: 12 }]}
+            md={[{ span: 12 }]}
+            sm={[{ span: 12 }]}
+            xs={[{ span: 12 }]}
+            xl={[{ span: 12 }]}
           >
             <Layout.Element>
               <article>
                 <div>
-                  <section className="course-outline-section">
+                  <section className="course-outline-section ws-course-outline-section">
                     <StatusBar
                       courseId={courseId}
                       isLoading={isLoading}
@@ -350,7 +349,7 @@ const CourseOutline = ({ courseId }: CourseOutlineProps) => {
                       handleVideoSharingOptionChange={handleVideoSharingOptionChange}
                     />
                     {!errors?.outlineIndexApi && (
-                      <div className="pt-4">
+                      <div className="pt-4 ws-outline-content">
                         {sections.length ? (
                           <>
                             <DraggableList
@@ -489,13 +488,6 @@ const CourseOutline = ({ courseId }: CourseOutlineProps) => {
                   </section>
                 </div>
               </article>
-            </Layout.Element>
-            <Layout.Element>
-              <CourseAuthoringOutlineSidebarSlot
-                courseId={courseId}
-                courseName={courseName}
-                sections={sections}
-              />
             </Layout.Element>
           </Layout>
           <EnableHighlightsModal

@@ -42,7 +42,6 @@ interface Props {
   isLoading: boolean;
   isFailed: boolean;
   numPages: number;
-  coursesCount: number;
 }
 
 const CoursesTab: React.FC<Props> = ({
@@ -53,7 +52,6 @@ const CoursesTab: React.FC<Props> = ({
   isLoading,
   isFailed,
   numPages = 0,
-  coursesCount = 0,
 }) => {
   const dispatch = useDispatch();
   const intl = useIntl();
@@ -120,46 +118,42 @@ const CoursesTab: React.FC<Props> = ({
       />
     ) : (
       <div className="courses-tab-container">
-        <div className="d-flex flex-row align-items-center justify-content-between my-4">
-          {isShowProcessing && <ProcessingCourses />}
+        {isShowProcessing && <ProcessingCourses />}
+        <div className="ws-home-courses-toolbar">
           <CoursesFilters dispatch={dispatch} locationValue={locationValue} isLoading={isLoading} />
-          <p data-testid="pagination-info" className="my-0">
-            {intl.formatMessage(messages.coursesPaginationInfo, {
-              length: coursesDataItems.length,
-              total: coursesCount,
-            })}
-          </p>
         </div>
         {hasCourses ? (
           <>
-            {coursesDataItems.map(
-              ({
-                courseKey,
-                displayName,
-                lmsLink,
-                org,
-                rerunLink,
-                number,
-                run,
-                url,
-              }) => (
-                <CardItem
-                  key={courseKey}
-                  courseKey={courseKey}
-                  displayName={displayName}
-                  lmsLink={lmsLink}
-                  rerunLink={rerunLink}
-                  org={org}
-                  number={number}
-                  run={run}
-                  url={url}
-                />
-              ),
-            )}
+            <div className="ws-home-courses-grid">
+              {coursesDataItems.map(
+                ({
+                  courseKey,
+                  displayName,
+                  lmsLink,
+                  org,
+                  rerunLink,
+                  number,
+                  run,
+                  url,
+                }) => (
+                  <CardItem
+                    key={courseKey}
+                    courseKey={courseKey}
+                    displayName={displayName}
+                    lmsLink={lmsLink}
+                    rerunLink={rerunLink}
+                    org={org}
+                    number={number}
+                    run={run}
+                    url={url}
+                  />
+                ),
+              )}
+            </div>
 
             {numPages > 1 && (
               <Pagination
-                className="d-flex justify-content-center"
+                className="ws-home-courses-pagination"
                 paginationLabel="pagination navigation"
                 pageCount={numPages}
                 currentPage={currentPage}

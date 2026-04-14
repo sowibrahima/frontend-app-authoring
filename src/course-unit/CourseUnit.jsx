@@ -220,6 +220,7 @@ const CourseUnit = ({ courseId }) => {
                   parentLocator={blockId}
                   isSplitTestType={isSplitTestType}
                   isUnitVerticalType={isUnitVerticalType}
+                  isEmptyUnit={courseVerticalChildren.children.length === 0}
                   isProblemBankType={isProblemBankType}
                   handleCreateNewCourseXBlock={handleCreateNewCourseXBlock}
                   addComponentTemplateData={addComponentTemplateData}

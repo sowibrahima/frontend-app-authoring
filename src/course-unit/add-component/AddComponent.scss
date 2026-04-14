@@ -13,3 +13,152 @@
 .add-component-modal-radio .pgn__form-radio-input {
   min-width: 1.25rem;
 }
+
+.ws-lesson-builder {
+  border: 1px solid #e6dae0;
+  border-radius: 1.75rem;
+  background:
+    radial-gradient(circle at top left, rgba(89, 13, 34, 0.05), transparent 42%),
+    linear-gradient(180deg, #ffffff 0%, #fbf8fa 100%);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.ws-lesson-builder__header {
+  margin-bottom: 1.25rem;
+  max-width: 42rem;
+}
+
+.ws-lesson-builder__eyebrow {
+  margin: 0 0 0.45rem;
+  color: #590d22;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ws-lesson-builder__title {
+  margin: 0;
+  color: #111827;
+  font-size: clamp(1.5rem, 2vw, 2.2rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+}
+
+.ws-lesson-builder__description {
+  margin: 0.6rem 0 0;
+  color: #667085;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+.ws-lesson-builder__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.ws-lesson-builder__card {
+  border: 1px solid #ece3e7;
+  border-radius: 1.3rem;
+  background: #ffffff;
+  min-height: 10.25rem;
+  padding: 1rem;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  color: #111827;
+  cursor: pointer;
+  transition:
+    transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    background 140ms ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    border-color: rgba(89, 13, 34, 0.3);
+    box-shadow: 0 18px 28px rgba(89, 13, 34, 0.08);
+    background: #fffdfd;
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.985);
+  }
+}
+
+.ws-lesson-builder__card-icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f3f5;
+  color: #590d22;
+
+  .pgn__icon {
+    width: 1.2rem;
+    height: 1.2rem;
+  }
+}
+
+.ws-lesson-builder__card-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.ws-lesson-builder__card-description {
+  color: #667085;
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.45;
+  flex: 1 1 auto;
+}
+
+.ws-lesson-builder__card-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #590d22;
+  font-size: 0.84rem;
+  font-weight: 700;
+
+  .pgn__icon {
+    width: 0.95rem;
+    height: 0.95rem;
+  }
+}
+
+.ws-lesson-builder__advanced-title {
+  color: #111827;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+@media (max-width: 991px) {
+  .ws-lesson-builder__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .ws-lesson-builder {
+    padding: 1.1rem;
+    border-radius: 1.25rem;
+  }
+
+  .ws-lesson-builder__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .course-unit .add-component-button {
+    width: 100%;
+  }
+}

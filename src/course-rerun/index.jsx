@@ -7,10 +7,10 @@ import {
   ActionRow,
   Button,
 } from '@openedx/paragon';
-import { StudioFooterSlot } from '@edx/frontend-component-footer';
 
 import { useNavigate, useParams } from 'react-router-dom';
 
+import WutiFooter from '../footer/WutiFooter';
 import Header from '../header';
 import Loading from '../generic/Loading';
 import { getLoadingStatuses } from '../generic/data/selectors';
@@ -89,7 +89,7 @@ const CourseRerun = () => {
           isQueryPending={savingStatus === RequestStatus.PENDING}
         />
       </div>
-      <StudioFooterSlot />
+      <WutiFooter />
     </>
   );
 };

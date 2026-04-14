@@ -2,18 +2,20 @@
   flex-grow: 1;
 
   .subsection-card__units {
-    margin-top: var(--pgn-spacing-spacer-base);
+    margin-top: .85rem;
   }
 
   .subsection-card-title {
-    font-size: var(--pgn-typography-font-size-h4-base);
-    font-family: var(--pgn-typography-headings-font-family);
-    font-weight: var(--pgn-typography-headings-font-weight);
-    line-height: var(--pgn-typography-headings-line-height);
-    color: var(--pgn-color-headings-base);
+    font-size: 1.52rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 760;
+    line-height: 1.14;
+    letter-spacing: -.015em;
+    color: #1F2937;
   }
 
   .subsection-card__content {
-    margin-left: 1.7rem;
+    margin-left: 1.15rem;
+    margin-top: .35rem;
   }
 }

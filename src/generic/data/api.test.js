@@ -3,6 +3,8 @@ import { initializeMockApp } from '@edx/frontend-platform';
 import { getAuthenticatedHttpClient } from '@edx/frontend-platform/auth';
 
 import { contentTagsCountMock } from '../__mocks__';
+import { getStudioHomeApiUrl } from '../../studio-home/data/api';
+import { generateGetStudioHomeDataApiResponse } from '../../studio-home/factories/mockApiResponses';
 import {
   createOrRerunCourse,
   getApiBaseUrl,
@@ -41,6 +43,34 @@ describe('generic api calls', () => {
 
     expect(axiosMock.history.get[0].url).toEqual(queryUrl);
     expect(result).toEqual(organizationsData);
+  });
+
+  it('should fallback to studio home allowed organizations when the organizations endpoint fails', async () => {
+    const queryUrl = new URL('organizations', getApiBaseUrl()).href;
+    const studioHomeData = generateGetStudioHomeDataApiResponse();
+    axiosMock.onGet(queryUrl).networkError();
+    axiosMock.onGet(getStudioHomeApiUrl()).reply(200, studioHomeData);
+
+    const result = await getOrganizations();
+
+    expect(axiosMock.history.get[0].url).toEqual(queryUrl);
+    expect(axiosMock.history.get[1].url).toEqual(getStudioHomeApiUrl());
+    expect(result).toEqual(studioHomeData.allowedOrganizations);
+  });
+
+  it('should fallback to studio home library organizations when course organizations are empty', async () => {
+    const queryUrl = new URL('organizations', getApiBaseUrl()).href;
+    const studioHomeData = {
+      ...generateGetStudioHomeDataApiResponse(),
+      allowedOrganizations: [],
+      allowedOrganizationsForLibraries: ['OpenedX', 'Wutiskill', 'demo'],
+    };
+    axiosMock.onGet(queryUrl).networkError();
+    axiosMock.onGet(getStudioHomeApiUrl()).reply(200, studioHomeData);
+
+    const result = await getOrganizations();
+
+    expect(result).toEqual(studioHomeData.allowedOrganizationsForLibraries);
   });
 
   it('should get course rerun', async () => {

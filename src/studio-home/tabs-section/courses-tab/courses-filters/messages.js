@@ -4,7 +4,7 @@ const messages = defineMessages({
 
   coursesSearchPlaceholder: {
     id: 'course-authoring.studio-home.courses.search-placeholder',
-    defaultMessage: 'Search',
+    defaultMessage: 'Rechercher par titre ou ID...',
   },
 });
 

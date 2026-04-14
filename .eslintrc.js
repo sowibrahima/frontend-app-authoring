@@ -12,6 +12,12 @@ module.exports = createConfig(
       'template-curly-spacing': 'off',
       'react-hooks/exhaustive-deps': 'off',
       'no-restricted-exports': 'off',
+      'no-restricted-imports': ['error', {
+        patterns: [{
+          group: ['@edx/*/dist/*'],
+          message: 'Do not import from dist build artifacts. Import from the package public API instead.',
+        }],
+      }],
       // There is no reason to disallow this syntax anymore; we don't use regenerator-runtime in new browsers
       'no-restricted-syntax': 'off',
     },

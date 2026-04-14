@@ -1,5 +1,6 @@
 const path = require('path');
 const { createConfig } = require('@openedx/frontend-build');
+const stripWutiskillParagonTheme = require('./webpack.wutiskill-theme');
 
 const config = createConfig('webpack-dev', {
   resolve: {
@@ -15,5 +16,14 @@ const config = createConfig('webpack-dev', {
     },
   },
 });
+
+stripWutiskillParagonTheme(config);
+
+config.devServer = config.devServer || {};
+config.devServer.client = config.devServer.client || {};
+config.devServer.client.overlay = {
+  errors: true,
+  warnings: false,
+};
 
 module.exports = config;

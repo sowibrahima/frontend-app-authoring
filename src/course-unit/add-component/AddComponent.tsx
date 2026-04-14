@@ -3,11 +3,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getConfig } from '@edx/frontend-platform';
 import { useIntl, FormattedMessage } from '@edx/frontend-platform/i18n';
 import {
-  ActionRow, Button, StandardModal, useToggle,
+  ActionRow, Button, Icon, StandardModal, useToggle,
 } from '@openedx/paragon';
+import { ArrowRight } from '@openedx/paragon/icons';
 
 import { useWaffleFlags } from '@src/data/apiHooks';
-import { COMPONENT_TYPES } from '@src/generic/block-type-utils/constants';
+import { COMPONENT_TYPE_ICON_MAP, COMPONENT_TYPES } from '@src/generic/block-type-utils/constants';
 import { ComponentPicker } from '@src/library-authoring/component-picker';
 import { ContentType } from '@src/library-authoring/routes';
 import { useIframe } from '@src/generic/hooks/context/hooks';
@@ -43,6 +44,7 @@ type ComponentTemplateData = {
 export interface AddComponentProps {
   isSplitTestType?: boolean,
   isUnitVerticalType?: boolean,
+  isEmptyUnit?: boolean,
   parentLocator: string,
   handleCreateNewCourseXBlock: (
     args: object,
@@ -60,6 +62,7 @@ const AddComponent = ({
   parentLocator,
   isSplitTestType,
   isUnitVerticalType,
+  isEmptyUnit,
   isProblemBankType,
   addComponentTemplateData,
   handleCreateNewCourseXBlock,
@@ -191,12 +194,95 @@ const AddComponent = ({
     }
   };
 
+  const lessonBuilderActions = [
+    {
+      key: 'read',
+      title: intl.formatMessage(messages.lessonBuilderReadTitle),
+      description: intl.formatMessage(messages.lessonBuilderReadDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.html],
+      onClick: () => handleCreateNewXBlock(COMPONENT_TYPES.html, COMPONENT_TYPES.html),
+    },
+    {
+      key: 'watch',
+      title: intl.formatMessage(messages.lessonBuilderWatchTitle),
+      description: intl.formatMessage(messages.lessonBuilderWatchDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.video],
+      onClick: () => handleCreateNewXBlock(COMPONENT_TYPES.video),
+    },
+    {
+      key: 'practice',
+      title: intl.formatMessage(messages.lessonBuilderPracticeTitle),
+      description: intl.formatMessage(messages.lessonBuilderPracticeDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.problem],
+      onClick: () => handleCreateNewXBlock(COMPONENT_TYPES.problem),
+    },
+    {
+      key: 'answer',
+      title: intl.formatMessage(messages.lessonBuilderAnswerTitle),
+      description: intl.formatMessage(messages.lessonBuilderAnswerDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.problem],
+      onClick: () => handleCreateNewXBlock(COMPONENT_TYPES.problem),
+    },
+    {
+      key: 'discuss',
+      title: intl.formatMessage(messages.lessonBuilderDiscussTitle),
+      description: intl.formatMessage(messages.lessonBuilderDiscussDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.discussion],
+      onClick: () => handleCreateNewXBlock(COMPONENT_TYPES.discussion),
+    },
+    {
+      key: 'submit',
+      title: intl.formatMessage(messages.lessonBuilderSubmitTitle),
+      description: intl.formatMessage(messages.lessonBuilderSubmitDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.openassessment],
+      onClick: () => handleCreateNewXBlock(COMPONENT_TYPES.openassessment, 'peer-assessment'),
+    },
+  ];
+
   if (isUnitVerticalType || isSplitTestType || isProblemBankType) {
     return (
       <div className="py-4">
         {Object.keys(componentTemplates).length && isUnitVerticalType ? (
           <>
-            <h5 className="h3 mb-4 text-center">{intl.formatMessage(messages.title)}</h5>
+            {isEmptyUnit && (
+              <section className="ws-lesson-builder">
+                <div className="ws-lesson-builder__header">
+                  <p className="ws-lesson-builder__eyebrow">
+                    {intl.formatMessage(messages.lessonBuilderEyebrow)}
+                  </p>
+                  <h5 className="ws-lesson-builder__title">
+                    {intl.formatMessage(messages.lessonBuilderTitle)}
+                  </h5>
+                  <p className="ws-lesson-builder__description">
+                    {intl.formatMessage(messages.lessonBuilderDescription)}
+                  </p>
+                </div>
+
+                <div className="ws-lesson-builder__grid">
+                  {lessonBuilderActions.map((action) => (
+                    <button
+                      key={action.key}
+                      type="button"
+                      className="ws-lesson-builder__card"
+                      onClick={action.onClick}
+                    >
+                      <span className="ws-lesson-builder__card-icon" aria-hidden="true">
+                        <Icon src={action.icon} />
+                      </span>
+                      <span className="ws-lesson-builder__card-title">{action.title}</span>
+                      <span className="ws-lesson-builder__card-description">{action.description}</span>
+                      <span className="ws-lesson-builder__card-link">
+                        {intl.formatMessage(messages.lessonBuilderCreateAction)}
+                        <Icon src={ArrowRight} />
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
+            <h5 className={`mb-4 ${isEmptyUnit ? 'ws-lesson-builder__advanced-title h4' : 'h3 text-center'}`}>
+              {intl.formatMessage(isEmptyUnit ? messages.advancedTitle : messages.title)}
+            </h5>
             <ul className="new-component-type list-unstyled m-0 d-flex flex-wrap justify-content-center">
               {componentTemplates.map((component: ComponentTemplateData) => {
                 const { type, displayName, beta } = component;

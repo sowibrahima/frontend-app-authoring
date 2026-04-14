@@ -3,73 +3,73 @@ import { defineMessages } from '@edx/frontend-platform/i18n';
 const messages = defineMessages({
   startDateTitle: {
     id: 'course-authoring.course-outline.status-bar.start-date',
-    defaultMessage: 'Start date',
+    defaultMessage: 'Date et détail',
   },
   pacingTypeTitle: {
     id: 'course-authoring.course-outline.status-bar.pacing-type',
-    defaultMessage: 'Pacing type',
+    defaultMessage: 'Type de rythme',
   },
   pacingTypeSelfPaced: {
     id: 'course-authoring.course-outline.status-bar.pacing-type.self-paced',
-    defaultMessage: 'Self-paced',
+    defaultMessage: 'Rythme libre',
   },
   pacingTypeInstructorPaced: {
     id: 'course-authoring.course-outline.status-bar.pacing-type.instructor-Paced',
-    defaultMessage: 'Instructor-paced',
+    defaultMessage: 'Au rythme de l\'instructeur',
   },
   checklistTitle: {
     id: 'course-authoring.course-outline.status-bar.checklists',
-    defaultMessage: 'Checklists',
+    defaultMessage: 'Procédure de création',
   },
   checklistCompleted: {
     id: 'course-authoring.course-outline.status-bar.checklists.completed',
-    defaultMessage: 'completed',
+    defaultMessage: 'complété',
   },
   highlightEmailsTitle: {
     id: 'course-authoring.course-outline.status-bar.highlight-emails',
-    defaultMessage: 'Course highlight emails',
+    defaultMessage: 'E-mails sur les étapes clés',
   },
   highlightEmailsButton: {
     id: 'course-authoring.course-outline.status-bar.highlight-emails.button',
-    defaultMessage: 'Enable now',
+    defaultMessage: 'Activer maintenant',
   },
   highlightEmailsEnabled: {
     id: 'course-authoring.course-outline.status-bar.highlight-emails.enabled',
-    defaultMessage: 'Enabled',
+    defaultMessage: 'Activé',
   },
   highlightEmailsLink: {
     id: 'course-authoring.course-outline.status-bar.highlight-emails.link',
-    defaultMessage: 'Learn more',
+    defaultMessage: 'Apprendre plus',
   },
   courseTagsTitle: {
     id: 'course-authoring.course-outline.status-bar.course-tags',
-    defaultMessage: 'Course tags',
+    defaultMessage: 'Balises de cours',
     description: 'Course tags header in course outline',
   },
   courseManageTagsLink: {
     id: 'course-authoring.course-outline.status-bar.course-manage-tags-link',
-    defaultMessage: 'Manage tags',
+    defaultMessage: 'Gérer les balises',
     description: 'Opens the drawer to edit content tags',
   },
   videoSharingTitle: {
     id: 'course-authoring.course-outline.status-bar.video-sharing.title',
-    defaultMessage: 'Video Sharing',
+    defaultMessage: 'Partage vidéo',
   },
   videoSharingLink: {
     id: 'course-authoring.course-outline.status-bar.video-sharing.link',
-    defaultMessage: 'Learn more',
+    defaultMessage: 'Apprendre plus',
   },
   videoSharingPerVideoText: {
     id: 'course-authoring.course-outline.status-bar.video-sharing.perVideo.text',
-    defaultMessage: 'Per Video',
+    defaultMessage: 'Par vidéo',
   },
   videoSharingAllOffText: {
     id: 'course-authoring.course-outline.status-bar.video-sharing.allOff.text',
-    defaultMessage: 'No Videos',
+    defaultMessage: 'Aucune vidéo',
   },
   videoSharingAllOnText: {
     id: 'course-authoring.course-outline.status-bar.video-sharing.allOn.text',
-    defaultMessage: 'All Videos',
+    defaultMessage: 'Toutes les vidéos',
   },
 });
 

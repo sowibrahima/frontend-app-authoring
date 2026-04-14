@@ -19,9 +19,9 @@ import messages from './messages';
 import { getVideoSharingOptionText } from '../utils';
 
 const StatusBarItem = ({ title, children }) => (
-  <div className="d-flex flex-column justify-content-between">
-    <h5>{title}</h5>
-    <div className="d-flex align-items-center">
+  <div className="outline-status-bar__item d-flex flex-column justify-content-between">
+    <h5 className="outline-status-bar__title">{title}</h5>
+    <div className="d-flex align-items-center outline-status-bar__value">
       {children}
     </div>
   </div>
@@ -82,10 +82,10 @@ const StatusBar = ({
 
   return (
     <>
-      <Stack direction="horizontal" gap={3.5} className="d-flex align-items-stretch outline-status-bar" data-testid="outline-status-bar">
+      <Stack direction="horizontal" gap={3.5} className="d-flex align-items-stretch outline-status-bar ws-outline-status-bar" data-testid="outline-status-bar">
         <StatusBarItem title={intl.formatMessage(messages.startDateTitle)}>
           <Link
-            className="small"
+            className="small ws-outline-status-link"
             to={waffleFlags.useNewScheduleDetailsPage ? `/course/${courseId}/settings/details/#schedule` : scheduleDestination()}
           >
             {courseReleaseDateObj.isValid() ? (
@@ -101,7 +101,7 @@ const StatusBar = ({
           </Link>
         </StatusBarItem>
         <StatusBarItem title={intl.formatMessage(messages.pacingTypeTitle)}>
-          <span className="small">
+          <span className="small ws-outline-status-value-text">
             {isSelfPaced
               ? intl.formatMessage(messages.pacingTypeSelfPaced)
               : intl.formatMessage(messages.pacingTypeInstructorPaced)}
@@ -109,7 +109,7 @@ const StatusBar = ({
         </StatusBarItem>
         <StatusBarItem title={intl.formatMessage(messages.checklistTitle)}>
           <Link
-            className="small"
+            className="small ws-outline-status-link"
             to={`/course/${courseId}/checklists`}
           >
             {checkListTitle} {intl.formatMessage(messages.checklistCompleted)}
@@ -122,12 +122,12 @@ const StatusBar = ({
                 {intl.formatMessage(messages.highlightEmailsEnabled)}
               </span>
             ) : (
-              <Button data-testid="highlights-enable-button" size="sm" onClick={openEnableHighlightsModal}>
+              <Button data-testid="highlights-enable-button" size="sm" className="ws-outline-status-cta" onClick={openEnableHighlightsModal}>
                 {intl.formatMessage(messages.highlightEmailsButton)}
               </Button>
             )}
             <Hyperlink
-              className="small ml-2"
+              className="small ml-2 ws-outline-status-link"
               destination={contentHighlightsUrl}
               target="_blank"
               showLaunchIcon={false}
@@ -142,7 +142,7 @@ const StatusBar = ({
               <TagCount count={courseTagCount} />
               { /* eslint-disable-next-line jsx-a11y/anchor-is-valid */ }
               <a
-                className="small ml-2"
+                className="small ml-2 ws-outline-status-link"
                 href="#"
                 onClick={openManageTagsDrawer}
               >
@@ -176,7 +176,7 @@ const StatusBar = ({
                 ))}
               </Form.Control>
               <Hyperlink
-                className="small"
+                className="small ws-outline-status-link"
                 destination={socialSharingUrl}
                 target="_blank"
                 showLaunchIcon={false}

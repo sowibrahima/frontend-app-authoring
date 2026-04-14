@@ -230,6 +230,78 @@ const CardItem: React.FC<Props> = ({
     }
   }, [scrollIntoView]);
 
+  if (!isLibraries && !selectMode && !isMigrated) {
+    return (
+      <div ref={cardRef} className="ws-course-card-shell">
+        <article className={classNames('ws-course-card', { selected: isSelected })}>
+          <header className="ws-course-card__header">
+            <span className="ws-course-card__org">{org || '-'}</span>
+
+            {showActions && (
+              <Dropdown>
+                <Dropdown.Toggle
+                  as={IconButton}
+                  iconAs={MoreHoriz}
+                  variant="primary"
+                  aria-label={intl.formatMessage(messages.btnDropDownText)}
+                  className="ws-course-card__menu-btn"
+                />
+                <Dropdown.Menu>
+                  {isShowRerunLink && (
+                    <Dropdown.Item
+                      as={Link}
+                      to={rerunLink ?? ''}
+                    >
+                      {messages.btnReRunText.defaultMessage}
+                    </Dropdown.Item>
+                  )}
+                  <Dropdown.Item href={lmsLink}>
+                    {intl.formatMessage(messages.viewLiveBtnText)}
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
+            )}
+          </header>
+
+          <div className="ws-course-card__main">
+            <MakeLinkOrSpan
+              when={!readOnlyItem}
+              to={destinationUrl}
+              className="ws-course-card__title"
+            >
+              {title}
+            </MakeLinkOrSpan>
+
+            <div className="ws-course-card__meta-grid">
+              <div className="ws-course-card__meta-item">
+                <span className="ws-course-card__meta-label">
+                  {intl.formatMessage(messages.courseCardReferenceLabel)}
+                </span>
+                <span className="ws-course-card__meta-value">{number || '-'}</span>
+              </div>
+              <div className="ws-course-card__meta-item">
+                <span className="ws-course-card__meta-label">
+                  {intl.formatMessage(messages.courseCardSessionLabel)}
+                </span>
+                <span className="ws-course-card__meta-value">{run || '-'}</span>
+              </div>
+            </div>
+          </div>
+
+          <footer className="ws-course-card__footer">
+            <MakeLinkOrSpan
+              when={!readOnlyItem}
+              to={destinationUrl}
+              className="ws-course-card__arrow-btn"
+            >
+              <Icon src={ArrowForward} size="sm" />
+            </MakeLinkOrSpan>
+          </footer>
+        </article>
+      </div>
+    );
+  }
+
   return (
     <div ref={cardRef} className="w-100">
       <Card className={classNames('card-item', {

@@ -25,7 +25,7 @@ const HeaderNavigations = ({
   } = headerNavigationsActions;
 
   return (
-    <>
+    <div className="ws-outline-header-actions">
       {courseActions.childAddable && (
         <OverlayTrigger
           placement="bottom"
@@ -39,6 +39,7 @@ const HeaderNavigations = ({
             iconBefore={IconAdd}
             onClick={handleNewSection}
             disabled={errors?.outlineIndexApi}
+            className="ws-outline-action ws-outline-action--primary"
           >
             {intl.formatMessage(messages.newSectionButton)}
           </Button>
@@ -58,6 +59,7 @@ const HeaderNavigations = ({
             data-testid="course-reindex"
             variant="outline-primary"
             disabled={isDisabledReindexButton}
+            className="ws-outline-action ws-outline-action--neutral"
           >
             {intl.formatMessage(messages.reindexButton)}
           </Button>
@@ -70,6 +72,7 @@ const HeaderNavigations = ({
           data-testid="expand-collapse-all-button"
           iconBefore={isSectionsExpanded ? ArrowUpIcon : ArrowDownIcon}
           onClick={handleExpandAll}
+          className="ws-outline-action ws-outline-action--neutral"
         >
           {isSectionsExpanded
             ? intl.formatMessage(messages.collapseAllButton)
@@ -88,11 +91,12 @@ const HeaderNavigations = ({
           href={lmsLink}
           target="_blank"
           variant="outline-primary"
+          className="ws-outline-action ws-outline-action--neutral"
         >
           {intl.formatMessage(messages.viewLiveButton)}
         </Button>
       </OverlayTrigger>
-    </>
+    </div>
   );
 };
 

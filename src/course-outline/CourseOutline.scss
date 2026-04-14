@@ -8,3 +8,199 @@
 @import "./publish-modal/PublishModal";
 @import "./xblock-status/XBlockStatus";
 @import "./drag-helper/SortableItem";
+
+.ws-course-outline-page {
+  max-width: 1320px;
+
+  .ws-course-outline-container {
+    margin-top: 1.5rem !important;
+    margin-bottom: 2rem !important;
+  }
+
+  .ws-course-outline-section {
+    width: 100%;
+  }
+
+  .border-bottom.border-light-400.mb-3 {
+    border-bottom: 0 !important;
+    margin-bottom: .85rem !important;
+  }
+
+  .sub-header {
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.2rem;
+  }
+
+  .sub-header-title {
+    margin: 0;
+    color: #111827;
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(2.3rem, 4vw, 3.25rem);
+    font-weight: 800;
+    line-height: 1.04;
+    letter-spacing: -.03em;
+  }
+
+  .sub-header-title-subtitle {
+    margin-bottom: .38rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .66rem !important;
+    line-height: 1 !important;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: #9CA3AF !important;
+    font-weight: 700 !important;
+  }
+
+  .sub-header .sub-header-actions {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .52rem;
+  }
+
+  .ws-outline-header-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .52rem;
+  }
+
+  .ws-outline-action.btn {
+    border-radius: 999px;
+    min-height: 2.35rem;
+    padding: .45rem 1rem;
+    border: 1px solid #E5E7EB;
+    background: #FFFFFF;
+    color: #374151;
+    font-size: .89rem;
+    line-height: 1.2;
+    font-weight: 700;
+    box-shadow: none;
+    transition: transform 140ms ease, border-color 120ms ease, background-color 120ms ease, color 120ms ease;
+
+    .pgn__icon {
+      width: 1rem;
+      height: 1rem;
+    }
+  }
+
+  .ws-outline-action.btn:hover {
+    border-color: #D1D5DB;
+    background: #F9FAFB;
+    color: #111827;
+  }
+
+  .ws-outline-action--primary.btn {
+    background: #590D22;
+    border-color: #590D22;
+    color: #FFFFFF;
+    box-shadow: 0 8px 18px rgba(89, 13, 34, .2);
+  }
+
+  .ws-outline-action--primary.btn:hover {
+    background: #7A223B;
+    border-color: #7A223B;
+    color: #FFFFFF;
+    transform: translateY(-1px);
+  }
+
+  .course-outline-section {
+    padding-top: .2rem;
+  }
+
+  .ws-outline-content {
+    padding-top: 1rem !important;
+  }
+
+  .ws-outline-add-buttons {
+    margin-top: .65rem;
+    gap: .65rem !important;
+  }
+
+  .ws-outline-add-btn.btn {
+    border-radius: 999px !important;
+    border: 1px solid #E5E7EB !important;
+    background: #FFFFFF !important;
+    color: #4B5563 !important;
+    font-size: .88rem;
+    line-height: 1.2;
+    font-weight: 700;
+    min-height: 2.35rem;
+    box-shadow: none;
+    padding-inline: .95rem;
+
+    .pgn__icon {
+      color: #6B7280;
+      width: 1rem;
+      height: 1rem;
+    }
+  }
+
+  .ws-outline-add-btn.btn:hover {
+    border-color: #D1D5DB !important;
+    background: #F9FAFB !important;
+    color: #111827 !important;
+  }
+
+  .section-card .ws-outline-add-buttons,
+  .subsection-card .ws-outline-add-buttons {
+    margin-left: .25rem;
+  }
+
+  .item-card-header .item-card-header__title-btn:hover {
+    text-decoration: none;
+    color: #111827;
+  }
+
+  .item-card-header .item-card-button-icon {
+    display: none;
+  }
+
+  .unit-card .item-card-header .outline-status-badge {
+    margin-right: .25rem !important;
+  }
+
+  .outline-sortable-item .item-children {
+    margin-right: -2.2rem;
+  }
+
+  .outline-sortable-item .btn-icon-secondary {
+    border-color: transparent;
+  }
+
+  .help-sidebar.outline-sidebar {
+    display: none !important;
+  }
+
+  .pgn__alert {
+    border-radius: 1rem;
+  }
+}
+
+@media (max-width: 991px) {
+  .ws-course-outline-page {
+    .ws-course-outline-container {
+      margin-top: 1rem !important;
+    }
+
+    .sub-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .sub-header .sub-header-actions {
+      width: 100%;
+    }
+
+    .ws-outline-status-bar {
+      padding: .85rem .9rem;
+    }
+
+    .outline-status-bar .outline-status-bar__item {
+      min-width: 12.5rem;
+    }
+  }
+}

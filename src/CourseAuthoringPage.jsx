@@ -5,8 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   useLocation,
 } from 'react-router-dom';
-import { StudioFooterSlot } from '@edx/frontend-component-footer';
-import Header from './header';
+import WutiskillStudioHeader from './header/WutiskillStudioHeader';
 import { fetchCourseDetail } from './data/thunks';
 import { useModel } from './generic/model-store';
 import NotFoundAlert from './generic/NotFoundAlert';
@@ -15,6 +14,8 @@ import { fetchOnlyStudioHomeData } from './studio-home/data/thunks';
 import { getCourseAppsApiStatus } from './pages-and-resources/data/selectors';
 import { RequestStatus } from './data/constants';
 import Loading from './generic/Loading';
+import WutiFooter from './footer/WutiFooter';
+import './CourseAuthoringPage.scss';
 
 const CourseAuthoringPage = ({ courseId, children }) => {
   const dispatch = useDispatch();
@@ -49,14 +50,14 @@ const CourseAuthoringPage = ({ courseId, children }) => {
     );
   }
   return (
-    <div>
+    <div className={isEditor ? undefined : 'ws-course-authoring-shell'}>
       {/* While V2 Editors are temporarily served from their own pages
       using url pattern containing /editor/,
       we shouldn't have the header and footer on these pages.
       This functionality will be removed in TNL-9591 */}
       {inProgress ? !isEditor && <Loading />
         : (!isEditor && (
-          <Header
+          <WutiskillStudioHeader
             number={courseNumber}
             org={courseOrg}
             title={courseTitle}
@@ -65,7 +66,7 @@ const CourseAuthoringPage = ({ courseId, children }) => {
         )
         )}
       {children}
-      {!inProgress && !isEditor && <StudioFooterSlot />}
+      {!inProgress && !isEditor && <WutiFooter />}
     </div>
   );
 };

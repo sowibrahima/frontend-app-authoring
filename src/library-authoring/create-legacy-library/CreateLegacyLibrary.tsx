@@ -1,4 +1,3 @@
-import { StudioFooterSlot } from '@edx/frontend-component-footer';
 import { getConfig } from '@edx/frontend-platform';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import {
@@ -21,6 +20,7 @@ import SubHeader from '@src/generic/sub-header/SubHeader';
 import FormikControl from '@src/generic/FormikControl';
 import FormikErrorFeedback from '@src/generic/FormikErrorFeedback';
 import AlertError from '@src/generic/alert-error';
+import WutiFooter from '@src/footer/WutiFooter';
 
 import messages from '@src/library-authoring/create-library/messages';
 import type { LibraryV1Data } from '@src/studio-home/data/api';
@@ -200,7 +200,7 @@ export const CreateLegacyLibrary = ({
         </Formik>
         {isError && (<AlertError error={error} />)}
       </Container>
-      {!showInModal && (<StudioFooterSlot />)}
+      {!showInModal && (<WutiFooter />)}
     </>
   );
 };

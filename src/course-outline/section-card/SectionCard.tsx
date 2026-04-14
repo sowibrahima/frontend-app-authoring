@@ -275,7 +275,10 @@ const SectionCard = ({
         }}
         isDraggable={isDraggable}
         componentStyle={{
-          padding: '1.75rem',
+          padding: '1.05rem 1.15rem',
+          borderRadius: '1.5rem',
+          border: '1px solid #E7E9EF',
+          background: '#FFFFFF',
           ...borderStyle,
         }}
       >

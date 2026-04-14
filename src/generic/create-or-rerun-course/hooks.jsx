@@ -32,7 +32,12 @@ const useCreateOrRerunCourse = (initialValues) => {
   } = useSelector(getStudioHomeData);
   const [isFormFilled, setFormFilled] = useState(false);
   const [showErrorBanner, setShowErrorBanner] = useState(false);
-  const organizations = canCreateOrganizations ? allOrganizations : allowedOrganizations;
+  const organizations = (() => {
+    if (canCreateOrganizations) {
+      return allOrganizations?.length ? allOrganizations : allowedOrganizations;
+    }
+    return allowedOrganizations?.length ? allowedOrganizations : allOrganizations;
+  })();
 
   const { specialCharsRule, noSpaceRule } = REGEX_RULES;
   const validationSchema = Yup.object().shape({
