@@ -4,18 +4,31 @@
   align-items: center;
   margin-bottom: var(--pgn-spacing-spacer-6);
 
+  .btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid var(--wuti-color-border, #E5E7EB);
+    border-radius: 999px;
+    background: var(--wuti-color-surface, #FFFFFF);
+  }
+
   .grading-scale-segments-and-ticks {
     display: inline-block;
     height: 3.5rem;
     width: 100%;
-    border: 1px solid var(--pgn-color-black);
+    border: 1px solid var(--wuti-color-border, #E5E7EB);
+    border-radius: .9rem;
+    background: linear-gradient(90deg, #FDE370 0 50%, #87D771 50% 100%);
     overflow: hidden;
 
     .grading-scale-tick {
       .grading-scale-tick-number {
         position: absolute;
         font-size: .6rem;
-        color: var(--pgn-color-black);
+        color: var(--wuti-color-muted, #6B7280);
         top: 100%;
         transform: translate(-50%, 1.2rem);
         white-space: nowrap;
@@ -83,6 +96,7 @@
         white-space: nowrap;
         text-align: right;
         align-items: flex-end;
+        color: var(--wuti-color-text, #111827);
       }
 
       .grading-scale-segment-content-title {

@@ -11,10 +11,125 @@
 }
 
 .settingsWidget {
-    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 0;
 
     .pgn__form-text {
         font-size: small;
+    }
+
+    .my-3,
+    .mt-3,
+    .mb-3 {
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+    .settingsOption {
+        overflow: hidden;
+        border: 1px solid var(--wuti-color-border, #E5E7EB);
+        border-radius: 1.25rem;
+        background: var(--wuti-color-surface, #FFFFFF);
+        box-shadow: 0 18px 45px color-mix(in srgb, var(--wuti-color-text, #111827) 6%, transparent);
+    }
+
+    .settingsCardTitleSection,
+    .pgn__card-section {
+        padding: 1rem 1.25rem;
+    }
+
+    .settingsCardTitleSection {
+        border-bottom: 1px solid var(--wuti-color-border, #E5E7EB);
+    }
+
+    .collapsible-trigger {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        text-align: left;
+    }
+
+    .text-primary-500 {
+        color: var(--wuti-color-brand, #590D22);
+    }
+
+    .settingsOption .small,
+    .settingsOption .x-small {
+        color: var(--wuti-color-muted, #667085);
+        font-size: .88rem;
+        line-height: 1.35;
+    }
+
+    .settingsOption .form-control,
+    .settingsOption .pgn__form-control {
+        min-height: 2.75rem;
+        border-radius: 999px;
+    }
+
+    .typeCard .pgn__card-section {
+        padding: .75rem 1rem 1rem;
+    }
+
+    .typeCard .collapsible-body {
+        display: flex;
+        flex-direction: column;
+        gap: .35rem;
+    }
+
+    .typeCard .problem-type-option {
+        display: flex;
+        width: 100%;
+        min-height: 2.75rem;
+        align-items: center;
+        justify-content: space-between;
+        border-radius: 999px;
+        color: var(--wuti-color-muted, #667085);
+        font-weight: 760;
+        line-height: 1.2;
+        padding: .65rem .85rem .65rem 1rem;
+        text-align: left;
+        transition: background-color 140ms ease, color 140ms ease, transform 140ms ease;
+    }
+
+    .typeCard .problem-type-option:hover {
+        background: color-mix(in srgb, var(--wuti-color-brand, #590D22) 7%, var(--wuti-color-surface, #FFFFFF));
+        color: var(--wuti-color-brand, #590D22);
+        transform: translateY(-1px);
+    }
+
+    .typeCard .problem-type-option.is-selected {
+        background: color-mix(in srgb, var(--wuti-color-brand, #590D22) 10%, var(--wuti-color-surface, #FFFFFF));
+        color: var(--wuti-color-brand, #590D22);
+    }
+
+    .typeCard .problem-type-option__label {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .typeCard .problem-type-option__check {
+        display: inline-flex;
+        width: 1.5rem;
+        height: 1.5rem;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        background: var(--wuti-color-surface, #FFFFFF);
+        color: var(--wuti-color-brand, #590D22);
+    }
+
+    .typeCard .problem-type-option__check .pgn__icon {
+        width: .9rem;
+        height: .9rem;
+    }
+
+    .typeCard .problem-type-option__divider {
+        display: none;
     }
 }
 

@@ -1,77 +1,58 @@
-import { useEffect, useState } from 'react';
-import { Helmet } from 'react-helmet';
+import React, { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
+import { useDispatch, useSelector } from 'react-redux';
 import {
-  Container,
-  Button,
-  Layout,
-  StatefulButton,
-  TransitionReplace,
+  Container, Button, StatefulButton, TransitionReplace,
 } from '@openedx/paragon';
 import { CheckCircle, Info, Warning } from '@openedx/paragon/icons';
 import { FormattedMessage, useIntl } from '@edx/frontend-platform/i18n';
-import { useCourseAuthoringContext } from '@src/CourseAuthoringContext';
-import { useWaffleFlags } from '@src/data/apiHooks';
-import { useUserPermissions } from '@src/authz/data/apiHooks';
-import { COURSE_PERMISSIONS } from '@src/authz/constants';
-import PermissionDeniedAlert from 'CourseAuthoring/generic/PermissionDeniedAlert';
-import AlertProctoringError from '@src/generic/AlertProctoringError';
-import { LoadingSpinner } from '@src/generic/Loading';
-import InternetConnectionAlert from '@src/generic/internet-connection-alert';
-import { parseArrayOrObjectValues } from '@src/utils';
-import { RequestStatus } from '@src/data/constants';
-import SubHeader from '@src/generic/sub-header/SubHeader';
-import AlertMessage from '@src/generic/alert-message';
-import getPageHeadTitle from '@src/generic/utils';
-import Placeholder from '@src/editors/Placeholder';
+import Placeholder from '../editors/Placeholder';
 
+import AlertProctoringError from '../generic/AlertProctoringError';
+import { useModel } from '../generic/model-store';
+import InternetConnectionAlert from '../generic/internet-connection-alert';
+import { parseArrayOrObjectValues } from '../utils';
+import { RequestStatus } from '../data/constants';
+import SubHeader from '../generic/sub-header/SubHeader';
+import AlertMessage from '../generic/alert-message';
+import { fetchCourseAppSettings, updateCourseAppSetting, fetchProctoringExamErrors } from './data/thunks';
+import {
+  getCourseAppSettings, getSavingStatus, getProctoringExamErrors, getSendRequestErrors, getLoadingStatus,
+} from './data/selectors';
 import SettingCard from './setting-card/SettingCard';
-import SettingsSidebar from './settings-sidebar/SettingsSidebar';
 import validateAdvancedSettingsData from './utils';
 import messages from './messages';
 import ModalError from './modal-error/ModalError';
-import { useCourseAdvancedSettings, useProctoringExamErrors, useUpdateCourseAdvancedSettings } from './data/apiHooks';
+import getPageHeadTitle from '../generic/utils';
 
-const AdvancedSettings = () => {
+const AdvancedSettings = ({ courseId }) => {
   const intl = useIntl();
+  const dispatch = useDispatch();
   const [saveSettingsPrompt, showSaveSettingsPrompt] = useState(false);
   const [showDeprecated, setShowDeprecated] = useState(false);
   const [errorModal, showErrorModal] = useState(false);
   const [editedSettings, setEditedSettings] = useState({});
   const [errorFields, setErrorFields] = useState([]);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+  const [isQueryPending, setIsQueryPending] = useState(false);
   const [isEditableState, setIsEditableState] = useState(false);
   const [hasInternetConnectionError, setInternetConnectionError] = useState(false);
 
-  const { courseId, courseDetails } = useCourseAuthoringContext();
+  const courseDetails = useModel('courseDetails', courseId);
+  document.title = getPageHeadTitle(courseDetails?.name, intl.formatMessage(messages.headingTitle));
 
-  const waffleFlags = useWaffleFlags(courseId);
-  const isAuthzEnabled = waffleFlags.enableAuthzCourseAuthoring;
-  const { isLoading: isLoadingUserPermissions, data: userPermissions } = useUserPermissions({
-    canManageAdvancedSettings: {
-      action: COURSE_PERMISSIONS.MANAGE_ADVANCED_SETTINGS,
-      scope: courseId,
-    },
-  }, isAuthzEnabled);
+  useEffect(() => {
+    dispatch(fetchCourseAppSettings(courseId));
+    dispatch(fetchProctoringExamErrors(courseId));
+  }, [courseId]);
 
-  const {
-    data: advancedSettingsData = {},
-    isPending: isPendingSettingsStatus,
-    failureReason: settingsStatusError,
-  } = useCourseAdvancedSettings(courseId);
+  const advancedSettingsData = useSelector(getCourseAppSettings);
+  const savingStatus = useSelector(getSavingStatus);
+  const proctoringExamErrors = useSelector(getProctoringExamErrors);
+  const settingsWithSendErrors = useSelector(getSendRequestErrors) || {};
+  const loadingSettingsStatus = useSelector(getLoadingStatus);
 
-  const {
-    data: proctoringExamErrors = {},
-  } = useProctoringExamErrors(courseId);
-
-  const updateMutation = useUpdateCourseAdvancedSettings(courseId);
-
-  const {
-    isPending: isQueryPending,
-    isSuccess: isQuerySuccess,
-    error: queryError,
-  } = updateMutation;
-
-  const isLoading = isPendingSettingsStatus || (isAuthzEnabled && isLoadingUserPermissions);
+  const isLoading = loadingSettingsStatus === RequestStatus.IN_PROGRESS;
   const updateSettingsButtonState = {
     labels: {
       default: intl.formatMessage(messages.buttonSaveText),
@@ -79,34 +60,29 @@ const AdvancedSettings = () => {
     },
     disabledStates: ['pending'],
   };
-
   const {
     proctoringErrors,
-    mfeProctoredExamSettingsUrl,
   } = proctoringExamErrors;
 
   useEffect(() => {
-    if (isQuerySuccess) {
+    if (savingStatus === RequestStatus.SUCCESSFUL) {
+      setIsQueryPending(false);
       setShowSuccessAlert(true);
       setIsEditableState(false);
       setTimeout(() => setShowSuccessAlert(false), 15000);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       showSaveSettingsPrompt(false);
-    } else if (queryError && !hasInternetConnectionError) {
-      // @ts-ignore
-      setErrorFields(queryError?.response?.data ?? []);
+    } else if (savingStatus === RequestStatus.FAILED && !hasInternetConnectionError) {
+      setErrorFields(settingsWithSendErrors);
       showErrorModal(true);
     }
-  }, [isQuerySuccess, queryError]);
+  }, [savingStatus]);
 
   if (isLoading) {
-    return (
-      <div className="row justify-content-center m-6">
-        <LoadingSpinner />
-      </div>
-    );
+    // eslint-disable-next-line react/jsx-no-useless-fragment
+    return <></>;
   }
-  if (settingsStatusError?.response?.status === 403) {
+  if (loadingSettingsStatus === RequestStatus.DENIED) {
     return (
       <div className="row justify-content-center m-6">
         <Placeholder />
@@ -128,19 +104,22 @@ const AdvancedSettings = () => {
   const handleUpdateAdvancedSettingsData = () => {
     const isValid = validateAdvancedSettingsData(editedSettings, setErrorFields, setEditedSettings);
     if (isValid) {
-      setShowSuccessAlert(false);
-      updateMutation.mutate(parseArrayOrObjectValues(editedSettings));
+      setIsQueryPending(true);
     } else {
       showSaveSettingsPrompt(false);
       showErrorModal(!errorModal);
     }
   };
 
-  /* istanbul ignore next */
   const handleInternetConnectionFailed = () => {
     setInternetConnectionError(true);
     showSaveSettingsPrompt(false);
     setShowSuccessAlert(false);
+  };
+
+  const handleQueryProcessing = () => {
+    setShowSuccessAlert(false);
+    dispatch(updateCourseAppSetting(courseId, parseArrayOrObjectValues(editedSettings)));
   };
 
   const handleManuallyChangeClick = (setToState) => {
@@ -148,22 +127,8 @@ const AdvancedSettings = () => {
     showSaveSettingsPrompt(true);
   };
 
-  // Show permission denied alert when authz is enabled and user doesn't have permission
-  const authzIsEnabledAndNoPermission = isAuthzEnabled
-    && !isLoadingUserPermissions
-    && !userPermissions?.canManageAdvancedSettings;
-
-  if (authzIsEnabledAndNoPermission) {
-    return <PermissionDeniedAlert />;
-  }
-
   return (
     <>
-      <Helmet>
-        <title>
-          {getPageHeadTitle(courseDetails?.name ?? '', intl.formatMessage(messages.headingTitle))}
-        </title>
-      </Helmet>
       <Container size="xl" className="advanced-settings px-4">
         <div className="setting-header mt-5">
           {(proctoringErrors?.length > 0) && (
@@ -173,110 +138,87 @@ const AdvancedSettings = () => {
               aria-hidden="true"
               aria-labelledby={intl.formatMessage(messages.alertProctoringAriaLabelledby)}
               aria-describedby={intl.formatMessage(messages.alertProctoringDescribedby)}
-            >
-              {/* Empty children to satisfy the type checker */}
-              {/* eslint-disable-next-line react/jsx-no-useless-fragment */}
-              <></>
-            </AlertProctoringError>
+            />
           )}
           <TransitionReplace>
-            {showSuccessAlert ?
-              (
-                <AlertMessage
-                  key={intl.formatMessage(messages.alertSuccessAriaLabelledby)}
-                  show={showSuccessAlert}
-                  variant="success"
-                  icon={CheckCircle}
-                  title={intl.formatMessage(messages.alertSuccess)}
-                  description={intl.formatMessage(messages.alertSuccessDescriptions)}
-                  aria-hidden="true"
-                  aria-labelledby={intl.formatMessage(messages.alertSuccessAriaLabelledby)}
-                  aria-describedby={intl.formatMessage(messages.alertSuccessAriaDescribedby)}
-                />
-              ) :
-              null}
+            {showSuccessAlert ? (
+              <AlertMessage
+                key={intl.formatMessage(messages.alertSuccessAriaLabelledby)}
+                show={showSuccessAlert}
+                variant="success"
+                icon={CheckCircle}
+                title={intl.formatMessage(messages.alertSuccess)}
+                description={intl.formatMessage(messages.alertSuccessDescriptions)}
+                aria-hidden="true"
+                aria-labelledby={intl.formatMessage(messages.alertSuccessAriaLabelledby)}
+                aria-describedby={intl.formatMessage(messages.alertSuccessAriaDescribedby)}
+              />
+            ) : null}
           </TransitionReplace>
         </div>
         <section className="setting-items mb-4">
-          <Layout
-            lg={[{ span: 9 }, { span: 3 }]}
-            md={[{ span: 9 }, { span: 3 }]}
-            sm={[{ span: 9 }, { span: 3 }]}
-            xs={[{ span: 9 }, { span: 3 }]}
-            xl={[{ span: 9 }, { span: 3 }]}
-          >
-            <Layout.Element>
-              <SubHeader
-                subtitle={intl.formatMessage(messages.headingSubtitle)}
-                title={intl.formatMessage(messages.headingTitle)}
-                contentTitle={intl.formatMessage(messages.policy)}
-              />
-              <article>
-                <div>
-                  <section className="setting-items-policies">
-                    <div className="small">
-                      <FormattedMessage
-                        id="course-authoring.advanced-settings.policies.description"
-                        defaultMessage="{notice} Do not modify these policies unless you are familiar with their purpose."
-                        values={{ notice: <strong>Warning:</strong> }}
-                      />
-                    </div>
-                    <div className="setting-items-deprecated-setting">
-                      <Button
-                        variant={showDeprecated ? 'outline-brand' : 'tertiary'}
-                        onClick={() => setShowDeprecated(!showDeprecated)}
-                        size="sm"
-                      >
-                        <FormattedMessage
-                          id="course-authoring.advanced-settings.deprecated.button.text"
-                          defaultMessage="{visibility} deprecated settings"
-                          values={{
-                            visibility: showDeprecated ?
-                              intl.formatMessage(messages.deprecatedButtonHideText)
-                              : intl.formatMessage(messages.deprecatedButtonShowText),
-                          }}
-                        />
-                      </Button>
-                    </div>
-                    <ul className="setting-items-list p-0">
-                      {Object.keys(advancedSettingsData).map((settingName) => {
-                        const settingData = advancedSettingsData[settingName];
-                        if (settingData.deprecated && !showDeprecated) {
-                          return null;
-                        }
-                        return (
-                          <SettingCard
-                            key={settingName}
-                            settingData={settingData}
-                            name={settingName}
-                            showSaveSettingsPrompt={showSaveSettingsPrompt}
-                            saveSettingsPrompt={saveSettingsPrompt}
-                            setEdited={setEditedSettings}
-                            handleBlur={handleSettingBlur}
-                            isEditableState={isEditableState}
-                            setIsEditableState={setIsEditableState}
-                          />
-                        );
-                      })}
-                    </ul>
-                  </section>
-                </div>
-              </article>
-            </Layout.Element>
-            <Layout.Element>
-              <SettingsSidebar
-                courseId={courseId}
-                proctoredExamSettingsUrl={mfeProctoredExamSettingsUrl}
-              />
-            </Layout.Element>
-          </Layout>
+          <SubHeader
+            subtitle={intl.formatMessage(messages.headingSubtitle)}
+            title={intl.formatMessage(messages.headingTitle)}
+            contentTitle={intl.formatMessage(messages.policy)}
+          />
+          <article className="advanced-settings__content">
+            <section className="setting-items-policies">
+              <div className="small">
+                <FormattedMessage
+                  id="course-authoring.advanced-settings.policies.description"
+                  defaultMessage="{notice} Do not modify these policies unless you are familiar with their purpose."
+                  values={{ notice: <strong>Warning:  </strong> }}
+                />
+              </div>
+              <div className="setting-items-deprecated-setting">
+                <Button
+                  variant={showDeprecated ? 'outline-brand' : 'tertiary'}
+                  onClick={() => setShowDeprecated(!showDeprecated)}
+                  size="sm"
+                >
+                  <FormattedMessage
+                    id="course-authoring.advanced-settings.deprecated.button.text"
+                    defaultMessage="{visibility} deprecated settings"
+                    values={{
+                      visibility:
+                        showDeprecated ? intl.formatMessage(messages.deprecatedButtonHideText)
+                          : intl.formatMessage(messages.deprecatedButtonShowText),
+                    }}
+                  />
+                </Button>
+              </div>
+              <ul className="setting-items-list p-0">
+                {Object.keys(advancedSettingsData).map((settingName) => {
+                  const settingData = advancedSettingsData[settingName];
+                  if (settingData.deprecated && !showDeprecated) {
+                    return null;
+                  }
+                  return (
+                    <SettingCard
+                      key={settingName}
+                      settingData={settingData}
+                      name={settingName}
+                      showSaveSettingsPrompt={showSaveSettingsPrompt}
+                      saveSettingsPrompt={saveSettingsPrompt}
+                      setEdited={setEditedSettings}
+                      handleBlur={handleSettingBlur}
+                      isEditableState={isEditableState}
+                      setIsEditableState={setIsEditableState}
+                    />
+                  );
+                })}
+              </ul>
+            </section>
+          </article>
         </section>
       </Container>
       <div className="alert-toast">
         {isQueryPending && (
           <InternetConnectionAlert
-            isFailed={Boolean(queryError)}
+            isFailed={savingStatus === RequestStatus.FAILED}
             isQueryPending={isQueryPending}
+            onQueryProcessing={handleQueryProcessing}
             onInternetConnectionFailed={handleInternetConnectionFailed}
           />
         )}
@@ -287,20 +229,18 @@ const AdvancedSettings = () => {
           aria-describedby={intl.formatMessage(messages.alertWarningAriaDescribedby)}
           role="dialog"
           actions={[
-            !isQueryPending ?
-              (
-                <Button key="cancelBtn" variant="tertiary" onClick={handleResetSettingsValues}>
-                  {intl.formatMessage(messages.buttonCancelText)}
-                </Button>
-              ) :
-              /* istanbul ignore next */ null,
+            !isQueryPending && (
+              <Button variant="tertiary" onClick={handleResetSettingsValues}>
+                {intl.formatMessage(messages.buttonCancelText)}
+              </Button>
+            ),
             <StatefulButton
               key="statefulBtn"
               onClick={handleUpdateAdvancedSettingsData}
               state={isQueryPending ? RequestStatus.PENDING : 'default'}
               {...updateSettingsButtonState}
             />,
-          ].filter((action): action is JSX.Element => action !== null)}
+          ].filter(Boolean)}
           variant="warning"
           icon={Warning}
           title={intl.formatMessage(messages.alertWarning)}
@@ -316,6 +256,10 @@ const AdvancedSettings = () => {
       />
     </>
   );
+};
+
+AdvancedSettings.propTypes = {
+  courseId: PropTypes.string.isRequired,
 };
 
 export default AdvancedSettings;

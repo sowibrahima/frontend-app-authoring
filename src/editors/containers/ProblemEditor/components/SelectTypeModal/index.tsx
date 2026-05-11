@@ -4,7 +4,6 @@ import { Row, Stack } from '@openedx/paragon';
 
 import {
   AdvancedProblemType,
-  AdvanceProblemKeys,
   isAdvancedProblemType,
   ProblemType,
   ProblemTypeKeys,
@@ -14,32 +13,27 @@ import Preview from './content/Preview';
 import AdvanceTypeSelect from './content/AdvanceTypeSelect';
 import SelectTypeWrapper from './SelectTypeWrapper';
 import * as hooks from './hooks';
+import './index.scss';
 
 interface Props {
   onClose: (() => void) | null;
-  openAdvanced?: boolean;
 }
 
 const SelectTypeModal: React.FC<Props> = ({
   onClose,
-  openAdvanced = false,
 }) => {
-  const [selected, setSelected] = React.useState<ProblemType | AdvancedProblemType>(
-    openAdvanced ? AdvanceProblemKeys.BLANK : ProblemTypeKeys.SINGLESELECT,
-  );
+  const [selected, setSelected] = React.useState<ProblemType | AdvancedProblemType>(ProblemTypeKeys.SINGLESELECT);
   hooks.useArrowNav(selected, setSelected);
 
   return (
     <SelectTypeWrapper onClose={onClose} selected={selected}>
-      <Row className="justify-content-center">
-        {(!isAdvancedProblemType(selected)) ?
-          (
-            <Stack direction="horizontal" gap={4} className="flex-wrap mb-6">
-              <ProblemTypeSelect selected={selected} setSelected={setSelected} />
-              <Preview problemType={selected} />
-            </Stack>
-          ) :
-          <AdvanceTypeSelect selected={selected} setSelected={setSelected} />}
+      <Row className="problem-type-modal__body-row">
+        {(!isAdvancedProblemType(selected)) ? (
+          <Stack direction="horizontal" gap={4} className="problem-type-modal__content">
+            <ProblemTypeSelect selected={selected} setSelected={setSelected} />
+            <Preview problemType={selected} />
+          </Stack>
+        ) : <AdvanceTypeSelect selected={selected} setSelected={setSelected} />}
       </Row>
     </SelectTypeWrapper>
   );

@@ -3,51 +3,51 @@ import { defineMessages } from '@edx/frontend-platform/i18n';
 const messages = defineMessages({
   headingTitle: {
     id: 'course-authoring.studio-home.heading.title',
-    defaultMessage: 'Espaces d\'apprentissage',
+    defaultMessage: 'Learning spaces',
   },
   heroStatusPill: {
     id: 'course-authoring.studio-home.hero.status-pill',
-    defaultMessage: 'Espace formateur actif',
+    defaultMessage: 'Active instructor status',
   },
   heroSubtitle: {
     id: 'course-authoring.studio-home.hero.subtitle',
-    defaultMessage: 'Concevez et gérez vos programmes de formation. Structuration claire, progression fluide, sans élément superflu.',
+    defaultMessage: 'Design and manage your training programs with clear structure and smooth progression.',
   },
   addNewCourseBtnText: {
     id: 'course-authoring.studio-home.add-new-course.btn.text',
-    defaultMessage: 'Créer un cours',
+    defaultMessage: 'Create course',
   },
   addNewLibraryBtnText: {
     id: 'course-authoring.studio-home.add-new-library.btn.text',
-    defaultMessage: 'Nouvelle bibliothèque',
+    defaultMessage: 'New library',
   },
   homePageLoadFailedMessage: {
     id: 'course-authoring.studio-home.page-load.failed.message',
-    defaultMessage: 'Impossible de charger la page Studio. Réessayez dans quelques instants.',
+    defaultMessage: 'Unable to load Studio. Try again in a few moments.',
   },
   emailStaffBtnText: {
     id: 'course-authoring.studio-home.email-staff.btn.text',
-    defaultMessage: 'Contacter l\'équipe',
+    defaultMessage: 'Contact staff',
   },
   defaultSection_1_Title: {
     id: 'course-authoring.studio-home.default-section-1.title',
-    defaultMessage: 'Vous êtes membre d\'une équipe de cours existante sur {studioShortName} ?',
+    defaultMessage: 'Are you a member of an existing course team on {studioShortName}?',
   },
   defaultSection_1_Description: {
     id: 'course-authoring.studio-home.default-section-1.description',
-    defaultMessage: 'Le créateur du cours doit vous donner l\'accès. Contactez la personne responsable du cours que vous aidez à produire.',
+    defaultMessage: 'The course creator must grant you access. Contact the person responsible for the course you are helping produce.',
   },
   defaultSection_2_Title: {
     id: 'course-authoring.studio-home.default-section-2.title',
-    defaultMessage: 'Créer votre premier cours',
+    defaultMessage: 'Create your first course',
   },
   defaultSection_2_Description: {
     id: 'course-authoring.studio-home.default-section-2.description',
-    defaultMessage: 'Votre nouveau cours est à un clic.',
+    defaultMessage: 'Your new course is one click away.',
   },
   btnAddNewCourseText: {
     id: 'course-authoring.studio-home.btn.add-new-course.text',
-    defaultMessage: 'Créer votre premier cours',
+    defaultMessage: 'Create your first course',
   },
   btnReRunText: {
     id: 'course-authoring.studio-home.btn.re-run.text',
@@ -59,11 +59,11 @@ const messages = defineMessages({
   },
   viewLiveBtnText: {
     id: 'course-authoring.studio-home.btn.view-live.text',
-    defaultMessage: 'Voir en ligne',
+    defaultMessage: 'View live',
   },
   courseCardReferenceLabel: {
     id: 'course-authoring.studio-home.course-card.reference.label',
-    defaultMessage: 'Réf.',
+    defaultMessage: 'Ref.',
   },
   courseCardSessionLabel: {
     id: 'course-authoring.studio-home.course-card.session.label',
@@ -75,7 +75,7 @@ const messages = defineMessages({
   },
   organizationLabel: {
     id: 'course-authoring.studio-home.organization.label',
-    defaultMessage: 'Organisation :',
+    defaultMessage: 'Organization:',
   },
   organizationSubmitBtnText: {
     id: 'course-authoring.studio-home.organization.btn.submit.text',
@@ -87,12 +87,12 @@ const messages = defineMessages({
   },
   organizationInputNoOptions: {
     id: 'course-authoring.studio-home.organization.input.no-options',
-    defaultMessage: 'Aucune option',
+    defaultMessage: 'No options',
   },
   libraryMigrationStatusText: {
     id: 'course-authoring.studio-home.library-v1.card.status',
     description: 'Status text in v1 library card in studio informing user of its migration status',
-    defaultMessage: 'Bibliothèque migrée précédemment. Les liens de banques de problèmes ont déjà été déplacés vers',
+    defaultMessage: 'Library migrated previously. Problem bank links have already been moved to',
   },
 });
 

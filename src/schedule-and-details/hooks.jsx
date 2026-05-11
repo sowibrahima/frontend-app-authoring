@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useIntl } from '@edx/frontend-platform/i18n';
 
 import { RequestStatus } from '../data/constants';
 import { getLoadingDetailsStatus, getLoadingSettingsStatus, getSavingStatus } from './data/selectors';
-import { validateScheduleAndDetails, updateWithDefaultValues } from './utils';
+import { getChangedValues, validateScheduleAndDetails, updateWithDefaultValues } from './utils';
 
 const useLoadValuesPrompt = (
   courseId,
@@ -49,10 +49,12 @@ const useSaveValuesPrompt = (
   const [isQueryPending, setIsQueryPending] = useState(false);
   const [isEditableState, setIsEditableState] = useState(false);
   const [errorFields, setErrorFields] = useState({});
+  const changedFieldsRef = useRef(new Set());
 
   useEffect(() => {
     if (!isQueryPending && !isEditableState) {
       setEditedValues(initialEditedData);
+      changedFieldsRef.current = new Set();
     }
   }, [initialEditedData]);
 
@@ -66,20 +68,30 @@ const useSaveValuesPrompt = (
     setShowSuccessfulAlert(false);
     setShowFailedAlert(false);
 
-    if (editedValues[fieldName] !== value) {
+    const nextValue = value || '';
+
+    if (editedValues[fieldName] !== nextValue) {
+      const nextChangedFields = new Set(changedFieldsRef.current);
+
+      if ((initialEditedData?.[fieldName] || '') === nextValue) {
+        nextChangedFields.delete(fieldName);
+      } else {
+        nextChangedFields.add(fieldName);
+      }
+
+      changedFieldsRef.current = nextChangedFields;
       setEditedValues((prevEditedValues) => ({
         ...prevEditedValues,
-        [fieldName]: value || '',
+        [fieldName]: nextValue,
       }));
 
-      if (!showModifiedAlert) {
-        setShowModifiedAlert(true);
-      }
+      setShowModifiedAlert(nextChangedFields.size > 0);
     }
   };
 
   const handleResetValues = () => {
     setIsEditableState(false);
+    changedFieldsRef.current = new Set();
     setEditedValues(initialEditedData || {});
     setShowModifiedAlert(false);
     setShowSuccessfulAlert(false);
@@ -87,8 +99,15 @@ const useSaveValuesPrompt = (
   };
 
   const handleUpdateValues = () => {
+    setShowSuccessfulAlert(false);
+    setShowFailedAlert(false);
     setIsQueryPending(true);
     setIsEditableState(false);
+
+    if (window.navigator.onLine) {
+      const changedValues = getChangedValues(editedValues, [...changedFieldsRef.current]);
+      dispatch(updateDataQuery(courseId, updateWithDefaultValues(changedValues)));
+    }
   };
 
   const handleInternetConnectionFailed = () => {
@@ -96,12 +115,6 @@ const useSaveValuesPrompt = (
     setShowSuccessfulAlert(false);
     setShowFailedAlert(false);
     setIsQueryPending(false);
-  };
-
-  const handleQueryProcessing = () => {
-    setShowSuccessfulAlert(false);
-    setShowFailedAlert(false);
-    dispatch(updateDataQuery(courseId, updateWithDefaultValues(editedValues)));
   };
 
   useEffect(() => {
@@ -113,6 +126,7 @@ const useSaveValuesPrompt = (
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
       if (!isEditableState) {
+        changedFieldsRef.current = new Set();
         setShowModifiedAlert(false);
       }
     } else if (savingStatus === RequestStatus.FAILED) {
@@ -141,7 +155,6 @@ const useSaveValuesPrompt = (
     handleResetValues,
     handleValuesChange,
     handleUpdateValues,
-    handleQueryProcessing,
     handleInternetConnectionFailed,
   };
 };

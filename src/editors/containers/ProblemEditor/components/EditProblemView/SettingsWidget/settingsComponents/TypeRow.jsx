@@ -36,13 +36,18 @@ const TypeRow = ({
 
   return (
     <>
-      <Button onClick={onClick} className="d-flex p-0 flex-row justify-content-between w-100">
-        <span className="small text-primary-500">{label}</span>
-        <span hidden={selected}>
-          <Icon src={Check} className="text-success" />
+      <Button
+        type="button"
+        onClick={onClick}
+        className={`problem-type-option${selected ? '' : ' is-selected'}`}
+        aria-current={selected ? undefined : 'true'}
+      >
+        <span className="problem-type-option__label">{label}</span>
+        <span className="problem-type-option__check" hidden={selected}>
+          <Icon src={Check} />
         </span>
       </Button>
-      <hr className={lastRow ? 'd-none' : 'd-block'} />
+      <hr className={lastRow ? 'd-none' : 'problem-type-option__divider'} />
     </>
   );
 };

@@ -11,6 +11,7 @@ import {
   Spinner,
   StatefulButton,
 } from '@openedx/paragon';
+import SharedHeader from '@edx/frontend-component-header';
 import {
   AccessTime,
   Widgets,
@@ -29,8 +30,8 @@ import FormikControl from '@src/generic/FormikControl';
 import FormikErrorFeedback from '@src/generic/FormikErrorFeedback';
 import SubHeader from '@src/generic/sub-header/SubHeader';
 import WutiFooter from '@src/footer/WutiFooter';
-import Header from '@src/header';
 import { useStudioHome } from '@src/studio-home/hooks';
+import { createCorrectInternalRoute } from '@src/utils';
 
 import type { ContentLibrary } from '../data/api';
 import { CreateContentLibraryArgs } from './data/api';
@@ -152,21 +153,30 @@ export const CreateLibrary = ({
 
   return (
     <>
-      {!showInModal && (<Header isHiddenMainMenu />)}
-      <Container size="md" className="p-4 mt-3">
-        {!showInModal && (
-          <SubHeader
-            title={intl.formatMessage(messages.createLibrary)}
-            headerActions={!isFromArchive ? (
-              <Button
-                variant="outline-primary"
-                onClick={handleCreateFromArchive}
-              >
-                {intl.formatMessage(messages.createFromArchiveButton)}
-              </Button>
-            ) : null}
-          />
-        )}
+      {!showInModal && (
+        <SharedHeader
+          mainMenuItems={[]}
+          secondaryMenuItems={[]}
+          logoDestination={createCorrectInternalRoute('/home')}
+          showStudioLinkInUserMenu={false}
+          userMenuVariant="studio"
+        />
+      )}
+      <div className={classNames('ws-create-library-page', { 'ws-create-library-page--modal': showInModal })}>
+        <Container size="md" className="ws-create-library-container">
+          {!showInModal && (
+            <SubHeader
+              title={intl.formatMessage(messages.createLibrary)}
+              headerActions={!isFromArchive ? (
+                <Button
+                  variant="outline-primary"
+                  onClick={handleCreateFromArchive}
+                >
+                  {intl.formatMessage(messages.createFromArchiveButton)}
+                </Button>
+              ) : null}
+            />
+          )}
 
         {/* Archive upload section - shown above form when in archive mode */}
         {isFromArchive && (
@@ -393,7 +403,8 @@ export const CreateLibrary = ({
         </Formik>
         {isError && (<AlertError error={error} />)}
 
-      </Container>
+        </Container>
+      </div>
       {!showInModal && (<WutiFooter />)}
     </>
   );

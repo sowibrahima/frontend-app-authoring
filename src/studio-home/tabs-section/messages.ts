@@ -3,47 +3,47 @@ import { defineMessages } from '@edx/frontend-platform/i18n';
 const messages = defineMessages({
   coursesTabTitle: {
     id: 'course-authoring.studio-home.courses.tab.title',
-    defaultMessage: 'Cours',
+    defaultMessage: 'Courses',
   },
   courseTabErrorMessage: {
     id: 'course-authoring.studio-home.courses.tab.error.message',
-    defaultMessage: 'Impossible de charger les cours. Réessayez plus tard.',
+    defaultMessage: 'Unable to load courses. Try again later.',
   },
   coursesPaginationInfo: {
     id: 'course-authoring.studio-home.courses.pagination.info',
-    defaultMessage: 'Affichage de {length} sur {total}',
+    defaultMessage: 'Showing {length} of {total}',
   },
   librariesTabErrorMessage: {
     id: 'course-authoring.studio-home.libraries.tab.error.message',
-    defaultMessage: 'Impossible de charger les bibliothèques. Réessayez plus tard.',
+    defaultMessage: 'Unable to load libraries. Try again later.',
   },
   librariesTabTitle: {
     id: 'course-authoring.studio-home.libraries.tab.title',
-    defaultMessage: 'Bibliothèques',
+    defaultMessage: 'Libraries',
   },
   legacyLibrariesTabTitle: {
     id: 'course-authoring.studio-home.legacy.libraries.tab.title',
-    defaultMessage: 'Bibliothèques classiques',
+    defaultMessage: 'Legacy libraries',
   },
   archivedTabTitle: {
     id: 'course-authoring.studio-home.archived.tab.title',
-    defaultMessage: 'Cours archivés',
+    defaultMessage: 'Archived courses',
   },
   archiveTabErrorMessage: {
     id: 'course-authoring.studio-home.archived.tab.error.message',
-    defaultMessage: 'Impossible de charger les cours archivés. Réessayez plus tard.',
+    defaultMessage: 'Unable to load archived courses. Try again later.',
   },
   coursesTabCourseNotFoundAlertTitle: {
     id: 'course-authoring.studio-home.courses.tab.course.not.found.alert.title',
-    defaultMessage: 'Aucun résultat trouvé',
+    defaultMessage: 'No results found',
   },
   coursesTabCourseNotFoundAlertMessage: {
     id: 'course-authoring.studio-home.courses.tab.course.not.found.alert.message',
-    defaultMessage: 'Aucun cours ne correspond aux filtres actuels.',
+    defaultMessage: 'No course matches the current filters.',
   },
   coursesTabCourseNotFoundAlertCleanFiltersButton: {
     id: 'course-authoring.studio-home.courses.tab.course.not.found.alert.clean.filters.button',
-    defaultMessage: 'Réinitialiser les filtres',
+    defaultMessage: 'Reset filters',
   },
   taxonomiesTabTitle: {
     id: 'course-authoring.studio-home.taxonomies.tab.title',
@@ -60,20 +60,20 @@ const messages = defineMessages({
   },
   librariesV2TabBetaBadge: {
     id: 'course-authoring.studio-home.libraries.tab.library.beta-badge',
-    defaultMessage: 'Bêta',
+    defaultMessage: 'Beta',
     description: 'Text used to mark the Libraries v2 feature as "in beta"',
   },
   librariesV2TabLibrarySearchPlaceholder: {
     id: 'course-authoring.studio-home.libraries.tab.library.search-placeholder',
-    defaultMessage: 'Rechercher',
+    defaultMessage: 'Search',
   },
   librariesV2TabLibraryNotFoundAlertTitle: {
     id: 'course-authoring.studio-home.libraries.tab.library.not.found.alert.title',
-    defaultMessage: 'Aucun résultat trouvé',
+    defaultMessage: 'No results found',
   },
   librariesV2TabLibraryNotFoundAlertMessage: {
     id: 'course-authoring.studio-home.libraries.tab.library.not.found.alert.message',
-    defaultMessage: 'Aucune bibliothèque ne correspond aux filtres actuels.',
+    defaultMessage: 'No library matches the current filters.',
   },
   alertTitle: {
     id: 'studio-home.libraries.migrate-alert.title',

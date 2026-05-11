@@ -19,7 +19,6 @@ import * as hooks from './hooks';
 import { ProblemTypeKeys } from '../../../../../data/constants/problem';
 import ExpandableTextArea from '../../../../../sharedComponents/ExpandableTextArea';
 import { answerRangeFormatRegex } from '../../../data/OLXParser';
-import { useValidateInputBlock } from '../../../data/apiHooks';
 
 const AnswerOption = ({
   answer,
@@ -33,6 +32,7 @@ const AnswerOption = ({
   const isLibrary = useSelector(selectors.app.isLibrary);
   const learningContextId = useSelector(selectors.app.learningContextId);
   const blockId = useSelector(selectors.app.blockId);
+
   const removeAnswer = hooks.removeAnswer({ answer, dispatch });
   const setAnswer = hooks.setAnswer({ answer, hasSingleAnswer, dispatch });
   const setAnswerTitle = hooks.setAnswerTitle({
@@ -44,7 +44,6 @@ const AnswerOption = ({
   const setSelectedFeedback = hooks.setSelectedFeedback({ answer, hasSingleAnswer, dispatch });
   const setUnselectedFeedback = hooks.setUnselectedFeedback({ answer, hasSingleAnswer, dispatch });
   const { isFeedbackVisible, toggleFeedback } = hooks.useFeedback(answer);
-  const { data = { isValid: true }, mutate } = useValidateInputBlock();
 
   const staticRootUrl = isLibrary
     ? `${getConfig().STUDIO_BASE_URL}/library_assets/blocks/${blockId}/`
@@ -70,30 +69,17 @@ const AnswerOption = ({
         />
       );
     }
-
     if (problemType !== ProblemTypeKeys.NUMERIC || !answer.isAnswerRange) {
       return (
-        <Form.Group isInvalid={!data?.isValid}>
-          <Form.Control
-            as="textarea"
-            className="answer-option-textarea text-gray-500 small"
-            autoResize
-            rows={1}
-            value={answer.title}
-            onChange={(e) => {
-              setAnswerTitle(e);
-              if (problemType === ProblemTypeKeys.NUMERIC) {
-                mutate(e.target.value);
-              }
-            }}
-            placeholder={intl.formatMessage(messages.answerTextboxPlaceholder)}
-          />
-          {(!data?.isValid) && (
-            <Form.Control.Feedback type="invalid">
-              <FormattedMessage {...messages.answerNumericErrorText} />
-            </Form.Control.Feedback>
-          )}
-        </Form.Group>
+        <Form.Control
+          as="textarea"
+          className="answer-option-textarea text-gray-500 small"
+          autoResize
+          rows={1}
+          value={answer.title}
+          onChange={setAnswerTitle}
+          placeholder={intl.formatMessage(messages.answerTextboxPlaceholder)}
+        />
       );
     }
     // Return Answer Range View
@@ -125,9 +111,9 @@ const AnswerOption = ({
     <Collapsible.Advanced
       open={isFeedbackVisible}
       onToggle={toggleFeedback}
-      className="answer-option d-flex flex-row justify-content-between flex-nowrap pb-2 pt-2"
+      className="answer-option"
     >
-      <div className="mr-1 d-flex">
+      <div className="answer-option__checker">
         <Checker
           hasSingleAnswer={hasSingleAnswer}
           answer={answer}
@@ -135,7 +121,7 @@ const AnswerOption = ({
           disabled={problemType === ProblemTypeKeys.NUMERIC}
         />
       </div>
-      <div className="ml-1 flex-grow-1">
+      <div className="answer-option__input">
         {getInputArea()}
         <Collapsible.Body>
           <FeedbackBox
@@ -150,11 +136,8 @@ const AnswerOption = ({
           />
         </Collapsible.Body>
       </div>
-      <div className="d-flex flex-row flex-nowrap">
-        <Collapsible.Trigger
-          aria-label={intl.formatMessage(messages.feedbackToggleIconAriaLabel)}
-          className="btn-icon btn-icon-primary btn-icon-md align-items-center"
-        >
+      <div className="answer-option__actions">
+        <Collapsible.Trigger aria-label={intl.formatMessage(messages.feedbackToggleIconAriaLabel)} className="btn-icon btn-icon-primary btn-icon-md align-items-center">
           <Icon
             src={FeedbackOutline}
             alt={intl.formatMessage(messages.feedbackToggleIconAltText)}

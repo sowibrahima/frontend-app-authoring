@@ -17,13 +17,13 @@ import { LoadingSpinner } from '@src/generic/Loading';
 import AlertMessage from '@src/generic/alert-message';
 import type { ContentLibrary, LibrariesV2Response } from '@src/library-authoring/data/api';
 
-import { CardItem } from '../../card-item';
+import CardItem from '../../card-item';
 import messages from '../messages';
 import LibrariesV2Filters from './libraries-v2-filters';
 
 interface CardListProps {
   hasV2Libraries: boolean;
-  inSelectMode?: boolean;
+  selectMode?: 'single' | 'multiple';
   selectedLibraryId?: string;
   isFiltered: boolean;
   isLoading: boolean;
@@ -34,7 +34,7 @@ interface CardListProps {
 
 const CardList: React.FC<CardListProps> = ({
   hasV2Libraries,
-  inSelectMode,
+  selectMode,
   selectedLibraryId,
   isFiltered,
   isLoading,
@@ -45,26 +45,24 @@ const CardList: React.FC<CardListProps> = ({
   if (hasV2Libraries) {
     return (
       <>
-        {data!.results.map(({
-          id,
-          org,
-          slug,
-          title,
-        }) => (
-          <CardItem
-            key={`${org}+${slug}`}
-            isLibraries
-            displayName={title}
-            org={org}
-            number={slug}
-            path={`/library/${id}`}
-            selectMode={inSelectMode ? 'single' : undefined}
-            selectPosition={inSelectMode ? 'title' : undefined}
-            isSelected={selectedLibraryId === id}
-            itemId={id}
-            scrollIntoView={scrollIntoView && selectedLibraryId === id}
-          />
-        ))}
+        {
+          data!.results.map(({
+            id, org, slug, title,
+          }) => (
+            <CardItem
+              key={`${org}+${slug}`}
+              isLibraries
+              displayName={title}
+              org={org}
+              number={slug}
+              path={`/library/${id}`}
+              selectMode={selectMode}
+              isSelected={selectedLibraryId === id}
+              itemId={id}
+              scrollIntoView={scrollIntoView && selectedLibraryId === id}
+            />
+          ))
+        }
       </>
     );
   }
@@ -72,7 +70,7 @@ const CardList: React.FC<CardListProps> = ({
   // Empty alert
   if (isFiltered && !isLoading) {
     return (
-      <Alert className="mt-4">
+      <Alert className="ws-libraries-v2-empty-state">
         <Alert.Heading>
           <FormattedMessage {...messages.librariesV2TabLibraryNotFoundAlertTitle} />
         </Alert.Heading>
@@ -153,97 +151,97 @@ const LibrariesV2List: React.FC<Props> = ({
   const hasV2Libraries = !isPending && !isError && ((data!.results.length || 0) > 0);
 
   return (
-    isError ?
-      (
-        <AlertMessage
-          variant="danger"
-          description={
-            <Row className="m-0 align-items-center">
-              <Icon src={Error} className="text-danger-500 mr-1" />
-              <span>{intl.formatMessage(messages.librariesTabErrorMessage)}</span>
-            </Row>
-          }
-        />
-      ) :
-      (
-        <div className="courses-tab-container">
-          <div className="d-flex flex-row justify-content-between my-4">
-            <Stack direction="horizontal">
-              {showCreateLibrary && (
-                <Button
-                  variant="outline-primary"
-                  onClick={openCreateLibrary}
-                  iconBefore={Add}
-                  className="mr-3"
-                >
-                  <FormattedMessage {...messages.createLibraryButton} />
-                </Button>
-              )}
-              <LibrariesV2Filters
-                isPending={isPending}
-                isFiltered={isFiltered}
-                filterParams={filterParams}
-                setFilterParams={setFilterParams}
-                setCurrentPage={setCurrentPage}
-              />
-            </Stack>
-            {!isPending && !isError
-              && (
-                <p>
-                  {intl.formatMessage(messages.coursesPaginationInfo, {
-                    length: data!.results.length,
-                    total: data!.count,
-                  })}
-                </p>
-              )}
-          </div>
-
-          {inSelectMode ?
-            (
-              <Form.RadioSet
-                name="select-libraries-v2-list"
-                value={selectedLibraryId}
-                onChange={(e) => handleOnChangeRadioSet(e.target.value)}
+    isError ? (
+      <AlertMessage
+        variant="danger"
+        description={(
+          <Row className="m-0 align-items-center">
+            <Icon src={Error} className="text-danger-500 mr-1" />
+            <span>{intl.formatMessage(messages.librariesTabErrorMessage)}</span>
+          </Row>
+        )}
+      />
+    ) : (
+      <div className="courses-tab-container ws-libraries-v2">
+        <div className="ws-libraries-v2-toolbar">
+          <Stack direction="horizontal" className="ws-libraries-v2-toolbar__controls">
+            {showCreateLibrary && (
+              <Button
+                variant="outline-primary"
+                onClick={openCreateLibrary}
+                iconBefore={Add}
+                className="ws-libraries-v2-create-btn"
               >
-                <CardList
-                  hasV2Libraries={hasV2Libraries}
-                  inSelectMode={inSelectMode}
-                  selectedLibraryId={selectedLibraryId}
-                  isFiltered={isFiltered}
-                  isLoading={isPending}
-                  data={data!}
-                  handleClearFilters={handleClearFilters}
-                  scrollIntoView={scrollIntoCard}
-                />
-              </Form.RadioSet>
-            ) :
-            (
+                <FormattedMessage {...messages.createLibraryButton} />
+              </Button>
+            )}
+            <LibrariesV2Filters
+              isPending={isPending}
+              isFiltered={isFiltered}
+              filterParams={filterParams}
+              setFilterParams={setFilterParams}
+              setCurrentPage={setCurrentPage}
+            />
+          </Stack>
+          {!isPending && !isError
+          && (
+            <p className="ws-libraries-v2-count">
+              {intl.formatMessage(messages.coursesPaginationInfo, {
+                length: data!.results.length,
+                total: data!.count,
+              })}
+            </p>
+          )}
+        </div>
+
+        <div className="ws-libraries-v2-grid">
+          {inSelectMode ? (
+            <Form.RadioSet
+              name="select-libraries-v2-list"
+              value={selectedLibraryId}
+              onChange={(e) => handleOnChangeRadioSet(e.target.value)}
+            >
               <CardList
                 hasV2Libraries={hasV2Libraries}
+                selectMode={inSelectMode ? 'single' : undefined}
+                selectedLibraryId={selectedLibraryId}
                 isFiltered={isFiltered}
                 isLoading={isPending}
                 data={data!}
                 handleClearFilters={handleClearFilters}
+                scrollIntoView={scrollIntoCard}
               />
-            )}
-
-          {hasV2Libraries && (data!.numPages || 0) > 1
-            && (
-              <Pagination
-                className="d-flex justify-content-center"
-                paginationLabel="pagination navigation"
-                pageCount={data!.numPages}
-                currentPage={currentPage}
-                onPageSelect={handlePageSelect}
-              />
-            )}
-          <CreateLibraryModal
-            isOpen={isCreateLibraryOpen}
-            onClose={closeCreateLibrary}
-            handlePostCreate={handlePostCreateLibrary}
-          />
+            </Form.RadioSet>
+          ) : (
+            <CardList
+              hasV2Libraries={hasV2Libraries}
+              isFiltered={isFiltered}
+              isLoading={isPending}
+              data={data!}
+              handleClearFilters={handleClearFilters}
+            />
+          )}
         </div>
-      )
+
+        {
+          hasV2Libraries && (data!.numPages || 0) > 1
+          && (
+            <Pagination
+              className="d-flex justify-content-center"
+              paginationLabel="pagination navigation"
+              pageCount={data!.numPages}
+              currentPage={currentPage}
+              onPageSelect={handlePageSelect}
+            />
+          )
+        }
+        <CreateLibraryModal
+          isOpen={isCreateLibraryOpen}
+          onClose={closeCreateLibrary}
+          handlePostCreate={handlePostCreateLibrary}
+        />
+      </div>
+    )
   );
 };
 

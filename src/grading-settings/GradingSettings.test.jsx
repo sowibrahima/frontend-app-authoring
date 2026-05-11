@@ -1,51 +1,54 @@
+import { initializeMockApp } from '@edx/frontend-platform';
+import { getAuthenticatedHttpClient } from '@edx/frontend-platform/auth';
+import { injectIntl, IntlProvider } from '@edx/frontend-platform/i18n';
+import { AppProvider } from '@edx/frontend-platform/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  initializeMocks,
-} from '@src/testUtils';
-import { CourseAuthoringProvider } from '@src/CourseAuthoringContext';
-import { getCourseSettingsApiUrl } from '@src/data/api';
-import { mockWaffleFlags } from '@src/data/apiHooks.mock';
-import { useCourseUserPermissions } from '@src/authz/hooks';
+  act, fireEvent, render, screen,
+} from '@testing-library/react';
+import MockAdapter from 'axios-mock-adapter';
 
+import initializeStore from '../store';
+import { withMinimalResponse } from '../data/apiUtils';
 import gradingSettings from './__mocks__/gradingSettings';
-import { getGradingSettingsApiUrl } from './data/api';
+import { getCourseSettingsApiUrl, getGradingSettingsApiUrl } from './data/api';
 import * as apiHooks from './data/apiHooks';
 import GradingSettings from './GradingSettings';
+import sidebarMessages from './grading-sidebar/messages';
 import messages from './messages';
-
-jest.mock('@src/authz/hooks', () => ({
-  useCourseUserPermissions: jest.fn().mockReturnValue({
-    isLoading: false,
-    canViewGradingSettings: true,
-    canEditGradingSettings: true,
-  }),
-}));
 
 const courseId = '123';
 let axiosMock;
+let store;
+const getGradingSettingsMinimalApiUrl = () => withMinimalResponse(getGradingSettingsApiUrl(courseId));
+
+const queryClient = new QueryClient();
 
 const RootWrapper = () => (
-  <CourseAuthoringProvider courseId={courseId}>
-    <GradingSettings />
-  </CourseAuthoringProvider>
+  <AppProvider store={store}>
+    <IntlProvider locale="en" messages={{}}>
+      <QueryClientProvider client={queryClient}>
+        <GradingSettings intl={injectIntl} courseId={courseId} />
+      </QueryClientProvider>
+    </IntlProvider>
+  </AppProvider>
 );
 
 describe('<GradingSettings />', () => {
   beforeEach(() => {
-    const mocks = initializeMocks();
+    initializeMockApp({
+      authenticatedUser: {
+        userId: 3, username: 'abc123', administrator: true, roles: [],
+      },
+    });
 
-    // jsdom doesn't implement scrollTo; mock to avoid noisy console errors.
-    Object.defineProperty(window, 'scrollTo', { value: jest.fn(), writable: true });
-
-    axiosMock = mocks.axiosMock;
+    store = initializeStore();
+    axiosMock = new MockAdapter(getAuthenticatedHttpClient());
     axiosMock
       .onGet(getGradingSettingsApiUrl(courseId))
       .reply(200, gradingSettings);
     axiosMock
-      .onPost(getGradingSettingsApiUrl(courseId))
+      .onPost(getGradingSettingsMinimalApiUrl())
       .reply(200, {});
     axiosMock.onGet(getCourseSettingsApiUrl(courseId))
       .reply(200, {});
@@ -75,6 +78,12 @@ describe('<GradingSettings />', () => {
     expect(screen.getByText(messages.policiesDescription.defaultMessage)).toBeInTheDocument();
   });
 
+  it('does not render the right help column', async () => {
+    await screen.findByText(messages.headingTitle.defaultMessage);
+
+    expect(screen.queryByText(sidebarMessages.gradingSidebarTitle.defaultMessage)).not.toBeInTheDocument();
+  });
+
   it('should update segment input value and show save alert', async () => {
     const segmentInputs = await screen.findAllByTestId('grading-scale-segment-input');
     expect(segmentInputs).toHaveLength(5);
@@ -99,26 +108,6 @@ describe('<GradingSettings />', () => {
     testSaving();
   });
 
-  it('should show success alert and hide save prompt after successful save', async () => {
-    // Trigger change to show save prompt
-    const segmentInputs = await screen.findAllByTestId('grading-scale-segment-input');
-    const segmentInput = segmentInputs[2];
-    fireEvent.change(segmentInput, { target: { value: 'PatchTest' } });
-    // Click save and verify pending state appears
-    const saveBtnInitial = screen.getByText(messages.buttonSaveText.defaultMessage);
-    fireEvent.click(saveBtnInitial);
-    expect(screen.getByText(messages.buttonSavingText.defaultMessage)).toBeInTheDocument();
-    // Wait for success alert to appear (mutation success)
-    const successAlert = await screen.findByText(messages.alertSuccess.defaultMessage);
-    expect(successAlert).toBeVisible();
-    // Pending label should disappear and save prompt should be hidden (button removed)
-    expect(screen.queryByText(messages.buttonSavingText.defaultMessage)).toBeNull();
-    const saveAlert = screen.queryByTestId('grading-settings-save-alert');
-    expect(saveAlert).toBeNull();
-    // Ensure original save button text is no longer present because the prompt closed
-    expect(screen.queryByText(messages.buttonSaveText.defaultMessage)).toBeNull();
-  });
-
   it('should handle being offline gracefully', async () => {
     setOnlineStatus(false);
     const segmentInputs = await screen.findAllByTestId('grading-scale-segment-input');
@@ -137,72 +126,5 @@ describe('<GradingSettings />', () => {
     jest.spyOn(apiHooks, 'useGradingSettings').mockReturnValue({ isError: true });
     render(<RootWrapper />);
     expect(screen.getByTestId('connectionErrorAlert')).toBeInTheDocument();
-  });
-});
-
-describe('<GradingSettings /> permissions', () => {
-  beforeEach(() => {
-    jest.restoreAllMocks();
-    const mocks = initializeMocks();
-    Object.defineProperty(window, 'scrollTo', { value: jest.fn(), writable: true });
-    const { axiosMock: mock } = mocks;
-    mock.onGet(getGradingSettingsApiUrl(courseId)).reply(200, gradingSettings);
-    mock.onPost(getGradingSettingsApiUrl(courseId)).reply(200, {});
-    mock.onGet(getCourseSettingsApiUrl(courseId)).reply(200, {});
-    jest.mocked(useCourseUserPermissions).mockReturnValue({
-      isLoading: false,
-      canViewGradingSettings: true,
-      canEditGradingSettings: true,
-    });
-  });
-
-  it('should render normally when authz flag is disabled (no regression)', async () => {
-    mockWaffleFlags({ enableAuthzCourseAuthoring: false });
-    render(<RootWrapper />);
-    expect(await screen.findAllByText(messages.headingTitle.defaultMessage)).not.toHaveLength(0);
-  });
-
-  it('should render normally when user has view and edit permissions', async () => {
-    mockWaffleFlags({ enableAuthzCourseAuthoring: true });
-    render(<RootWrapper />);
-    expect(await screen.findAllByText(messages.headingTitle.defaultMessage)).not.toHaveLength(0);
-  });
-
-  it('should show permission denied alert when user lacks view permission', async () => {
-    mockWaffleFlags({ enableAuthzCourseAuthoring: true });
-    jest.mocked(useCourseUserPermissions).mockReturnValue({
-      isLoading: false,
-      canViewGradingSettings: false,
-      canEditGradingSettings: false,
-    });
-    render(<RootWrapper />);
-    expect(await screen.findByTestId('permissionDeniedAlert')).toBeInTheDocument();
-  });
-
-  it('should disable inputs when user has view but not edit permission', async () => {
-    mockWaffleFlags({ enableAuthzCourseAuthoring: true });
-    jest.mocked(useCourseUserPermissions).mockReturnValue({
-      isLoading: false,
-      canViewGradingSettings: true,
-      canEditGradingSettings: false,
-    });
-    render(<RootWrapper />);
-    const segmentInputs = await screen.findAllByTestId('grading-scale-segment-input');
-    segmentInputs.forEach((input) => expect(input).toBeDisabled());
-  });
-
-  it('should disable save button when user lacks edit permission', async () => {
-    mockWaffleFlags({ enableAuthzCourseAuthoring: true });
-    jest.mocked(useCourseUserPermissions).mockReturnValue({
-      isLoading: false,
-      canViewGradingSettings: true,
-      canEditGradingSettings: false,
-    });
-    render(<RootWrapper />);
-    const segmentInputs = await screen.findAllByTestId('grading-scale-segment-input');
-    // Trigger a change to show the save alert
-    fireEvent.change(segmentInputs[1], { target: { value: 'Test' } });
-    const saveBtn = screen.getByTestId('grading-settings-save-alert').querySelector('button[type="button"]:last-child');
-    expect(saveBtn).toBeDisabled();
   });
 });

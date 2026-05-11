@@ -24,6 +24,7 @@ import {
 } from 'react-router-dom';
 
 import * as authzApi from '@src/authz/data/api';
+import './setupParagonOverlays';
 import { ToastContext, type ToastContextData } from './generic/toast-context';
 import initializeReduxStore, { type DeprecatedReduxState } from './store';
 import { getApiWaffleFlagsUrl } from './data/api';

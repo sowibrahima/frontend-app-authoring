@@ -84,13 +84,13 @@ const LibrariesV2Filters: React.FC<LibrariesV2FiltersProps> = ({
   }, [order, search]);
 
   return (
-    <div className="d-flex">
-      <div className="d-flex flex-row">
+    <div className="ws-libraries-v2-filters">
+      <div className="ws-libraries-v2-search">
         <SearchField
           onSubmit={() => {}}
           onChange={handleSearchLibrariesV2}
           value={search}
-          className="mr-4"
+          className="ws-libraries-v2-search-field"
           placeholder={intl.formatMessage(messages.librariesV2TabLibrarySearchPlaceholder)}
         />
         {isPending && (

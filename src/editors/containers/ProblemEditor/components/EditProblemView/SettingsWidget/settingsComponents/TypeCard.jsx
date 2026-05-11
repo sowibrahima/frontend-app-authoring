@@ -26,6 +26,7 @@ const TypeCard = ({
     <SettingsOption
       title={intl.formatMessage(messages.typeSettingTitle)}
       summary={localizedProblemTypes[problemType].title}
+      className="typeCard"
     >
       {problemTypeKeysArray.map((typeKey, i) => (
         <TypeRow

@@ -19,10 +19,7 @@ import RawEditor from '../../../../sharedComponents/RawEditor';
 import { ProblemTypeKeys } from '../../../../data/constants/problem';
 
 import {
-  checkIfEditorsDirty,
-  parseState,
-  saveWarningModalToggle,
-  getContent,
+  checkIfEditorsDirty, parseState, saveWarningModalToggle, getContent,
 } from './hooks';
 
 import './index.scss';
@@ -30,7 +27,7 @@ import messages from './messages';
 import ExplanationWidget from './ExplanationWidget';
 import { saveBlock } from '../../../../hooks';
 
-import { selectors } from '../../../../data/redux';
+import { actions, selectors } from '../../../../data/redux';
 import { ProblemEditorContextProvider } from './ProblemEditorContext';
 
 const EditProblemView = ({ returnFunction }) => {
@@ -41,6 +38,8 @@ const EditProblemView = ({ returnFunction }) => {
   const analytics = useSelector(selectors.app.analytics);
   const lmsEndpointUrl = useSelector(selectors.app.lmsEndpointUrl);
   const returnUrl = useSelector(selectors.app.returnUrl);
+  const learningContextId = useSelector(selectors.app.learningContextId);
+  const blockId = useSelector(selectors.app.blockId);
   const problemType = useSelector(selectors.problem.problemType);
   const problemState = useSelector(selectors.problem.completeState);
   const isDirty = useSelector(selectors.problem.isDirty);
@@ -53,6 +52,61 @@ const EditProblemView = ({ returnFunction }) => {
   const isAdvancedProblemType = problemType === ProblemTypeKeys.ADVANCED;
 
   const { isSaveWarningModalOpen, openSaveWarningModal, closeSaveWarningModal } = saveWarningModalToggle();
+  const canUseAiGeneration = typeof window !== 'undefined'
+    && Boolean(window.WSAIAssistant?.openComponentGenerationModal);
+
+  const applyGeneratedQuiz = (quiz) => {
+    if (!quiz?.question || !Array.isArray(quiz.choices)) {
+      return;
+    }
+
+    const generatedAnswers = quiz.choices.map((choice, index) => ({
+      id: String.fromCharCode(65 + index),
+      title: choice.text || '',
+      selectedFeedback: choice.feedback || quiz.explanation || '',
+      unselectedFeedback: '',
+      correct: Boolean(choice.correct),
+      isAnswerRange: false,
+    }));
+    const normalizedAnswers = generatedAnswers.length ? generatedAnswers : [{
+      id: 'A',
+      title: '',
+      selectedFeedback: '',
+      unselectedFeedback: '',
+      correct: true,
+      isAnswerRange: false,
+    }];
+    const correctAnswerCount = normalizedAnswers.filter(answer => answer.correct).length;
+    const generatedProblemType = correctAnswerCount > 1
+      ? ProblemTypeKeys.MULTISELECT
+      : ProblemTypeKeys.SINGLESELECT;
+
+    dispatch(actions.problem.updateField({
+      problemType: generatedProblemType,
+      question: quiz.question,
+      answers: normalizedAnswers,
+      correctAnswerCount: Math.max(correctAnswerCount, 1),
+      generalFeedback: quiz.explanation || '',
+      isDirty: true,
+    }));
+
+    const editors = window.tinymce?.editors || {};
+    editors.question?.setContent?.(quiz.question);
+    normalizedAnswers.forEach((answer) => {
+      editors[`answer-${answer.id}`]?.setContent?.(answer.title);
+      editors[`selectedFeedback-${answer.id}`]?.setContent?.(answer.selectedFeedback);
+      editors[`unselectedFeedback-${answer.id}`]?.setContent?.('');
+    });
+  };
+
+  const openQuizGeneration = () => {
+    window.WSAIAssistant.openComponentGenerationModal({
+      courseId: learningContextId,
+      blockId,
+      componentType: 'quiz',
+      onInsert: applyGeneratedQuiz,
+    });
+  };
 
   const checkIfDirty = () => {
     if (isAdvancedProblemType && editorRef?.current) {
@@ -64,15 +118,14 @@ const EditProblemView = ({ returnFunction }) => {
   return (
     <ProblemEditorContextProvider editorRef={editorRef}>
       <EditorContainer
-        getContent={() =>
-          getContent({
-            problemState,
-            openSaveWarningModal,
-            isAdvancedProblemType,
-            isMarkdownEditorEnabled,
-            editorRef,
-            lmsEndpointUrl,
-          })}
+        getContent={() => getContent({
+          problemState,
+          openSaveWarningModal,
+          isAdvancedProblemType,
+          isMarkdownEditorEnabled,
+          editorRef,
+          lmsEndpointUrl,
+        })}
         isDirty={checkIfDirty}
         returnFunction={returnFunction}
       >
@@ -82,33 +135,34 @@ const EditProblemView = ({ returnFunction }) => {
             : intl.formatMessage(messages.noAnswerTitle)}
           isOpen={isSaveWarningModalOpen}
           onClose={closeSaveWarningModal}
-          footerNode={
+          footerNode={(
             <ActionRow>
               <Button variant="tertiary" onClick={closeSaveWarningModal}>
                 <FormattedMessage {...messages.saveWarningModalCancelButtonLabel} />
               </Button>
               <Button
-                onClick={() =>
-                  saveBlock({
-                    content: parseState({
-                      problem: problemState,
-                      isAdvanced: isAdvancedProblemType,
-                      isMarkdown: isMarkdownEditorEnabled,
-                      ref: editorRef,
-                      lmsEndpointUrl,
-                    })(),
-                    returnFunction,
-                    destination: returnUrl,
-                    dispatch,
-                    analytics,
-                  })}
+                onClick={() => saveBlock({
+                  content: parseState({
+                    problem: problemState,
+                    isAdvanced: isAdvancedProblemType,
+                    isMarkdown: isMarkdownEditorEnabled,
+                    ref: editorRef,
+                    lmsEndpointUrl,
+                  })(),
+                  returnFunction,
+                  destination: returnUrl,
+                  dispatch,
+                  analytics,
+                })}
               >
                 <FormattedMessage {...messages.saveWarningModalSaveButtonLabel} />
               </Button>
             </ActionRow>
-          }
+        )}
         >
-          {isAdvancedProblemType ? <FormattedMessage {...messages.olxSettingDiscrepancyBodyExplanation} /> : (
+          {isAdvancedProblemType ? (
+            <FormattedMessage {...messages.olxSettingDiscrepancyBodyExplanation} />
+          ) : (
             <>
               <div>
                 <FormattedMessage {...messages.saveWarningModalBodyQuestion} />
@@ -120,28 +174,34 @@ const EditProblemView = ({ returnFunction }) => {
           )}
         </AlertModal>
 
-        <div className="editProblemView d-flex flex-row flex-nowrap justify-content-end">
-          {isAdvancedProblemType || isMarkdownEditorEnabled ?
-            (
-              <Container fluid className="advancedEditorTopMargin p-0">
-                <RawEditor
-                  editorRef={editorRef}
-                  lang={isMarkdownEditorEnabled ? 'markdown' : 'xml'}
-                  content={isMarkdownEditorEnabled ? problemState.rawMarkdown : problemState.rawOLX}
-                />
-              </Container>
-            ) :
-            (
-              <span className="flex-grow-1 mb-5">
-                <QuestionWidget />
-                <ExplanationWidget />
-                <AnswerWidget problemType={problemType} />
-              </span>
-            )}
+        <div className="editProblemView-aiActions">
+          {canUseAiGeneration && !isAdvancedProblemType && !isMarkdownEditorEnabled && (
+            <Button variant="primary" size="sm" onClick={openQuizGeneration}>
+              <FormattedMessage {...messages.generateQuizWithAi} />
+            </Button>
+          )}
+        </div>
 
-          <span className="editProblemView-settingsColumn">
+        <div className="editProblemView">
+          {isAdvancedProblemType || isMarkdownEditorEnabled ? (
+            <Container fluid className="advancedEditorTopMargin p-0">
+              <RawEditor
+                editorRef={editorRef}
+                lang={isMarkdownEditorEnabled ? 'markdown' : 'xml'}
+                content={isMarkdownEditorEnabled ? problemState.rawMarkdown : problemState.rawOLX}
+              />
+            </Container>
+          ) : (
+            <span className="editProblemView-main">
+              <QuestionWidget />
+              <ExplanationWidget />
+              <AnswerWidget problemType={problemType} />
+            </span>
+          )}
+
+          <aside className="editProblemView-settingsColumn">
             <SettingsWidget problemType={problemType} />
-          </span>
+          </aside>
         </div>
       </EditorContainer>
     </ProblemEditorContextProvider>

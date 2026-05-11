@@ -1,5 +1,6 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
 import { getConfig } from '@edx/frontend-platform';
 import { useIntl, FormattedMessage } from '@edx/frontend-platform/i18n';
 import {
@@ -22,6 +23,7 @@ import messages from './messages';
 import AddComponentButton from './add-component-btn';
 import ComponentModalView from './add-component-modals/ComponentModalView';
 import { getCourseSectionVertical, getCourseUnitData } from '../data/selectors';
+import { getLiveSessionsCapability } from './liveSessionsApi';
 
 type ComponentTemplateData = {
   displayName: string,
@@ -40,6 +42,8 @@ type ComponentTemplateData = {
     showLegend?: boolean,
   },
 };
+
+const LIVE_SESSION_XBLOCK_TYPE = 'live_session';
 
 export interface AddComponentProps {
   isSplitTestType?: boolean,
@@ -74,10 +78,23 @@ const AddComponent = ({
   const [isOpenHtml, openHtml, closeHtml] = useToggle(false);
   const [isOpenOpenAssessment, openOpenAssessment, closeOpenAssessment] = useToggle(false);
   const { componentTemplates = {} } = useSelector(getCourseSectionVertical);
+  const componentTemplateList = Array.isArray(componentTemplates) ? componentTemplates : [];
+  const isLiveSessionComponentAvailable = componentTemplateList.some(
+    (component: ComponentTemplateData) => (
+      component.type === COMPONENT_TYPES.advanced
+      && component.templates.some(template => template.category === LIVE_SESSION_XBLOCK_TYPE)
+    ),
+  );
+  const [isLiveSessionOrgEnabled, setIsLiveSessionOrgEnabled] = useState(false);
+  const [isLiveSessionAvailabilityLoaded, setIsLiveSessionAvailabilityLoaded] = useState(false);
+  const isLiveSessionAvailable = isLiveSessionComponentAvailable && isLiveSessionOrgEnabled;
+  const { courseId: routeCourseId } = useParams();
   const blockId = addComponentTemplateData?.parentLocator || parentLocator;
   const [isAddLibraryContentModalOpen, showAddLibraryContentModal, closeAddLibraryContentModal] = useToggle();
   const [isVideoSelectorModalOpen, showVideoSelectorModal, closeVideoSelectorModal] = useToggle();
   const [isXBlockEditorModalOpen, showXBlockEditorModal, closeXBlockEditorModal] = useToggle();
+  const [isActivityPickerOpen, openActivityPicker, closeActivityPicker] = useToggle(false);
+  const [activityPickerStep, setActivityPickerStep] = useState<'root' | 'read' | 'exercise' | 'other'>('root');
 
   const [blockType, setBlockType] = useState<string | null>(null);
   const [courseId, setCourseId] = useState<string | null>(null);
@@ -90,6 +107,36 @@ const AddComponent = ({
 
   const courseUnit = useSelector(getCourseUnitData);
   const sequenceId = courseUnit?.ancestorInfo?.ancestors?.[0]?.id;
+
+  useEffect(() => {
+    if (!routeCourseId || !isUnitVerticalType) {
+      return undefined;
+    }
+
+    let isMounted = true;
+    setIsLiveSessionAvailabilityLoaded(false);
+
+    getLiveSessionsCapability(routeCourseId)
+      .then((capability) => {
+        if (isMounted) {
+          setIsLiveSessionOrgEnabled(Boolean(capability.enabled));
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setIsLiveSessionOrgEnabled(false);
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsLiveSessionAvailabilityLoaded(true);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isUnitVerticalType, routeCourseId]);
 
   const receiveMessage = useCallback(({ data: { type, payload } }) => {
     if (type === messageTypes.showMultipleComponentPicker) {
@@ -194,55 +241,209 @@ const AddComponent = ({
     }
   };
 
-  const lessonBuilderActions = [
+  const closeActivityPickerFlow = () => {
+    setActivityPickerStep('root');
+    closeActivityPicker();
+  };
+
+  const createActivity = (type: string, moduleName?: string) => {
+    handleCreateNewXBlock(type, moduleName);
+    closeActivityPickerFlow();
+  };
+
+  const liveSessionDescriptionMessage = () => {
+    if (!isLiveSessionAvailabilityLoaded) {
+      return messages.lessonBuilderLiveCheckingDescription;
+    }
+
+    if (isLiveSessionAvailable) {
+      return messages.lessonBuilderLiveDescription;
+    }
+
+    return messages.lessonBuilderLiveUnavailableDescription;
+  };
+
+  const activityGroups = [
     {
       key: 'read',
       title: intl.formatMessage(messages.lessonBuilderReadTitle),
       description: intl.formatMessage(messages.lessonBuilderReadDescription),
       icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.html],
-      onClick: () => handleCreateNewXBlock(COMPONENT_TYPES.html, COMPONENT_TYPES.html),
+      onClick: () => setActivityPickerStep('read'),
     },
     {
       key: 'watch',
       title: intl.formatMessage(messages.lessonBuilderWatchTitle),
       description: intl.formatMessage(messages.lessonBuilderWatchDescription),
       icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.video],
-      onClick: () => handleCreateNewXBlock(COMPONENT_TYPES.video),
+      onClick: () => createActivity(COMPONENT_TYPES.video),
     },
     {
-      key: 'practice',
-      title: intl.formatMessage(messages.lessonBuilderPracticeTitle),
-      description: intl.formatMessage(messages.lessonBuilderPracticeDescription),
+      key: 'listen',
+      title: intl.formatMessage(messages.lessonBuilderListenTitle),
+      description: intl.formatMessage(messages.lessonBuilderListenDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.video],
+      disabled: true,
+    },
+    {
+      key: 'exercise',
+      title: intl.formatMessage(messages.lessonBuilderExerciseTitle),
+      description: intl.formatMessage(messages.lessonBuilderExerciseDescription),
       icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.problem],
-      onClick: () => handleCreateNewXBlock(COMPONENT_TYPES.problem),
+      onClick: () => setActivityPickerStep('exercise'),
     },
     {
-      key: 'answer',
-      title: intl.formatMessage(messages.lessonBuilderAnswerTitle),
-      description: intl.formatMessage(messages.lessonBuilderAnswerDescription),
-      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.problem],
-      onClick: () => handleCreateNewXBlock(COMPONENT_TYPES.problem),
+      key: 'live',
+      title: intl.formatMessage(messages.lessonBuilderLiveTitle),
+      description: intl.formatMessage(liveSessionDescriptionMessage()),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.video],
+      onClick: () => createActivity(COMPONENT_TYPES.advanced, LIVE_SESSION_XBLOCK_TYPE),
+      disabled: !isLiveSessionAvailable,
     },
     {
-      key: 'discuss',
-      title: intl.formatMessage(messages.lessonBuilderDiscussTitle),
-      description: intl.formatMessage(messages.lessonBuilderDiscussDescription),
-      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.discussion],
-      onClick: () => handleCreateNewXBlock(COMPONENT_TYPES.discussion),
-    },
-    {
-      key: 'submit',
-      title: intl.formatMessage(messages.lessonBuilderSubmitTitle),
-      description: intl.formatMessage(messages.lessonBuilderSubmitDescription),
-      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.openassessment],
-      onClick: () => handleCreateNewXBlock(COMPONENT_TYPES.openassessment, 'peer-assessment'),
+      key: 'other',
+      title: intl.formatMessage(messages.lessonBuilderOtherTitle),
+      description: intl.formatMessage(messages.lessonBuilderOtherDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.advanced],
+      onClick: () => setActivityPickerStep('other'),
     },
   ];
+
+  const readChoices = [
+    {
+      key: 'html',
+      title: intl.formatMessage(messages.lessonBuilderHtmlTitle),
+      description: intl.formatMessage(messages.lessonBuilderHtmlDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.html],
+      onClick: () => createActivity(COMPONENT_TYPES.html, COMPONENT_TYPES.html),
+    },
+    {
+      key: 'pdf',
+      title: intl.formatMessage(messages.lessonBuilderPdfTitle),
+      description: intl.formatMessage(messages.lessonBuilderPdfDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.html],
+      disabled: true,
+    },
+  ];
+
+  const exerciseChoices = [
+    {
+      key: 'quiz',
+      title: intl.formatMessage(messages.lessonBuilderQuizTitle),
+      description: intl.formatMessage(messages.lessonBuilderQuizDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.problem],
+      onClick: () => createActivity(COMPONENT_TYPES.problem),
+    },
+    {
+      key: 'drag-drop',
+      title: intl.formatMessage(messages.lessonBuilderDragDropTitle),
+      description: intl.formatMessage(messages.lessonBuilderDragDropDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.dragAndDrop],
+      onClick: () => createActivity(COMPONENT_TYPES.dragAndDrop),
+    },
+    {
+      key: 'open-response',
+      title: intl.formatMessage(messages.lessonBuilderOpenResponseTitle),
+      description: intl.formatMessage(messages.lessonBuilderOpenResponseDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.openassessment],
+      onClick: () => createActivity(COMPONENT_TYPES.openassessment, 'peer-assessment'),
+    },
+    {
+      key: 'collect',
+      title: intl.formatMessage(messages.lessonBuilderCollectTitle),
+      description: intl.formatMessage(messages.lessonBuilderCollectDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.openassessment],
+      onClick: () => createActivity(COMPONENT_TYPES.openassessment, 'staff-assessment'),
+    },
+  ];
+
+  const renderActivityCards = (items) => (
+    <div className="ws-lesson-builder__grid">
+      {items.map((action) => (
+        <button
+          key={action.key}
+          type="button"
+          className="ws-lesson-builder__card"
+          onClick={action.onClick}
+          disabled={action.disabled}
+        >
+          <span className="ws-lesson-builder__card-icon" aria-hidden="true">
+            <Icon src={action.icon} />
+          </span>
+          <span className="ws-lesson-builder__card-title">{action.title}</span>
+          <span className="ws-lesson-builder__card-description">{action.description}</span>
+          {!action.disabled && (
+            <span className="ws-lesson-builder__card-link">
+              {intl.formatMessage(messages.lessonBuilderCreateAction)}
+              <Icon src={ArrowRight} />
+            </span>
+          )}
+        </button>
+      ))}
+    </div>
+  );
+
+  const renderLegacyComponents = () => (
+    <ul className="new-component-type list-unstyled m-0 d-flex flex-wrap justify-content-center">
+      {componentTemplateList.map((component: ComponentTemplateData) => {
+        const { type, displayName, beta } = component;
+        let modalParams: { open: () => void, close: () => void, isOpen: boolean };
+
+        if (!component.templates.length) {
+          return null;
+        }
+
+        switch (type) {
+          case COMPONENT_TYPES.advanced:
+            modalParams = {
+              open: openAdvanced,
+              close: closeAdvanced,
+              isOpen: isOpenAdvanced,
+            };
+            break;
+          case COMPONENT_TYPES.html:
+            modalParams = {
+              open: openHtml,
+              close: closeHtml,
+              isOpen: isOpenHtml,
+            };
+            break;
+          case COMPONENT_TYPES.openassessment:
+            modalParams = {
+              open: openOpenAssessment,
+              close: closeOpenAssessment,
+              isOpen: isOpenOpenAssessment,
+            };
+            break;
+          default:
+            return (
+              <li key={type}>
+                <AddComponentButton
+                  onClick={() => createActivity(type)}
+                  displayName={displayName}
+                  type={type}
+                  beta={beta}
+                />
+              </li>
+            );
+        }
+
+        return (
+          <ComponentModalView
+            key={type}
+            component={component}
+            handleCreateNewXBlock={handleCreateNewXBlock}
+            modalParams={modalParams}
+          />
+        );
+      })}
+    </ul>
+  );
 
   if (isUnitVerticalType || isSplitTestType || isProblemBankType) {
     return (
       <div className="py-4">
-        {Object.keys(componentTemplates).length && isUnitVerticalType ? (
+        {componentTemplateList.length && isUnitVerticalType ? (
           <>
             {isEmptyUnit && (
               <section className="ws-lesson-builder">
@@ -258,87 +459,59 @@ const AddComponent = ({
                   </p>
                 </div>
 
-                <div className="ws-lesson-builder__grid">
-                  {lessonBuilderActions.map((action) => (
-                    <button
-                      key={action.key}
-                      type="button"
-                      className="ws-lesson-builder__card"
-                      onClick={action.onClick}
-                    >
-                      <span className="ws-lesson-builder__card-icon" aria-hidden="true">
-                        <Icon src={action.icon} />
-                      </span>
-                      <span className="ws-lesson-builder__card-title">{action.title}</span>
-                      <span className="ws-lesson-builder__card-description">{action.description}</span>
-                      <span className="ws-lesson-builder__card-link">
-                        {intl.formatMessage(messages.lessonBuilderCreateAction)}
-                        <Icon src={ArrowRight} />
-                      </span>
-                    </button>
-                  ))}
-                </div>
+                {activityPickerStep !== 'root' && (
+                  <Button
+                    variant="tertiary"
+                    className="ws-activity-picker__back mb-3"
+                    onClick={() => setActivityPickerStep('root')}
+                  >
+                    {intl.formatMessage(messages.activityBack)}
+                  </Button>
+                )}
+                {activityPickerStep === 'root' && renderActivityCards(activityGroups)}
+                {activityPickerStep === 'read' && renderActivityCards(readChoices)}
+                {activityPickerStep === 'exercise' && renderActivityCards(exerciseChoices)}
+                {activityPickerStep === 'other' && renderLegacyComponents()}
               </section>
             )}
-            <h5 className={`mb-4 ${isEmptyUnit ? 'ws-lesson-builder__advanced-title h4' : 'h3 text-center'}`}>
-              {intl.formatMessage(isEmptyUnit ? messages.advancedTitle : messages.title)}
-            </h5>
-            <ul className="new-component-type list-unstyled m-0 d-flex flex-wrap justify-content-center">
-              {componentTemplates.map((component: ComponentTemplateData) => {
-                const { type, displayName, beta } = component;
-                let modalParams: { open: () => void, close: () => void, isOpen: boolean };
-
-                if (!component.templates.length) {
-                  return null;
-                }
-
-                switch (type) {
-                  case COMPONENT_TYPES.advanced:
-                    modalParams = {
-                      open: openAdvanced,
-                      close: closeAdvanced,
-                      isOpen: isOpenAdvanced,
-                    };
-                    break;
-                  case COMPONENT_TYPES.html:
-                    modalParams = {
-                      open: openHtml,
-                      close: closeHtml,
-                      isOpen: isOpenHtml,
-                    };
-                    break;
-                  case COMPONENT_TYPES.openassessment:
-                    modalParams = {
-                      open: openOpenAssessment,
-                      close: closeOpenAssessment,
-                      isOpen: isOpenOpenAssessment,
-                    };
-                    break;
-                  default:
-                    return (
-                      <li key={type}>
-                        <AddComponentButton
-                          onClick={() => handleCreateNewXBlock(type)}
-                          displayName={displayName}
-                          type={type}
-                          beta={beta}
-                        />
-                      </li>
-                    );
-                }
-
-                return (
-                  <ComponentModalView
-                    key={type}
-                    component={component}
-                    handleCreateNewXBlock={handleCreateNewXBlock}
-                    modalParams={modalParams}
-                  />
-                );
-              })}
-            </ul>
+            {!isEmptyUnit && (
+              <div className="ws-add-activity-compact">
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    setActivityPickerStep('root');
+                    openActivityPicker();
+                  }}
+                >
+                  {intl.formatMessage(messages.title)}
+                </Button>
+              </div>
+            )}
           </>
         ) : null}
+        <StandardModal
+          title={intl.formatMessage(messages.title)}
+          isOpen={isActivityPickerOpen}
+          onClose={closeActivityPickerFlow}
+          isOverflowVisible={false}
+          size="lg"
+        >
+          <div className="ws-activity-picker">
+            {activityPickerStep !== 'root' && (
+              <Button
+                variant="tertiary"
+                className="ws-activity-picker__back"
+                onClick={() => setActivityPickerStep('root')}
+              >
+                {intl.formatMessage(messages.activityBack)}
+              </Button>
+            )}
+            {activityPickerStep === 'root' && renderActivityCards(activityGroups)}
+            {activityPickerStep === 'read' && renderActivityCards(readChoices)}
+            {activityPickerStep === 'exercise' && renderActivityCards(exerciseChoices)}
+            {activityPickerStep === 'other' && renderLegacyComponents()}
+          </div>
+        </StandardModal>
         <StandardModal
           title={
             isAddLibraryContentModalOpen

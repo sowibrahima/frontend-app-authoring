@@ -8,10 +8,10 @@
   justify-content: space-between;
   position: relative;
   padding: 1.563rem 1.875rem 1.25rem;
-  background-color: var(--pgn-color-white);
+  background-color: var(--wuti-color-surface, #FFFFFF);
   border: .0625rem solid var(--pgn-color-gray-200);
   border-radius: .375rem;
-  box-shadow: 0 1px 1px var(--pgn-color-gray-200);
+  box-shadow: 0 1px 2px rgb(17 24 39 / .04);
 
   &:not(:last-child) {
     margin-bottom: 1.25rem;
@@ -41,7 +41,7 @@
   .member-hint {
     width: 45%;
     margin-right: 3.875rem;
-    color: var(--pgn-color-gray-300);
+    color: var(--wuti-color-muted, #6B7280);
     font-size: var(--pgn-typography-font-size-sm);
   }
 

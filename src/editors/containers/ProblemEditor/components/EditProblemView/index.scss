@@ -1,20 +1,82 @@
 .editProblemView {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 22rem;
+  gap: 2rem;
+  align-items: start;
+
+  .editProblemView-main {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    padding-bottom: 2rem;
+  }
+
   .editProblemView-settingsColumn {
-    width: 320px;
-    flex-grow: 0;
-    flex-shrink: 0;
+    width: auto;
+    min-width: 0;
   }
 
   .advancedEditorTopMargin {
     margin-top: 40px;
   }
 
+  .editProblemView-section {
+    color: var(--wuti-color-text, #111827);
+
+    .small {
+      color: var(--wuti-color-muted, #667085);
+      font-size: .9rem;
+      line-height: 1.45;
+    }
+  }
+
   .answer-option {
-    .pgn__form-checkbox,
-    .pgn__form-radio {
-      & + .pgn__form-label {
-        min-width: 1.1rem;
-      }
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1fr) 4.5rem;
+    gap: .75rem;
+    align-items: start;
+    padding: .55rem 0;
+
+    .answer-option__checker {
+      display: grid;
+      grid-template-columns: 1.25rem 1.25rem;
+      gap: .55rem;
+      align-items: center;
+      padding-top: .75rem;
+    }
+
+    .answer-option__checker .pgn__form-checkbox,
+    .answer-option__checker .pgn__form-radio,
+    .answer-option__checker .pgn__form-label {
+      margin: 0;
+      padding: 0;
+    }
+
+    .answer-option__checker .pgn__form-label {
+      min-width: 0;
+      color: var(--wuti-color-text, #111827);
+      font-weight: 800;
+      line-height: 1.25rem;
+    }
+
+    .answer-option__input {
+      min-width: 0;
+    }
+
+    .answer-option__actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: .25rem;
+      padding-top: .6rem;
+      white-space: nowrap;
+    }
+
+    .answer-option__actions .btn,
+    .answer-option__actions .btn-icon {
+      width: 2rem;
+      height: 2rem;
+      min-width: 2rem;
+      padding: 0;
     }
   }
 
@@ -22,6 +84,28 @@
     .pgn__form-checkbox .pgn__form-label {
       min-width: .8rem;
     }
+  }
+}
+
+.editProblemView-aiActions {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 1rem;
+}
+
+.answers-container {
+  border: 1px solid var(--wuti-color-border, #E5E7EB);
+  border-radius: 1rem;
+  background: var(--wuti-color-surface, #FFFFFF);
+  padding: 1.25rem 1.5rem;
+
+  .button-variant-add {
+    min-height: 2.7rem;
+    border: 1px solid color-mix(in srgb, var(--wuti-color-brand, #590D22) 35%, var(--wuti-color-border, #E5E7EB));
+    border-radius: 999px;
+    color: var(--wuti-color-brand, #590D22);
+    font-weight: 800;
+    padding: .6rem 1.1rem .6rem .9rem;
   }
 }
 
@@ -67,5 +151,15 @@
   .tox-editor-header{
     position: sticky;
     top: -3px;
+  }
+}
+
+@media (width <= 980px) {
+  .editProblemView {
+    grid-template-columns: 1fr;
+
+    .editProblemView-settingsColumn {
+      order: -1;
+    }
   }
 }

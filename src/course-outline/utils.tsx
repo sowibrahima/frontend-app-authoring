@@ -1,4 +1,3 @@
-import type { IntlShape, MessageDescriptor } from 'react-intl';
 import {
   CheckCircle as CheckCircleIcon,
   Lock as LockIcon,
@@ -6,22 +5,19 @@ import {
 
 import DraftIcon from '@src/generic/DraftIcon';
 import { VisibilityTypes } from '@src/data/constants';
-import { ValueOf } from '@src/types';
 import { ITEM_BADGE_STATUS, VIDEO_SHARING_OPTIONS } from './constants';
 
-export type ItemBadgeStatusValue = ValueOf<typeof ITEM_BADGE_STATUS>;
 /**
  * Get section status depended on section info
+ * @param {bool} published - value from section info
+ * @param {string} visibilityState - value from section info
+ * @returns {ITEM_BADGE_STATUS[keyof ITEM_BADGE_STATUS]}
  */
 const getItemStatus = ({
   published,
   visibilityState,
   hasChanges,
-}: {
-  published: boolean;
-  visibilityState: string;
-  hasChanges?: boolean;
-}): ItemBadgeStatusValue => {
+}) => {
   switch (true) {
     case visibilityState === VisibilityTypes.STAFF_ONLY:
       return ITEM_BADGE_STATUS.staffOnly;
@@ -42,12 +38,13 @@ const getItemStatus = ({
 
 /**
  * Get section badge status content
+ * @param {string} status - value from on getItemStatus util
+ * @returns {
+ *   badgeTitle: string,
+ *   badgeIcon: node,
+ * }
  */
-const getItemStatusBadgeContent = (
-  status: ItemBadgeStatusValue,
-  messages: Record<string, MessageDescriptor>,
-  intl: IntlShape,
-) => {
+const getItemStatusBadgeContent = (status, messages, intl) => {
   switch (status) {
     case ITEM_BADGE_STATUS.gated:
       return {
@@ -88,38 +85,18 @@ const getItemStatusBadgeContent = (
 };
 
 /**
- * Get section border color
+ * Status is shown by badges/text only. Outline cards should not render a
+ * colored left rail because it competes with the nested card layout.
  */
-const getItemStatusBorder = (status?: ItemBadgeStatusValue) => {
+const getItemStatusBorder = (status) => {
   switch (status) {
     case ITEM_BADGE_STATUS.live:
-      return {
-        borderLeft: '5px solid #00688D',
-      };
     case ITEM_BADGE_STATUS.publishedNotLive:
-      return {
-        borderLeft: '5px solid #0D7D4D',
-      };
     case ITEM_BADGE_STATUS.gated:
-      return {
-        borderLeft: '5px solid #000000',
-      };
     case ITEM_BADGE_STATUS.staffOnly:
-      return {
-        borderLeft: '5px solid #000000',
-      };
     case ITEM_BADGE_STATUS.unpublishedChanges:
-      return {
-        borderLeft: '5px solid #F0CC00',
-      };
     case ITEM_BADGE_STATUS.draft:
-      return {
-        borderLeft: '5px solid #F0CC00',
-      };
     case ITEM_BADGE_STATUS.unscheduled:
-      return {
-        borderLeft: '5px solid #ccc',
-      };
     default:
       return {};
   }
@@ -127,8 +104,16 @@ const getItemStatusBorder = (status?: ItemBadgeStatusValue) => {
 
 /**
  * Get formatted highlights form values
+ * @param {Array<string>} currentHighlights - section highlights
+ * @returns {
+ *   highlight_1: string,
+ *   highlight_2: string,
+ *   highlight_3: string,
+ *   highlight_4: string,
+ *   highlight_5: string,
+ * }
  */
-const getHighlightsFormValues = (currentHighlights: Array<string>): any => {
+const getHighlightsFormValues = (currentHighlights) => {
   const initialFormValues = {
     highlight_1: '',
     highlight_2: '',
@@ -154,12 +139,15 @@ const getHighlightsFormValues = (currentHighlights: Array<string>): any => {
 
 /**
  * Method to scroll into view port, if it's outside the viewport
+ *
+ * @param {Object} target - DOM Element
+ * @param {boolean} alignWithTop (optional) - Whether top of the target will be aligned to
+ *                                            the top of viewpoint. (default: false)
+ * @param {boolean} highlight (optional) - Whether highlight the target after scrolling.
+ *                                            (default: false)
+ * @returns {undefined}
  */
-const scrollToElement = (
-  target: HTMLElement,
-  alignWithTop: boolean = false,
-  highlight: boolean = false,
-) => {
+const scrollToElement = (target, alignWithTop = false, highlight = false) => {
   if (target.getBoundingClientRect().bottom > window.innerHeight) {
     // if alignWithTop is set, the top of the target will be aligned to the top of visible area
     // of the scrollable ancestor, Otherwise, the bottom of the target will be aligned to the
@@ -187,11 +175,7 @@ const scrollToElement = (
  * @param {string} id - option id
  * @returns {string} - text to display
  */
-const getVideoSharingOptionText = (
-  id: ValueOf<typeof VIDEO_SHARING_OPTIONS>,
-  messages: Record<string, MessageDescriptor>,
-  intl: IntlShape,
-): string => {
+const getVideoSharingOptionText = (id, messages, intl) => {
   switch (id) {
     case VIDEO_SHARING_OPTIONS.perVideo:
       return intl.formatMessage(messages.videoSharingPerVideoText);

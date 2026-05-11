@@ -4,6 +4,22 @@
   }
 
   .sub-header-breadcrumbs {
+    .course-unit-breadcrumbs {
+      min-height: 1.5rem;
+    }
+
+    .course-unit-breadcrumbs li {
+      line-height: 1.5rem;
+    }
+
+    .course-unit-breadcrumbs__toggle,
+    .btn.btn-link.text-decoration-none {
+      display: inline-flex;
+      align-items: center;
+      min-height: 1.5rem;
+      line-height: 1.5rem;
+    }
+
     .dropdown-toggle::after {
       display: none;
     }

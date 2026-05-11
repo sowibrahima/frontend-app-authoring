@@ -38,6 +38,11 @@ const messages = defineMessages({
       corresponding values in the sidebar will be discarded.`,
     description: 'Explanation in body of mismatched settings modal',
   },
+  generateQuizWithAi: {
+    id: 'authoring.problemEditor.editProblemView.generateQuizWithAi',
+    defaultMessage: 'Generate quiz with AI',
+    description: 'Button label for AI quiz generation',
+  },
 });
 
 export default messages;

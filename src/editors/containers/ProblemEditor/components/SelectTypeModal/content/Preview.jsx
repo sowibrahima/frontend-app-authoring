@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Hyperlink, Image, Container } from '@openedx/paragon';
+import { Image, Container } from '@openedx/paragon';
 import {
   FormattedMessage,
   useIntl,
@@ -19,26 +19,19 @@ const Preview = ({
   const staticData = ProblemTypes[problemType];
 
   return (
-    <Container style={{ width: '494px', height: '400px' }} className="bg-light-300 rounded p-4">
-      <div className="small">
-        <FormattedMessage {...messages[`problemType.${problemType}.title`]} />{' '}
-        {intl.formatMessage(messages.problemTextInPreviewTitle)}
+    <Container className="problem-type-modal__preview">
+      <div className="problem-type-modal__preview-title">
+        <FormattedMessage {...messages[`problemType.${problemType}.title`]} /> {intl.formatMessage(messages.problemTextInPreviewTitle)}
       </div>
       <Image
         fluid
-        className="my-3"
+        className="problem-type-modal__preview-image"
         src={staticData.preview}
         alt={intl.formatMessage(messages.previewAltText, { problemType })}
       />
-      <div className="mb-3">
+      <div className="problem-type-modal__preview-description">
         <FormattedMessage {...messages[`problemType.${problemType}.description`]} />
       </div>
-      <Hyperlink
-        destination={staticData.helpLink}
-        target="_blank"
-      >
-        <FormattedMessage {...messages.learnMoreButtonLabel} />
-      </Hyperlink>
     </Container>
   );
 };

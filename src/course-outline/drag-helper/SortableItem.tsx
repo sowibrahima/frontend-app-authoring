@@ -47,7 +47,6 @@ const SortableItem = ({
       draggable: !isDraggable,
       droppable: !isDroppable,
     },
-    animateLayoutChanges: () => false,
   });
 
   const style = {

@@ -1,27 +1,24 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { useToggle } from '@openedx/paragon';
 import { getConfig } from '@edx/frontend-platform';
+import { useIntl } from '@edx/frontend-platform/i18n';
+import { useQueryClient } from '@tanstack/react-query';
 
 import moment from 'moment';
 import { getSavingStatus as getGenericSavingStatus } from '@src/generic/data/selectors';
+import { useWaffleFlags } from '@src/data/apiHooks';
 import { RequestStatus } from '@src/data/constants';
-
-import { useCourseAuthoringContext } from '@src/CourseAuthoringContext';
-import { useCourseOutlineContext } from './CourseOutlineContext';
-import { ContainerType, getBlockType } from '@src/generic/key-utils';
-import { useOutlineSidebarContext } from '@src/course-outline/outline-sidebar/OutlineSidebarContext';
 import { useUnlinkDownstream } from '@src/generic/unlink-modal';
-import {
-  useConfigureSection,
-  useConfigureSubsection,
-  useConfigureUnit,
-  usePasteItem,
-  useUpdateCourseSectionHighlights,
-} from '@src/course-outline/data/apiHooks';
-import { PUBLISH_TYPES } from '@src/course-unit/constants';
+
 import { COURSE_BLOCK_NAMES } from './constants';
 import {
+  addSection,
+  addSubsection,
+  setCurrentItem,
+  setCurrentSection,
+  resetScrollField,
   updateSavingStatus,
 } from './data/slice';
 import {
@@ -29,46 +26,56 @@ import {
   getOutlineIndexData,
   getSavingStatus,
   getStatusBarData,
+  getSectionsList,
   getCourseActions,
+  getCurrentItem,
+  getCurrentSection,
+  getCurrentSubsection,
   getCustomRelativeDatesActiveFlag,
   getErrors,
   getCreatedOn,
 } from './data/selectors';
 import {
+  addNewSectionQuery,
+  addNewSubsectionQuery,
+  addNewUnitQuery,
+  addNewUnitWithComponentQuery,
+  deleteCourseSectionQuery,
+  deleteCourseSubsectionQuery,
+  deleteCourseUnitQuery,
+  editCourseItemQuery,
+  duplicateSectionQuery,
+  duplicateSubsectionQuery,
+  duplicateUnitQuery,
   enableCourseHighlightsEmailsQuery,
   fetchCourseBestPracticesQuery,
   fetchCourseLaunchQuery,
+  fetchCourseOutlineIndexQuery,
   fetchCourseReindexQuery,
+  publishCourseItemQuery,
+  updateCourseSectionHighlightsQuery,
+  configureCourseSectionQuery,
+  configureCourseSubsectionQuery,
+  configureCourseUnitQuery,
+  setSectionOrderListQuery,
   setVideoSharingOptionQuery,
+  setSubsectionOrderListQuery,
+  setUnitOrderListQuery,
+  pasteClipboardContent,
   dismissNotificationQuery,
   syncDiscussionsTopics,
 } from './data/thunk';
+import { useCreateCourseBlock } from './data/apiHooks';
+import { getCourseItem } from './data/api';
+import { containerComparisonQueryKeys } from '../container-comparison/data/apiHooks';
+import messages from './messages';
 
 const useCourseOutline = ({ courseId }) => {
   const dispatch = useDispatch();
-  const { currentUnlinkModalData, closeUnlinkModal } = useCourseAuthoringContext();
-  const {
-    handleAddBlock,
-    setCurrentSelection,
-    currentSelection,
-    isDeleteModalOpen,
-    openDeleteModal,
-    closeDeleteModal,
-    getHandleDeleteItemSubmit,
-    handleDuplicateSectionSubmit,
-    handleDuplicateSubsectionSubmit,
-    handleDuplicateUnitSubmit,
-    handleSectionDragAndDrop,
-    handleSubsectionDragAndDrop,
-    handleUnitDragAndDrop,
-  } = useCourseOutlineContext();
-  const { selectedContainerState, clearSelection } = useOutlineSidebarContext();
-
-  const handleDeleteItemSubmit = getHandleDeleteItemSubmit(() => {
-    if (selectedContainerState.currentId === currentSelection?.currentId) {
-      clearSelection();
-    }
-  });
+  const intl = useIntl();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const waffleFlags = useWaffleFlags(courseId);
 
   const {
     reindexLink,
@@ -88,7 +95,10 @@ const useCourseOutline = ({ courseId }) => {
   const statusBarData = useSelector(getStatusBarData);
   const savingStatus = useSelector(getSavingStatus);
   const courseActions = useSelector(getCourseActions);
-
+  const sectionsList = useSelector(getSectionsList);
+  const currentItem = useSelector(getCurrentItem);
+  const currentSection = useSelector(getCurrentSection);
+  const currentSubsection = useSelector(getCurrentSubsection);
   const isCustomRelativeDatesActive = useSelector(getCustomRelativeDatesActiveFlag);
   const genericSavingStatus = useSelector(getGenericSavingStatus);
   const errors = useSelector(getErrors);
@@ -98,28 +108,135 @@ const useCourseOutline = ({ courseId }) => {
   const [isDisabledReindexButton, setDisableReindexButton] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [isHighlightsModalOpen, openHighlightsModal, closeHighlightsModal] = useToggle(false);
+  const [isPublishModalOpen, openPublishModal, closePublishModal] = useToggle(false);
   const [isConfigureModalOpen, openConfigureModal, closeConfigureModal] = useToggle(false);
+  const [isDeleteModalOpen, openDeleteModal, closeDeleteModal] = useToggle(false);
+  const [isUnlinkModalOpen, openUnlinkModal, closeUnlinkModal] = useToggle(false);
+  const [pendingCreateItem, setPendingCreateItem] = useState(null);
+  const [
+    isAddLibrarySectionModalOpen,
+    openAddLibrarySectionModal,
+    closeAddLibrarySectionModal,
+  ] = useToggle(false);
 
   const isSavingStatusFailed = savingStatus === RequestStatus.FAILED || genericSavingStatus === RequestStatus.FAILED;
 
-  const { mutate: pasteClipboardContent } = usePasteItem(courseId);
-  const handlePasteClipboardClick = (parentLocator, subsectionId, sectionId) => {
-    pasteClipboardContent({
-      parentLocator,
-      subsectionId,
-      sectionId,
+  const handlePasteClipboardClick = (parentLocator, sectionId) => {
+    dispatch(pasteClipboardContent(parentLocator, sectionId));
+  };
+
+  const handleNewSectionSubmit = () => {
+    setPendingCreateItem({
+      type: COURSE_BLOCK_NAMES.chapter.id,
+      parentLocator: courseStructure.id,
+      itemType: intl.formatMessage(messages.defaultModuleName),
     });
   };
 
+  const handleNewSubsectionSubmit = (sectionId) => {
+    setPendingCreateItem({
+      type: COURSE_BLOCK_NAMES.sequential.id,
+      parentLocator: sectionId,
+      itemType: intl.formatMessage(messages.defaultLessonName),
+    });
+  };
+
+  const getUnitUrl = (locator) => {
+    if (getConfig().ENABLE_UNIT_PAGE === 'true' && waffleFlags.useNewUnitPage) {
+      return `/course/${courseId}/container/${locator}`;
+    }
+    return `${getConfig().STUDIO_BASE_URL}/container/${locator}`;
+  };
+
+  const openUnitPage = (locator) => {
+    const url = getUnitUrl(locator);
+    if (getConfig().ENABLE_UNIT_PAGE === 'true' && waffleFlags.useNewUnitPage) {
+      navigate(url);
+    } else {
+      window.location.assign(url);
+    }
+  };
+
+  const handleNewUnitSubmit = (subsectionId, sectionId, component, callback) => {
+    setPendingCreateItem({
+      type: COURSE_BLOCK_NAMES.vertical.id,
+      parentLocator: subsectionId,
+      sectionId,
+      component,
+      callback,
+      itemType: intl.formatMessage(messages.defaultActivityName),
+    });
+  };
+
+  const closeCreateItemNameModal = () => {
+    setPendingCreateItem(null);
+  };
+
+  const handleCreateItemNameSubmit = (displayName) => {
+    if (!pendingCreateItem) {
+      return;
+    }
+
+    switch (pendingCreateItem.type) {
+      case COURSE_BLOCK_NAMES.chapter.id:
+        dispatch(addNewSectionQuery(pendingCreateItem.parentLocator, displayName));
+        break;
+      case COURSE_BLOCK_NAMES.sequential.id:
+        dispatch(addNewSubsectionQuery(pendingCreateItem.parentLocator, displayName));
+        break;
+      case COURSE_BLOCK_NAMES.vertical.id:
+        if (pendingCreateItem.sectionId && pendingCreateItem.component) {
+          dispatch(addNewUnitWithComponentQuery(
+            pendingCreateItem.parentLocator,
+            pendingCreateItem.sectionId,
+            pendingCreateItem.component,
+            pendingCreateItem.callback,
+            displayName,
+          ));
+        } else {
+          dispatch(addNewUnitQuery(pendingCreateItem.parentLocator, openUnitPage, displayName));
+        }
+        break;
+      default:
+        break;
+    }
+
+    closeCreateItemNameModal();
+  };
+
+  /**
+  * import a unit block from library and redirect user to this unit page.
+  */
+  const handleAddUnitFromLibrary = useCreateCourseBlock(openUnitPage);
+
+  const handleAddSubsectionFromLibrary = useCreateCourseBlock(async (locator, parentLocator) => {
+    try {
+      const data = await getCourseItem(locator);
+      data.shouldScroll = true;
+      // Page should scroll to newly added subsection.
+      dispatch(addSubsection({ parentLocator, data }));
+    } catch (error) {
+      dispatch(updateSavingStatus({ status: RequestStatus.FAILED }));
+    }
+  });
+
+  const resetScrollState = () => {
+    dispatch(resetScrollField());
+  };
+
+  const handleAddSectionFromLibrary = useCreateCourseBlock(async (locator) => {
+    try {
+      const data = await getCourseItem(locator);
+      // Page should scroll to newly added section.
+      data.shouldScroll = true;
+      dispatch(addSection(data));
+    } catch (error) {
+      dispatch(updateSavingStatus({ status: RequestStatus.FAILED }));
+    }
+  });
+
   const headerNavigationsActions = {
-    handleNewSection: async () => {
-      // istanbul ignore next - we are using this for back compability with the plugin slot. we don't call it anymore.
-      await handleAddBlock.mutateAsync({
-        type: ContainerType.Chapter,
-        parentLocator: courseStructure?.id,
-        displayName: COURSE_BLOCK_NAMES.chapter.name,
-      });
-    },
+    handleNewSection: handleNewSectionSubmit,
     handleReIndex: () => {
       setDisableReindexButton(true);
       setShowSuccessAlert(false);
@@ -144,84 +261,97 @@ const useCourseOutline = ({ courseId }) => {
   };
 
   const handleOpenHighlightsModal = (section) => {
-    setCurrentSelection({
-      currentId: section.id,
-      sectionId: section.id,
-    });
+    dispatch(setCurrentItem(section));
+    dispatch(setCurrentSection(section));
     openHighlightsModal();
   };
 
-  const {
-    mutate: updateCourseSectionHighlights,
-  } = useUpdateCourseSectionHighlights();
   const handleHighlightsFormSubmit = (highlights) => {
     const dataToSend = Object.values(highlights).filter(Boolean);
-    updateCourseSectionHighlights({
-      sectionId: currentSelection?.currentId,
-      highlights: dataToSend,
-    });
+    dispatch(updateCourseSectionHighlightsQuery(currentItem.id, dataToSend));
 
     closeHighlightsModal();
   };
 
+  const handlePublishItemSubmit = () => {
+    dispatch(publishCourseItemQuery(currentItem.id, currentSection.id));
+
+    closePublishModal();
+  };
+
   const handleConfigureModalClose = () => {
     closeConfigureModal();
-    // reset the currentSelection?.current so the ConfigureModal's state is also reset
-    setCurrentSelection(undefined);
+    // reset the currentItem so the ConfigureModal's state is also reset
+    dispatch(setCurrentItem({}));
+  };
+
+  const handleConfigureItemSubmit = (...arg) => {
+    switch (currentItem.category) {
+      case COURSE_BLOCK_NAMES.chapter.id:
+        dispatch(configureCourseSectionQuery(currentSection.id, ...arg));
+        break;
+      case COURSE_BLOCK_NAMES.sequential.id:
+        dispatch(configureCourseSubsectionQuery(currentItem.id, currentSection.id, ...arg));
+        break;
+      case COURSE_BLOCK_NAMES.vertical.id:
+        dispatch(configureCourseUnitQuery(currentItem.id, currentSection.id, ...arg));
+        break;
+      default:
+        return;
+    }
+    handleConfigureModalClose();
+  };
+
+  const handleEditSubmit = (itemId, sectionId, displayName) => {
+    dispatch(editCourseItemQuery(itemId, sectionId, displayName));
+    // Invalidate container diff queries to update sync diff preview
+    queryClient.invalidateQueries({ queryKey: containerComparisonQueryKeys.course(courseId) });
+  };
+
+  const handleDeleteItemSubmit = () => {
+    switch (currentItem.category) {
+      case COURSE_BLOCK_NAMES.chapter.id:
+        dispatch(deleteCourseSectionQuery(currentItem.id));
+        break;
+      case COURSE_BLOCK_NAMES.sequential.id:
+        dispatch(deleteCourseSubsectionQuery(currentItem.id, currentSection.id));
+        break;
+      case COURSE_BLOCK_NAMES.vertical.id:
+        dispatch(deleteCourseUnitQuery(
+          currentItem.id,
+          currentSubsection.id,
+          currentSection.id,
+        ));
+        break;
+      default:
+        return;
+    }
+    closeDeleteModal();
   };
 
   const { mutateAsync: unlinkDownstream } = useUnlinkDownstream();
 
-  /** Handle the submit of the item unlinking XBlock from library counterpart. */
-  const handleUnlinkItemSubmit = useCallback(async () => {
+  const handleUnlinkItemSubmit = async () => {
     // istanbul ignore if: this should never happen
-    if (!currentUnlinkModalData) {
+    if (!currentItem.id) {
       return;
     }
 
-    await unlinkDownstream({
-      downstreamBlockId: currentUnlinkModalData.value.id,
-      sectionId: currentUnlinkModalData.sectionId,
-      subsectionId: currentUnlinkModalData.subsectionId,
-    }, {
-      onSuccess: () => {
-        closeUnlinkModal();
-      },
-    });
-  }, [currentUnlinkModalData, unlinkDownstream, closeUnlinkModal]);
+    await unlinkDownstream(currentItem.id);
+    dispatch(fetchCourseOutlineIndexQuery(courseId));
+    closeUnlinkModal();
+  };
 
-  const { mutate: configureCourseSection } = useConfigureSection();
-  const { mutate: configureCourseSubsection } = useConfigureSubsection();
-  const { mutate: configureCourseUnit } = useConfigureUnit();
-  const handleConfigureItemSubmit = (variables) => {
-    const category = getBlockType(currentSelection.currentId);
-    switch (category) {
-      case COURSE_BLOCK_NAMES.chapter.id:
-        configureCourseSection({
-          sectionId: currentSelection?.sectionId,
-          ...variables,
-        });
-        break;
-      case COURSE_BLOCK_NAMES.sequential.id:
-        configureCourseSubsection({
-          itemId: currentSelection?.currentId,
-          sectionId: currentSelection?.sectionId,
-          ...variables,
-        });
-        break;
-      case COURSE_BLOCK_NAMES.vertical.id:
-        configureCourseUnit({
-          unitId: currentSelection?.currentId,
-          sectionId: currentSelection?.sectionId,
-          type: PUBLISH_TYPES.republish,
-          ...variables,
-        });
-        break;
-      default:
-        // istanbul ignore next
-        throw new Error('Unsupported block type');
-    }
-    handleConfigureModalClose();
+  const handleDuplicateSectionSubmit = () => {
+    dispatch(duplicateSectionQuery(currentSection.id, courseStructure.id));
+  };
+
+  const handleDuplicateSubsectionSubmit = () => {
+    dispatch(duplicateSubsectionQuery(currentSubsection.id, currentSection.id));
+  };
+
+  const handleDuplicateUnitSubmit = () => {
+    dispatch(duplicateUnitQuery(currentItem.id, currentSubsection.id, currentSection.id));
   };
 
   const handleVideoSharingOptionChange = (value) => {
@@ -232,7 +362,49 @@ const useCourseOutline = ({ courseId }) => {
     dispatch(dismissNotificationQuery(`${getConfig().STUDIO_BASE_URL}${notificationDismissUrl}`));
   };
 
+  const handleSectionDragAndDrop = (
+    sectionListIds,
+    restoreSectionList,
+  ) => {
+    dispatch(setSectionOrderListQuery(
+      courseId,
+      sectionListIds,
+      restoreSectionList,
+    ));
+  };
+
+  const handleSubsectionDragAndDrop = (
+    sectionId,
+    prevSectionId,
+    subsectionListIds,
+    restoreSectionList,
+  ) => {
+    dispatch(setSubsectionOrderListQuery(
+      sectionId,
+      prevSectionId,
+      subsectionListIds,
+      restoreSectionList,
+    ));
+  };
+
+  const handleUnitDragAndDrop = (
+    sectionId,
+    prevSectionId,
+    subsectionId,
+    unitListIds,
+    restoreSectionList,
+  ) => {
+    dispatch(setUnitOrderListQuery(
+      sectionId,
+      subsectionId,
+      prevSectionId,
+      unitListIds,
+      restoreSectionList,
+    ));
+  };
+
   useEffect(() => {
+    dispatch(fetchCourseOutlineIndexQuery(courseId));
     dispatch(fetchCourseBestPracticesQuery({ courseId }));
     dispatch(fetchCourseLaunchQuery({ courseId }));
   }, [courseId]);
@@ -251,6 +423,7 @@ const useCourseOutline = ({ courseId }) => {
     courseUsageKey: courseStructure?.id,
     courseActions,
     savingStatus,
+    sectionsList,
     isCustomRelativeDatesActive,
     isLoading: outlineIndexLoadingStatus === RequestStatus.IN_PROGRESS,
     isLoadingDenied: outlineIndexLoadingStatus === RequestStatus.DENIED,
@@ -258,13 +431,25 @@ const useCourseOutline = ({ courseId }) => {
     showSuccessAlert,
     isDisabledReindexButton,
     isSectionsExpanded,
+    isPublishModalOpen,
+    openPublishModal,
+    closePublishModal,
     isConfigureModalOpen,
     openConfigureModal,
+    isAddLibrarySectionModalOpen,
+    openAddLibrarySectionModal,
+    closeAddLibrarySectionModal,
+    isCreateItemNameModalOpen: Boolean(pendingCreateItem),
+    createItemNameModalItemType: pendingCreateItem?.itemType || '',
+    closeCreateItemNameModal,
+    handleCreateItemNameSubmit,
     handleConfigureModalClose,
     headerNavigationsActions,
     handleEnableHighlightsSubmit,
     handleHighlightsFormSubmit,
     handleConfigureItemSubmit,
+    handlePublishItemSubmit,
+    handleEditSubmit,
     statusBarData,
     isEnableHighlightsModalOpen,
     openEnableHighlightsModal,
@@ -278,10 +463,22 @@ const useCourseOutline = ({ courseId }) => {
     isDeleteModalOpen,
     closeDeleteModal,
     openDeleteModal,
+    isUnlinkModalOpen,
+    closeUnlinkModal,
+    openUnlinkModal,
     handleDeleteItemSubmit,
+    handleUnlinkItemSubmit,
     handleDuplicateSectionSubmit,
     handleDuplicateSubsectionSubmit,
     handleDuplicateUnitSubmit,
+    handleNewSectionSubmit,
+    handleNewSubsectionSubmit,
+    getUnitUrl,
+    openUnitPage,
+    handleNewUnitSubmit,
+    handleAddUnitFromLibrary,
+    handleAddSubsectionFromLibrary,
+    handleAddSectionFromLibrary,
     handleVideoSharingOptionChange,
     handlePasteClipboardClick,
     notificationDismissUrl,
@@ -297,7 +494,7 @@ const useCourseOutline = ({ courseId }) => {
     handleSubsectionDragAndDrop,
     handleUnitDragAndDrop,
     errors,
-    handleUnlinkItemSubmit,
+    resetScrollState,
   };
 };
 

@@ -13,12 +13,13 @@ import { updateCertificateActiveStatus } from '../../../data/thunks';
 const useHeaderButtons = () => {
   const { courseId } = useParams();
   const dispatch = useDispatch();
-  const courseModes = useSelector(getCourseModes);
+  const courseModes = useSelector(getCourseModes) || [];
   const certificateWebViewUrl = useSelector(getCertificateWebViewUrl);
   const certificateActivationHandlerUrl = useSelector(getCertificateActivationUrl);
   const isCertificateActive = useSelector(getIsCertificateActive);
 
   const [dropdowmItem, setDropdowmItem] = useState(courseModes[0]);
+  const selectedMode = dropdowmItem || courseModes[0];
 
   const handleActivationStatus = () => {
     const status = !isCertificateActive;
@@ -33,16 +34,18 @@ const useHeaderButtons = () => {
     const url = getUrl();
 
     const searchParams = new URLSearchParams(url.search);
-    searchParams.set('preview', dropdowmItem);
+    if (selectedMode) {
+      searchParams.set('preview', selectedMode);
+    }
     url.search = searchParams.toString();
 
     return url.toString();
-  }, [certificateWebViewUrl, dropdowmItem]);
+  }, [certificateWebViewUrl, selectedMode]);
 
   return {
     previewUrl,
     courseModes,
-    dropdowmItem,
+    dropdowmItem: selectedMode,
     isCertificateActive,
     setDropdowmItem,
     handleActivationStatus,

@@ -49,30 +49,25 @@ const useStudioHome = () => {
   }
   const courseListQueryString = courseListQuery.size ? `?${courseListQuery.toString()}` : '';
   useEffect(() => {
-    dispatch(fetchStudioHomeData(courseListQueryString, false, studioHomeCoursesParams));
+    const requestParams = {
+      ...(!courseListQuery.has('page') ? { page: 1 } : {}),
+      ...(!courseListQuery.has('order') ? { order: 'display_name' } : {}),
+    };
+    dispatch(fetchStudioHomeData(courseListQueryString, false, requestParams));
     setShowNewCourseContainer(false);
   }, [courseListQueryString]);
 
   useEffect(() => {
-    const firstPage = 1;
-    dispatch(fetchStudioHomeData(courseListQueryString, false, {
-      ...studioHomeCoursesParams,
-      page: firstPage,
-      order: 'display_name',
-    }));
-  }, []);
-
-  useEffect(() => {
     if (courseCreatorSavingStatus === RequestStatus.SUCCESSFUL) {
       dispatch(updateSavingStatuses({ courseCreatorSavingStatus: '' }));
-      dispatch(fetchStudioHomeData(undefined, false, studioHomeCoursesParams));
+      dispatch(fetchStudioHomeData());
     }
   }, [courseCreatorSavingStatus]);
 
   useEffect(() => {
     if (deleteNotificationSavingStatus === RequestStatus.SUCCESSFUL) {
       dispatch(updateSavingStatuses({ courseCreatorSavingStatus: '' }));
-      dispatch(fetchStudioHomeData(undefined, false, studioHomeCoursesParams));
+      dispatch(fetchStudioHomeData());
     } else if (deleteNotificationSavingStatus === RequestStatus.FAILED) {
       dispatch(updateSavingStatuses({ deleteNotificationSavingStatus: '' }));
     }

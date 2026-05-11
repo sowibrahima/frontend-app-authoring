@@ -20,6 +20,7 @@ const useConvertGradeCutoffs = (
 const useUpdateGradingData = (gradingSettingsData, setOverrideInternetConnectionAlert, setShowSuccessAlert) => {
   const uniqueId = uuidv4();
   const [gradingData, setGradingData] = useState({});
+  const [hasLoadedGradingData, setHasLoadedGradingData] = useState(false);
   const [showSavePrompt, setShowSavePrompt] = useState(false);
   const resetDataRef = useRef(false);
   const {
@@ -31,7 +32,14 @@ const useUpdateGradingData = (gradingSettingsData, setOverrideInternetConnection
 
   useEffect(() => {
     if (gradingSettingsData !== undefined) {
-      setGradingData(gradingSettingsData);
+      setGradingData({
+        ...gradingSettingsData,
+        graders: gradingSettingsData.graders?.map(grader => ({
+          ...grader,
+          shortLabel: grader.type || grader.shortLabel || '',
+        })),
+      });
+      setHasLoadedGradingData(true);
     }
   }, [gradingSettingsData]);
 
@@ -80,6 +88,7 @@ const useUpdateGradingData = (gradingSettingsData, setOverrideInternetConnection
     handleResetPageData,
     handleAddAssignment,
     handleRemoveAssignment,
+    hasLoadedGradingData,
   };
 };
 

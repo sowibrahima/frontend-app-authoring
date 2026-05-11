@@ -9,6 +9,11 @@ const config = createConfig('webpack-prod', {
       '@src': path.resolve(__dirname, 'src/'),
       // Plugins can use 'CourseAuthoring' as an import alias for this app:
       CourseAuthoring: path.resolve(__dirname, 'src/'),
+      react: path.resolve(__dirname, 'node_modules/react'),
+      'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
+      'react-intl': path.resolve(__dirname, 'node_modules/react-intl'),
+      '@edx/frontend-platform': path.resolve(__dirname, 'node_modules/@edx/frontend-platform'),
+      '@openedx/paragon': path.resolve(__dirname, 'node_modules/@openedx/paragon'),
     },
     fallback: {
       fs: false,

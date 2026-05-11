@@ -6,13 +6,13 @@
   --wuti-color-action-hover: var(--color-action-hover, #E5A707);
   --wuti-color-action-active: var(--color-action-active, #CC9506);
   --wuti-color-action-text: var(--color-action-text, #1A1A2E);
-  --wuti-color-bg: var(--color-bg-primary, var(--pgn-color-light-100, #FAFAF7));
+  --wuti-color-bg: var(--color-bg-primary, #FAFAF7);
   --wuti-color-surface: var(--color-bg-surface, var(--pgn-color-white, #FFFFFF));
   --wuti-color-surface-subtle: var(--color-bg-surface-subtle, #FCFCFD);
   --wuti-color-text: var(--color-text-primary, var(--pgn-color-gray-900, #111827));
   --wuti-color-muted: var(--color-text-secondary, var(--pgn-color-gray-600, #6B7280));
   --wuti-color-border: var(--color-border, var(--pgn-color-light-300, #E5E7EB));
-  --wuti-color-hover: var(--color-bg-hover, var(--pgn-color-light-200, #F9FAFB));
+  --wuti-color-hover: var(--color-bg-hover, #F9FAFB);
   --wuti-color-focus: var(--color-focus, color-mix(in srgb, var(--wuti-color-brand) 28%, transparent));
   --wuti-color-disabled-bg: var(--color-bg-disabled, #F3F4F6);
   --wuti-color-disabled-text: var(--color-text-disabled, #9CA3AF);
@@ -20,7 +20,107 @@
   --wuti-color-danger-bg: var(--color-danger-bg, #FEF2F2);
   --wuti-color-danger-border: var(--color-danger-border, #FECACA);
   --wuti-shadow-soft: 0 8px 18px color-mix(in srgb, var(--wuti-color-text) 3%, transparent);
-  --wuti-shadow-action: 0 10px 24px color-mix(in srgb, var(--wuti-color-action) 26%, transparent);
+  --wuti-shadow-action: none;
+
+  /*
+   * Paragon CSS is intentionally disabled for WutiSkill, but upstream Studio
+   * SCSS still consumes Paragon design tokens. Keep these local token bridges
+   * so those declarations remain valid without re-introducing Paragon CSS.
+   */
+  --pgn-color-white: #FFFFFF;
+  --pgn-color-black: #111827;
+  --pgn-color-gray-100: #F9FAFB;
+  --pgn-color-gray-200: #F3F4F6;
+  --pgn-color-gray-300: #E5E7EB;
+  --pgn-color-gray-400: #D1D5DB;
+  --pgn-color-gray-500: #9CA3AF;
+  --pgn-color-gray-600: #6B7280;
+  --pgn-color-gray-700: #374151;
+  --pgn-color-gray-800: #1F2937;
+  --pgn-color-gray-900: #111827;
+  --pgn-color-light-100: #FFFFFF;
+  --pgn-color-light-200: #FAFAF7;
+  --pgn-color-light-300: #E5E7EB;
+  --pgn-color-light-400: #D1D5DB;
+  --pgn-color-light-500: #9CA3AF;
+  --pgn-color-dark-100: #374151;
+  --pgn-color-dark-500: #111827;
+  --pgn-color-brand-500: #590D22;
+  --pgn-color-brand-600: #7A1E3A;
+  --pgn-color-primary-base: #590D22;
+  --pgn-color-primary-500: #590D22;
+  --pgn-color-primary-700: #3F0716;
+  --pgn-color-headings-base: #111827;
+  --pgn-color-info-100: #EFF6FF;
+  --pgn-color-info-200: #DBEAFE;
+  --pgn-color-info-300: #BFDBFE;
+  --pgn-color-info-400: #60A5FA;
+  --pgn-color-info-500: #2563EB;
+  --pgn-color-info-900: #1E3A8A;
+  --pgn-color-success-500: #198754;
+  --pgn-color-warning-300: #FACC15;
+  --pgn-color-danger-300: #FDA4AF;
+  --pgn-color-danger-base: #B42318;
+  --pgn-color-form-feedback-invalid: #B42318;
+  --pgn-color-form-control-indicator-checked-border-base: #590D22;
+  --pgn-color-form-input-base: #111827;
+  --pgn-color-form-input-bg-base: #FFFFFF;
+  --pgn-color-form-input-bg-disabled: #F3F4F6;
+  --pgn-color-form-input-border: #D1D5DB;
+  --pgn-color-form-input-focus-base: #111827;
+  --pgn-color-form-input-focus-border: #590D22;
+  --pgn-color-form-input-placeholder: #9CA3AF;
+  --pgn-typography-font-family-base: 'Inter', system-ui, -apple-system, blinkmacsystemfont, "Segoe UI", sans-serif;
+  --pgn-typography-font-size-base: 1rem;
+  --pgn-typography-font-size-sm: .875rem;
+  --pgn-typography-font-size-xs: .75rem;
+  --pgn-typography-font-weight-normal: 400;
+  --pgn-typography-font-weight-semi-bold: 600;
+  --pgn-typography-font-weight-bold: 700;
+  --pgn-typography-line-height-base: 1.5;
+  --pgn-typography-headings-line-height: 1.2;
+  --pgn-typography-alert-font-size: .9375rem;
+  --pgn-typography-alert-line-height: 1.5;
+  --pgn-typography-form-input-font-size-base: .9375rem;
+  --pgn-typography-form-input-font-weight: 500;
+  --pgn-typography-form-input-line-height-base: 1.45;
+  --pgn-size-border-width: 1px;
+  --pgn-size-border-radius-base: .75rem;
+  --pgn-size-form-input-height-base: 2.75rem;
+  --pgn-size-form-input-radius-border-base: .75rem;
+  --pgn-size-form-input-width-border: 1px;
+  --pgn-size-breakpoint-max-width-xs: 575.98px;
+  --pgn-size-breakpoint-min-width-sm: 576px;
+  --pgn-size-breakpoint-md: 768px;
+  --pgn-size-breakpoint-max-width-xl: 1199.98px;
+  --pgn-spacing-spacer-0: 0;
+  --pgn-spacing-spacer-1: .25rem;
+  --pgn-spacing-spacer-2: .5rem;
+  --pgn-spacing-spacer-2-5: .75rem;
+  --pgn-spacing-spacer-3-5: 1.25rem;
+  --pgn-spacing-spacer-4: 1.5rem;
+  --pgn-spacing-spacer-4-5: 2rem;
+  --pgn-spacing-spacer-6: 4rem;
+  --pgn-spacing-spacer-base: 1rem;
+  --pgn-spacing-paragraph-margin-bottom: 1rem;
+  --pgn-spacing-form-input-padding-x-base: .9rem;
+  --pgn-spacing-form-input-padding-y-base: .625rem;
+  --pgn-spacing-selectable-box-border-radius: .75rem;
+  --pgn-spacing-selectable-box-box-space: .75rem;
+  --pgn-spacing-selectable-box-padding: 1rem;
+  --pgn-elevation-box-shadow-centered-1: 0 8px 24px rgb(17 24 39 / .08);
+  --pgn-elevation-box-shadow-centered-2: 0 18px 44px rgb(17 24 39 / .12);
+  --pgn-elevation-box-shadow-down-1: 0 8px 24px rgb(17 24 39 / .08);
+  --pgn-elevation-box-shadow-down-2: 0 16px 34px rgb(17 24 39 / .12);
+  --pgn-elevation-box-shadow-level-1: 0 10px 26px rgb(17 24 39 / .055);
+  --pgn-elevation-form-input-base: 0 1px 2px rgb(17 24 39 / .04);
+  --pgn-elevation-form-input-focus: 0 0 0 3px color-mix(in srgb, #590D22 16%, transparent);
+  --pgn-elevation-dropdown-zindex: 1400;
+  --pgn-elevation-popover-zindex: 1500;
+  --pgn-elevation-tooltip-zindex: 1510;
+  --pgn-elevation-modal-backdrop-zindex: 1300;
+  --pgn-elevation-modal-zindex: 1310;
+  --pgn-other-content-form-control-checkbox-indicator-icon-checked-base: none;
 }
 
 .btn-primary {
@@ -40,18 +140,19 @@
   --pgn-btn-disabled-color: var(--pgn-color-gray-500, #9CA3AF);
   --pgn-btn-disabled-bg: var(--pgn-color-light-300, #E5E7EB);
   --pgn-btn-disabled-border-color: var(--pgn-color-light-300, #E5E7EB);
+
   background-color: var(--pgn-btn-bg);
   border-color: var(--pgn-btn-border-color);
   color: var(--pgn-btn-color);
 }
 
-.btn-primary:hover:not(:disabled):not(.disabled) {
+.btn-primary:hover:not(:disabled, .disabled) {
   background-color: var(--pgn-btn-hover-bg);
   border-color: var(--pgn-btn-hover-border-color);
   color: var(--pgn-btn-hover-color);
 }
 
-.btn-primary:active:not(:disabled):not(.disabled) {
+.btn-primary:active:not(:disabled, .disabled) {
   background-color: var(--pgn-btn-active-bg);
   border-color: var(--pgn-btn-active-border-color);
   color: var(--pgn-btn-active-color);
@@ -70,11 +171,12 @@
   --pgn-btn-hover-color: var(--wuti-color-brand);
   --pgn-btn-hover-bg: color-mix(in srgb, var(--wuti-color-brand) 8%, var(--wuti-color-surface));
   --pgn-btn-hover-border-color: color-mix(in srgb, var(--wuti-color-brand) 55%, var(--wuti-color-border));
+
   color: var(--pgn-btn-color);
   border-color: var(--pgn-btn-border-color);
 }
 
-.btn-outline-primary:hover:not(:disabled):not(.disabled) {
+.btn-outline-primary:hover:not(:disabled, .disabled) {
   background-color: var(--pgn-btn-hover-bg);
   border-color: var(--pgn-btn-hover-border-color);
   color: var(--pgn-btn-hover-color);

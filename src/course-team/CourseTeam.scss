@@ -4,6 +4,10 @@
 @import "./course-team-member/CourseTeamMember";
 
 .course-team {
+  .sub-header-content {
+    align-items: flex-start;
+  }
+
   .help-sidebar {
     margin-top: 6.563rem;
   }
@@ -25,5 +29,28 @@
       flex-grow: 1;
       padding-top: 1.25rem;
     }
+  }
+
+  .course-team-member,
+  .add-user-form,
+  .add-team-member {
+    border-color: var(--wuti-color-border, #E5E7EB);
+    border-radius: .875rem;
+    background: var(--wuti-color-surface, #FFFFFF);
+    box-shadow: 0 10px 26px rgb(17 24 39 / .045);
+  }
+
+  .course-team-member .member-hint {
+    color: var(--wuti-color-muted, #6B7280);
+  }
+
+  .course-team-member .member-info .badge {
+    border: 1px solid color-mix(in srgb, var(--wuti-color-brand, #590D22) 18%, var(--wuti-color-border, #E5E7EB));
+    background: var(--wuti-color-surface, #FFFFFF);
+    color: var(--wuti-color-muted, #6B7280);
+  }
+
+  .course-team-member .member-info .badge-current-user {
+    color: var(--wuti-color-brand, #590D22);
   }
 }

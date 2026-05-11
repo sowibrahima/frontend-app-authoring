@@ -31,7 +31,7 @@ const ExplanationWidget = ({
   }
   if (!refReady) { return null; }
   return (
-    <div className="tinyMceWidget mt-4 text-primary-500">
+    <div className="tinyMceWidget editProblemView-section mt-4">
       <div className="h4 mb-3">
         <FormattedMessage {...messages.solutionWidgetTitle} />
       </div>

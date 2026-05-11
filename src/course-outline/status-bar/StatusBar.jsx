@@ -2,19 +2,15 @@ import { useContext } from 'react';
 import moment from 'moment/moment';
 import PropTypes from 'prop-types';
 import { FormattedDate, useIntl } from '@edx/frontend-platform/i18n';
-import { getConfig } from '@edx/frontend-platform/config';
 import {
-  Button, Hyperlink, Form, Stack, useToggle,
+  Button, Hyperlink, Form, Stack,
 } from '@openedx/paragon';
 import { Link } from 'react-router-dom';
 import { AppContext } from '@edx/frontend-platform/react';
 
-import { ContentTagsDrawerSheet } from '../../content-tags-drawer';
-import TagCount from '../../generic/tag-count';
 import { useHelpUrls } from '../../help-urls/hooks';
 import { useWaffleFlags } from '../../data/apiHooks';
 import { VIDEO_SHARING_OPTIONS } from '../constants';
-import { useContentTagsCount } from '../../generic/data/apiHooks';
 import messages from './messages';
 import { getVideoSharingOptionText } from '../utils';
 
@@ -68,132 +64,97 @@ const StatusBar = ({
   const scheduleDestination = () => new URL(`settings/details/${courseId}#schedule`, config.STUDIO_BASE_URL).href;
 
   const {
-    contentHighlights: contentHighlightsUrl,
     socialSharing: socialSharingUrl,
-  } = useHelpUrls(['contentHighlights', 'socialSharing']);
-
-  const { data: courseTagCount } = useContentTagsCount(courseId);
-
-  const [isManageTagsDrawerOpen, openManageTagsDrawer, closeManageTagsDrawer] = useToggle(false);
+  } = useHelpUrls(['socialSharing']);
 
   if (isLoading) {
     return null;
   }
 
   return (
-    <>
-      <Stack direction="horizontal" gap={3.5} className="d-flex align-items-stretch outline-status-bar ws-outline-status-bar" data-testid="outline-status-bar">
-        <StatusBarItem title={intl.formatMessage(messages.startDateTitle)}>
-          <Link
-            className="small ws-outline-status-link"
-            to={waffleFlags.useNewScheduleDetailsPage ? `/course/${courseId}/settings/details/#schedule` : scheduleDestination()}
-          >
-            {courseReleaseDateObj.isValid() ? (
-              <FormattedDate
-                value={courseReleaseDateObj}
-                year="numeric"
-                month="short"
-                day="2-digit"
-                hour="numeric"
-                minute="numeric"
-              />
-            ) : courseReleaseDate}
-          </Link>
-        </StatusBarItem>
-        <StatusBarItem title={intl.formatMessage(messages.pacingTypeTitle)}>
-          <span className="small ws-outline-status-value-text">
-            {isSelfPaced
-              ? intl.formatMessage(messages.pacingTypeSelfPaced)
-              : intl.formatMessage(messages.pacingTypeInstructorPaced)}
-          </span>
-        </StatusBarItem>
-        <StatusBarItem title={intl.formatMessage(messages.checklistTitle)}>
-          <Link
-            className="small ws-outline-status-link"
-            to={`/course/${courseId}/checklists`}
-          >
-            {checkListTitle} {intl.formatMessage(messages.checklistCompleted)}
-          </Link>
-        </StatusBarItem>
-        <StatusBarItem title={intl.formatMessage(messages.highlightEmailsTitle)}>
+    <Stack direction="horizontal" gap={3.5} className="d-flex align-items-stretch outline-status-bar ws-outline-status-bar" data-testid="outline-status-bar">
+      <StatusBarItem title={intl.formatMessage(messages.startDateTitle)}>
+        <Link
+          className="small ws-outline-status-link"
+          to={waffleFlags.useNewScheduleDetailsPage ? `/course/${courseId}/settings/details/#schedule` : scheduleDestination()}
+        >
+          {courseReleaseDateObj.isValid() ? (
+            <FormattedDate
+              value={courseReleaseDateObj}
+              year="numeric"
+              month="short"
+              day="2-digit"
+              hour="numeric"
+              minute="numeric"
+            />
+          ) : courseReleaseDate}
+        </Link>
+      </StatusBarItem>
+      <StatusBarItem title={intl.formatMessage(messages.pacingTypeTitle)}>
+        <span className="small ws-outline-status-value-text">
+          {isSelfPaced
+            ? intl.formatMessage(messages.pacingTypeSelfPaced)
+            : intl.formatMessage(messages.pacingTypeInstructorPaced)}
+        </span>
+      </StatusBarItem>
+      <StatusBarItem title={intl.formatMessage(messages.checklistTitle)}>
+        <Link
+          className="small ws-outline-status-link"
+          to={`/course/${courseId}/checklists`}
+        >
+          {checkListTitle} {intl.formatMessage(messages.checklistCompleted)}
+        </Link>
+      </StatusBarItem>
+      <StatusBarItem title={intl.formatMessage(messages.highlightEmailsTitle)}>
+        <div className="d-flex align-items-center">
+          {highlightsEnabledForMessaging ? (
+            <span data-testid="highlights-enabled-span" className="small">
+              {intl.formatMessage(messages.highlightEmailsEnabled)}
+            </span>
+          ) : (
+            <Button data-testid="highlights-enable-button" size="sm" className="ws-outline-status-cta" onClick={openEnableHighlightsModal}>
+              {intl.formatMessage(messages.highlightEmailsButton)}
+            </Button>
+          )}
+        </div>
+      </StatusBarItem>
+      {videoSharingEnabled && (
+        <Form.Group
+          size="sm"
+          className="d-flex flex-column justify-content-between m-0"
+        >
+          <Form.Label
+            className="h5"
+          >{intl.formatMessage(messages.videoSharingTitle)}
+          </Form.Label>
           <div className="d-flex align-items-center">
-            {highlightsEnabledForMessaging ? (
-              <span data-testid="highlights-enabled-span" className="small">
-                {intl.formatMessage(messages.highlightEmailsEnabled)}
-              </span>
-            ) : (
-              <Button data-testid="highlights-enable-button" size="sm" className="ws-outline-status-cta" onClick={openEnableHighlightsModal}>
-                {intl.formatMessage(messages.highlightEmailsButton)}
-              </Button>
-            )}
+            <Form.Control
+              as="select"
+              defaultValue={videoSharingOptions}
+              onChange={(e) => handleVideoSharingOptionChange(e.target.value)}
+            >
+              {Object.values(VIDEO_SHARING_OPTIONS).map((option) => (
+                <option
+                  key={option}
+                  value={option}
+                >
+                  {getVideoSharingOptionText(option, messages, intl)}
+                </option>
+              ))}
+            </Form.Control>
             <Hyperlink
-              className="small ml-2 ws-outline-status-link"
-              destination={contentHighlightsUrl}
+              className="small ws-outline-status-link"
+              destination={socialSharingUrl}
               target="_blank"
               showLaunchIcon={false}
             >
-              {intl.formatMessage(messages.highlightEmailsLink)}
+              {intl.formatMessage(messages.videoSharingLink)}
             </Hyperlink>
           </div>
-        </StatusBarItem>
-        {getConfig().ENABLE_TAGGING_TAXONOMY_PAGES === 'true' && (
-          <StatusBarItem title={intl.formatMessage(messages.courseTagsTitle)}>
-            <div className="d-flex align-items-center">
-              <TagCount count={courseTagCount} />
-              { /* eslint-disable-next-line jsx-a11y/anchor-is-valid */ }
-              <a
-                className="small ml-2 ws-outline-status-link"
-                href="#"
-                onClick={openManageTagsDrawer}
-              >
-                {intl.formatMessage(messages.courseManageTagsLink)}
-              </a>
-            </div>
-          </StatusBarItem>
-        )}
-        {videoSharingEnabled && (
-          <Form.Group
-            size="sm"
-            className="d-flex flex-column justify-content-between m-0"
-          >
-            <Form.Label
-              className="h5"
-            >{intl.formatMessage(messages.videoSharingTitle)}
-            </Form.Label>
-            <div className="d-flex align-items-center">
-              <Form.Control
-                as="select"
-                defaultValue={videoSharingOptions}
-                onChange={(e) => handleVideoSharingOptionChange(e.target.value)}
-              >
-                {Object.values(VIDEO_SHARING_OPTIONS).map((option) => (
-                  <option
-                    key={option}
-                    value={option}
-                  >
-                    {getVideoSharingOptionText(option, messages, intl)}
-                  </option>
-                ))}
-              </Form.Control>
-              <Hyperlink
-                className="small ws-outline-status-link"
-                destination={socialSharingUrl}
-                target="_blank"
-                showLaunchIcon={false}
-              >
-                {intl.formatMessage(messages.videoSharingLink)}
-              </Hyperlink>
-            </div>
-          </Form.Group>
+        </Form.Group>
 
-        )}
-      </Stack>
-      <ContentTagsDrawerSheet
-        id={courseId}
-        onClose={/* istanbul ignore next */ () => closeManageTagsDrawer()}
-        showSheet={isManageTagsDrawerOpen}
-      />
-    </>
+      )}
+    </Stack>
   );
 };
 

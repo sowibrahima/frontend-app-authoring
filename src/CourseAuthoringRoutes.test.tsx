@@ -1,10 +1,8 @@
+import { useLocation } from 'react-router-dom';
 import CourseAuthoringRoutes from './CourseAuthoringRoutes';
 import { getApiWaffleFlagsUrl } from './data/api';
 import {
-  screen,
-  initializeMocks,
-  render,
-  waitFor,
+  screen, initializeMocks, render, waitFor,
 } from './testUtils';
 
 const courseId = 'course-v1:edX+TestX+Test_Course';
@@ -14,11 +12,35 @@ const videoSelectorContainerMockText = 'Video Selector Container';
 const customPagesMockText = 'Custom Pages';
 const mockComponentFn = jest.fn();
 
+const LocationDisplay = () => {
+  const location = useLocation();
+  return <div data-testid="location-display">{location.pathname}</div>;
+};
+
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
     courseId,
   }),
+}));
+
+jest.mock('./CourseAuthoringPage', () => function CourseAuthoringPageMock(props) {
+  // eslint-disable-next-line react/prop-types
+  return <div>{props.children}</div>;
+});
+
+jest.mock('./files-and-videos', () => ({
+  FilesPage: () => <div>Files Page</div>,
+  VideosPage: () => <div>Videos Page</div>,
+}));
+
+jest.mock('./course-outline', () => ({
+  CourseOutline: () => <div>Course Outline</div>,
+}));
+
+jest.mock('./course-unit', () => ({
+  CourseUnit: () => <div>Course Unit</div>,
+  SubsectionUnitRedirect: () => <div>Subsection Unit Redirect</div>,
 }));
 
 // Mock the TinyMceWidget
@@ -51,24 +73,23 @@ jest.mock('./custom-pages/CustomPages', () => (props) => {
 
 describe('<CourseAuthoringRoutes>', () => {
   beforeEach(async () => {
-    const user = {
-      userId: 1,
-      username: 'username',
-    };
-    const { axiosMock } = initializeMocks({ user });
+    const { axiosMock } = initializeMocks();
     axiosMock
       .onGet(getApiWaffleFlagsUrl(courseId))
       .reply(200, {});
   });
 
-  it('renders the PagesAndResources component when the pages and resources route is active', async () => {
+  it('redirects away from PagesAndResources when the pages and resources route is active', async () => {
     render(
-      <CourseAuthoringRoutes />,
+      <>
+        <CourseAuthoringRoutes />
+        <LocationDisplay />
+      </>,
       { routerProps: { initialEntries: ['/pages-and-resources'] } },
     );
     await waitFor(() => {
-      expect(screen.getByText(pagesAndResourcesMockText)).toBeVisible();
-      expect(mockComponentFn).toHaveBeenCalled();
+      expect(screen.getByTestId('location-display')).toHaveTextContent(`/course/${courseId}`);
+      expect(screen.queryByText(pagesAndResourcesMockText)).not.toBeInTheDocument();
     });
   });
 
@@ -96,7 +117,11 @@ describe('<CourseAuthoringRoutes>', () => {
     await waitFor(() => {
       expect(screen.queryByText(videoSelectorContainerMockText)).toBeInTheDocument();
       expect(screen.queryByText(pagesAndResourcesMockText)).not.toBeInTheDocument();
-      expect(mockComponentFn).toHaveBeenCalled();
+      expect(mockComponentFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          courseId,
+        }),
+      );
     });
   });
 });

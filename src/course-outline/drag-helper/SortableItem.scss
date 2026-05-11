@@ -1,10 +1,14 @@
 .extend-margin {
+  min-width: 0;
+
   .item-children {
-    margin-right: -2.75rem;
+    margin-right: 0;
   }
 }
 
 .outline-sortable-item {
+  display: block;
+  position: relative;
   margin-bottom: 1rem;
   padding: 1rem 1.2rem;
   border-radius: 1.25rem;
@@ -13,24 +17,54 @@
   box-shadow: none;
   transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
 
+  > .extend-margin {
+    width: 100%;
+    max-width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  > .extend-margin .item-card-header {
+    padding-left: 2.4rem;
+  }
+
   &:hover {
     border-color: #D8DCE5;
-    box-shadow: 0 10px 22px rgba(17, 24, 39, .06);
+    box-shadow: 0 10px 22px rgb(17 24 39 / .06);
   }
 
   .outline-sortable-item__drag-btn {
+    position: absolute;
+    top: .95rem;
+    left: .85rem;
+    z-index: 3;
     opacity: 0;
-    margin-left: .75rem;
-    margin-top: .1rem;
+    width: 2rem;
+    height: 2rem;
     border-radius: 999px;
-    border: 0;
-    background: #F3F4F6;
+    border: 1px solid var(--wuti-color-border, #E5E7EB);
+    background: var(--wuti-color-surface, #FFFFFF);
     color: #6B7280;
-    transition: opacity 140ms ease, background-color 120ms ease, color 120ms ease;
+    box-shadow: 0 8px 18px color-mix(in srgb, var(--wuti-color-text, #111827) 5%, transparent);
+    cursor: grab;
+    transition:
+      opacity 140ms ease,
+      background-color 120ms ease,
+      border-color 120ms ease,
+      color 120ms ease,
+      box-shadow 120ms ease,
+      transform 140ms ease;
 
     &:hover {
-      background: #ECEFF4;
+      transform: scale(1.04);
+      border-color: color-mix(in srgb, var(--wuti-color-brand, #590D22) 28%, var(--wuti-color-border, #E5E7EB));
+      background: color-mix(in srgb, var(--wuti-color-brand, #590D22) 5%, var(--wuti-color-surface, #FFFFFF));
       color: #374151;
+    }
+
+    &:active {
+      cursor: grabbing;
+      transform: scale(.98);
     }
   }
 
@@ -41,5 +75,10 @@
 }
 
 .outline-sortable-item--dragging {
-  box-shadow: 0 16px 26px rgba(17, 24, 39, .11);
+  opacity: 0;
+  box-shadow: 0 16px 26px rgb(17 24 39 / .11);
+}
+
+.outline-sortable-item--dragging .outline-sortable-item__drag-btn {
+  opacity: 0;
 }

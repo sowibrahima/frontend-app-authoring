@@ -1,10 +1,9 @@
 import React from 'react';
-import { IntlProvider } from '@edx/frontend-platform/i18n';
+import { IntlProvider, injectIntl } from '@edx/frontend-platform/i18n';
 import { initializeMockApp } from '@edx/frontend-platform';
 import { render, waitFor, fireEvent } from '@testing-library/react';
 
 import GradingScale from './GradingScale';
-import GradingScaleHandle from './components/GradingScaleHandle';
 
 const gradeCutoffs = { A: 0.9, B: 0.8, C: 0.7 };
 
@@ -20,6 +19,7 @@ const sortedGrades = [
 const RootWrapper = () => (
   <IntlProvider locale="en" messages={{}}>
     <GradingScale
+      intl={injectIntl}
       gradeCutoffs={gradeCutoffs}
       gradeLetters={gradeLetters}
       sortedGrades={sortedGrades}
@@ -103,6 +103,7 @@ describe('<GradingScale />', () => {
     const { getAllByTestId } = render(
       <IntlProvider locale="en" messages={{}}>
         <GradingScale
+          intl={injectIntl}
           gradeCutoffs={shortGradeCutoffs}
           gradeLetters={['A']}
           sortedGrades={shortSortedGrades}
@@ -123,51 +124,39 @@ describe('<GradingScale />', () => {
     });
   });
 
-  it('renders GradingScaleHandle with default isEditable=true when prop is omitted', () => {
-    const gradingSegments = [
-      { current: 90, previous: 0 },
-      { current: 100, previous: 90 },
-    ];
-    const { container } = render(
-      <GradingScaleHandle
-        idx={0}
-        value={90}
-        gradingSegments={gradingSegments}
-        getHandleProps={() => ({})}
-      />,
-    );
-    expect(container.querySelector('.grading-scale-segment-btn-resize')).not.toBeDisabled();
-  });
-
-  it('should disable inputs and buttons when isEditable is false', async () => {
-    const { getAllByTestId, queryAllByTestId } = render(
+  it('uses a default pass/fail scale when grade cutoffs are not ready', async () => {
+    const { getAllByTestId } = render(
       <IntlProvider locale="en" messages={{}}>
         <GradingScale
-          gradeCutoffs={gradeCutoffs}
-          gradeLetters={gradeLetters}
-          sortedGrades={sortedGrades}
+          intl={injectIntl}
+          gradeCutoffs={{}}
+          gradeLetters={[]}
+          sortedGrades={[]}
           resetDataRef={{ current: false }}
           showSavePrompt={jest.fn()}
           setShowSuccessAlert={jest.fn()}
           setGradingData={jest.fn()}
           setOverrideInternetConnectionAlert={jest.fn()}
           setEligibleGrade={jest.fn()}
-          isEditable={false}
         />
       </IntlProvider>,
     );
+
     await waitFor(() => {
       const segmentInputs = getAllByTestId('grading-scale-segment-input');
-      segmentInputs.forEach((input) => expect(input).toBeDisabled());
-      const removeButtons = queryAllByTestId('grading-scale-btn-remove');
-      removeButtons.forEach((btn) => expect(btn).toBeDisabled());
+      expect(segmentInputs[0]).toHaveValue('Fail');
+      expect(segmentInputs[1]).toHaveValue('Pass');
     });
+
+    fireEvent.click(getAllByTestId('grading-scale-btn-add-segment')[0]);
+    expect(getAllByTestId('grading-scale-segment-input')).toHaveLength(4);
   });
 
   it('should render GradingScale component with more than 5 grades', async () => {
     const { getAllByTestId } = render(
       <IntlProvider locale="en" messages={{}}>
         <GradingScale
+          intl={injectIntl}
           gradeCutoffs={gradeCutoffs}
           gradeLetters={gradeLetters}
           sortedGrades={sortedGrades}

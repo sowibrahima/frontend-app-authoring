@@ -85,7 +85,11 @@ export const convertGradeData = (letters, gradingSegments, setConvertedResult) =
   }
 
   letters.forEach((letter, idx) => {
-    convertedData[letter] = gradingSegments[idx].previous / MAXIMUM_SCALE_LENGTH;
+    const segment = gradingSegments[idx];
+
+    if (letter && segment) {
+      convertedData[letter] = segment.previous / MAXIMUM_SCALE_LENGTH;
+    }
   });
 
   setConvertedResult(convertedData);

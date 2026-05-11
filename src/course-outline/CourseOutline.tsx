@@ -3,7 +3,6 @@ import { useIntl } from '@edx/frontend-platform/i18n';
 import {
   Container,
   Layout,
-  Row,
   TransitionReplace,
   Toast,
   StandardModal,
@@ -52,6 +51,7 @@ import EmptyPlaceholder from './empty-placeholder/EmptyPlaceholder';
 import PublishModal from './publish-modal/PublishModal';
 import PageAlerts from './page-alerts/PageAlerts';
 import DraggableList from './drag-helper/DraggableList';
+import CreateItemNameModal from './create-item-name-modal/CreateItemNameModal';
 import {
   canMoveSection,
   possibleUnitMoves,
@@ -106,6 +106,10 @@ const CourseOutline = ({ courseId }: CourseOutlineProps) => {
     isAddLibrarySectionModalOpen,
     openAddLibrarySectionModal,
     closeAddLibrarySectionModal,
+    isCreateItemNameModalOpen,
+    createItemNameModalItemType,
+    closeCreateItemNameModal,
+    handleCreateItemNameSubmit,
     handleEnableHighlightsSubmit,
     handleInternetConnectionFailed,
     handleOpenHighlightsModal,
@@ -251,11 +255,10 @@ const CourseOutline = ({ courseId }: CourseOutlineProps) => {
   }, [sectionsList]);
 
   if (isLoading) {
-    // eslint-disable-next-line react/jsx-no-useless-fragment
     return (
-      <Row className="m-0 mt-4 justify-content-center">
-        <LoadingSpinner />
-      </Row>
+      <div className="ws-course-outline-loading" aria-live="polite">
+        <LoadingSpinner className="ws-course-outline-loading__spinner" />
+      </div>
     );
   }
 
@@ -527,6 +530,12 @@ const CourseOutline = ({ courseId }: CourseOutlineProps) => {
           isOpen={isUnlinkModalOpen}
           close={closeUnlinkModal}
           onUnlinkSubmit={handleUnlinkItemSubmit}
+        />
+        <CreateItemNameModal
+          isOpen={isCreateItemNameModalOpen}
+          itemType={createItemNameModalItemType}
+          onClose={closeCreateItemNameModal}
+          onSubmit={handleCreateItemNameSubmit}
         />
         <StandardModal
           title={intl.formatMessage(messages.sectionPickerModalTitle)}

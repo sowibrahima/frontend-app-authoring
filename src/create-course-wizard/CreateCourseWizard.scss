@@ -385,6 +385,21 @@ $ws-danger: #DC2626;
   }
 }
 
+.ws-wizard__btn-spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba($ws-text, 0.25);
+  border-top-color: $ws-text;
+  border-radius: 999px;
+  animation: ws-wizard-spin 720ms linear infinite;
+}
+
+@keyframes ws-wizard-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .ws-wizard__btn--ghost {
   background: transparent;
   color: $ws-muted;
@@ -726,6 +741,29 @@ $ws-danger: #DC2626;
     box-shadow: 0 0 0 1px rgba($ws-brand, 0.35) inset;
     background: rgba($ws-brand, 0.03);
   }
+
+  &--disabled {
+    cursor: not-allowed;
+    background: #F4F5F7;
+    color: #9CA3AF;
+    opacity: 0.76;
+
+    &:hover {
+      border-color: $ws-border;
+      background: #F4F5F7;
+      transform: none;
+    }
+
+    .ws-wizard__price-card-title,
+    .ws-wizard__price-card-description {
+      color: #8A93A3;
+    }
+
+    .ws-wizard__price-card-state {
+      background: #E5E7EB;
+      border-color: #D1D5DB;
+    }
+  }
 }
 
 .ws-wizard__price-card-header {
@@ -806,6 +844,19 @@ $ws-danger: #DC2626;
   font-size: 1rem;
   font-weight: 600;
   line-height: 1.45;
+}
+
+.ws-wizard__price-card-soon {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-top: 0.2rem;
+  border-radius: 999px;
+  background: #E5E7EB;
+  color: #6B7280;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 800;
 }
 
 .ws-wizard__price-fields {
@@ -897,14 +948,6 @@ $ws-danger: #DC2626;
   overflow: hidden;
   transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease, transform 140ms ease;
 
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 0.36rem;
-    background: transparent;
-  }
-
   &:hover {
     border-color: #D1D5DB;
     background: $ws-hover;
@@ -914,10 +957,6 @@ $ws-danger: #DC2626;
     border-color: rgba($ws-brand, 0.45);
     background: rgba($ws-brand, 0.035);
     box-shadow: 0 0 0 1px rgba($ws-brand, 0.18) inset;
-
-    &::before {
-      background: $ws-brand;
-    }
 
     .ws-wizard__method-emblem {
       background: $ws-brand;
@@ -939,6 +978,11 @@ $ws-danger: #DC2626;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.86rem;
   font-weight: 800;
+
+  .pgn__icon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
 }
 
 .ws-wizard__method-copy {

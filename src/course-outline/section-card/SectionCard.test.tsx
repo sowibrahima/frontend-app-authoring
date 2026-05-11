@@ -1,25 +1,11 @@
-import { getConfig, setConfig } from '@edx/frontend-platform';
 import {
-  act,
-  fireEvent,
-  initializeMocks,
-  render,
-  screen,
-  waitFor,
-  within,
+  act, fireEvent, initializeMocks, render, screen, waitFor, within,
 } from '@src/testUtils';
 import { XBlock } from '@src/data/types';
-import { Info } from '@openedx/paragon/icons';
-import userEvent from '@testing-library/user-event';
-import { getXBlockApiUrl } from '@src/course-outline/data/api';
-import { courseOutlineQueryKeys } from '@src/course-outline/data/apiHooks';
-import { CourseInfoSidebar } from '@src/course-outline/outline-sidebar/info-sidebar/CourseInfoSidebar';
 import SectionCard from './SectionCard';
-import * as OutlineSidebarContext from '../outline-sidebar/OutlineSidebarContext';
 
 const mockUseAcceptLibraryBlockChanges = jest.fn();
 const mockUseIgnoreLibraryBlockChanges = jest.fn();
-const setCurrentSelection = jest.fn();
 
 jest.mock('@src/course-unit/data/apiHooks', () => ({
   useAcceptLibraryBlockChanges: () => ({
@@ -30,17 +16,16 @@ jest.mock('@src/course-unit/data/apiHooks', () => ({
   }),
 }));
 
-jest.mock('@src/CourseAuthoringContext', () => ({
-  useCourseAuthoringContext: () => ({
-    courseId: '5',
-  }),
+jest.mock('@edx/frontend-component-header', () => ({}));
+
+jest.mock('@edx/frontend-component-header/dist/studio-header/StudioHeader', () => ({
+  __esModule: true,
+  default: () => <div data-testid="studio-header" />,
 }));
 
-jest.mock('@src/course-outline/CourseOutlineContext', () => ({
-  useCourseOutlineContext: () => ({
-    setCurrentSelection,
-    openPublishModal: jest.fn(),
-  }),
+jest.mock('@edx/frontend-component-header/dist/studio-header/HeaderBody', () => ({
+  __esModule: true,
+  default: () => <div data-testid="studio-header-body" />,
 }));
 
 const unit = {
@@ -63,7 +48,9 @@ const subsection = {
   isHeaderVisible: true,
   releasedToStudents: true,
   childInfo: {
-    children: [unit],
+    children: [{
+      id: unit.id,
+    }],
   } as any, // 'as any' because we are omitting a lot of fields from 'childInfo'
 } satisfies Partial<XBlock> as XBlock;
 
@@ -83,7 +70,14 @@ const section = {
   },
   isHeaderVisible: true,
   childInfo: {
-    children: [subsection],
+    children: [{
+      id: subsection.id,
+      childInfo: {
+        children: [{
+          id: unit.id,
+        }],
+      },
+    }],
   } as any, // 'as any' because we are omitting a lot of fields from 'childInfo'
   upstreamInfo: {
     readyToSync: true,
@@ -93,48 +87,46 @@ const section = {
     versionDeclined: null,
     errorMessage: null,
     downstreamCustomized: [] as string[],
-    upstreamName: 'Upstream',
   },
 } satisfies Partial<XBlock> as XBlock;
 
-const renderComponent = (props?: object, entry = '/course/:courseId') =>
-  render(
-    <SectionCard
-      section={section}
-      index={1}
-      canMoveItem={jest.fn()}
-      onOrderChange={jest.fn()}
-      onOpenHighlightsModal={jest.fn()}
-      onOpenDeleteModal={jest.fn()}
-      onOpenConfigureModal={jest.fn()}
-      onDuplicateSubmit={jest.fn()}
-      isSectionsExpanded
-      isSelfPaced={false}
-      isCustomRelativeDatesActive={false}
-      {...props}
-    >
-      <span>children</span>
-    </SectionCard>,
-    {
-      path: '/course/:courseId',
-      params: { courseId: '5' },
-      routerProps: {
-        initialEntries: [entry],
-      },
-      extraWrapper: OutlineSidebarContext.OutlineSidebarProvider,
+const onEditSectionSubmit = jest.fn();
+
+const renderComponent = (props?: object, entry = '/course/:courseId') => render(
+  <SectionCard
+    section={section}
+    index={1}
+    canMoveItem={jest.fn()}
+    onOrderChange={jest.fn()}
+    onOpenPublishModal={jest.fn()}
+    onOpenHighlightsModal={jest.fn()}
+    onOpenDeleteModal={jest.fn()}
+    onOpenUnlinkModal={jest.fn()}
+    onOpenConfigureModal={jest.fn()}
+    onEditSectionSubmit={onEditSectionSubmit}
+    onDuplicateSubmit={jest.fn()}
+    isSectionsExpanded
+    onNewSubsectionSubmit={jest.fn()}
+    isSelfPaced={false}
+    isCustomRelativeDatesActive={false}
+    onAddSubsectionFromLibrary={jest.fn()}
+    resetScrollState={jest.fn()}
+    {...props}
+  >
+    <span>children</span>
+  </SectionCard>,
+  {
+    path: '/course/:courseId',
+    params: { courseId: '5' },
+    routerProps: {
+      initialEntries: [entry],
     },
-  );
-let axiosMock;
-let queryClient;
+  },
+);
 
 describe('<SectionCard />', () => {
   beforeEach(() => {
-    const mocks = initializeMocks();
-    axiosMock = mocks.axiosMock;
-    queryClient = mocks.queryClient;
-    axiosMock
-      .onGet(getXBlockApiUrl(section.id))
-      .reply(200, section);
+    initializeMocks();
   });
 
   it('render SectionCard component correctly', () => {
@@ -142,28 +134,6 @@ describe('<SectionCard />', () => {
 
     expect(screen.getByTestId('section-card-header')).toBeInTheDocument();
     expect(screen.getByTestId('section-card__content')).toBeInTheDocument();
-
-    // The card is not selected
-    const card = screen.getByTestId('section-card');
-    expect(card).not.toHaveClass('outline-card-selected');
-  });
-
-  it('render SectionCard component in selected state', async () => {
-    const user = userEvent.setup();
-    const { container } = renderComponent();
-
-    expect(screen.getByTestId('section-card-header')).toBeInTheDocument();
-
-    // The card is not selected
-    expect(await screen.findByTestId('section-card')).not.toHaveClass('outline-card-selected');
-
-    // Get the <Row> that contains the card and click it to select the card
-    const el = container.querySelector('div.row.mx-0') as HTMLInputElement;
-    expect(el).not.toBeNull();
-    await user.click(el!);
-
-    // The card is selected
-    expect(await screen.findByTestId('section-card')).toHaveClass('outline-card-selected');
   });
 
   it('expands/collapses the card when the expand button is clicked', () => {
@@ -172,11 +142,29 @@ describe('<SectionCard />', () => {
     const expandButton = screen.getByTestId('section-card-header__expanded-btn');
     fireEvent.click(expandButton);
     expect(screen.queryByTestId('section-card__subsections')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'New subsection' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'New lesson' })).not.toBeInTheDocument();
 
     fireEvent.click(expandButton);
     expect(screen.queryByTestId('section-card__subsections')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'New subsection' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'New lesson' })).toBeInTheDocument();
+  });
+
+  it('title only updates if changed', async () => {
+    renderComponent();
+
+    let editButton = await screen.findByTestId('section-edit-button');
+    fireEvent.click(editButton);
+    let editField = await screen.findByTestId('section-edit-field');
+    fireEvent.blur(editField);
+
+    expect(onEditSectionSubmit).not.toHaveBeenCalled();
+
+    editButton = await screen.findByTestId('section-edit-button');
+    fireEvent.click(editButton);
+    editField = await screen.findByTestId('section-edit-field');
+    fireEvent.change(editField, { target: { value: 'some random value' } });
+    fireEvent.blur(editField);
+    expect(onEditSectionSubmit).toHaveBeenCalled();
   });
 
   it('hides header based on isHeaderVisible flag', async () => {
@@ -190,17 +178,6 @@ describe('<SectionCard />', () => {
   });
 
   it('hides add new, duplicate & delete option based on childAddable, duplicable & deletable action flag', async () => {
-    axiosMock
-      .onGet(getXBlockApiUrl(section.id))
-      .reply(200, {
-        ...section,
-        actions: {
-          draggable: true,
-          childAddable: false,
-          deletable: false,
-          duplicable: false,
-        },
-      });
     renderComponent({
       section: {
         ...section,
@@ -217,7 +194,7 @@ describe('<SectionCard />', () => {
     await act(async () => fireEvent.click(menu));
     expect(within(element).queryByTestId('section-card-header__menu-duplicate-button')).not.toBeInTheDocument();
     expect(within(element).queryByTestId('section-card-header__menu-delete-button')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'New subsection' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'New lesson' })).not.toBeInTheDocument();
   });
 
   it('check extended section when URL "show" param in subsection under section', async () => {
@@ -229,7 +206,7 @@ describe('<SectionCard />', () => {
     renderComponent(collapsedSections, `/course/:courseId?show=${subsectionIdUrl}`);
 
     const cardSubsections = await screen.findByTestId('section-card__subsections');
-    const newSubsectionButton = await screen.findByRole('button', { name: 'New subsection' });
+    const newSubsectionButton = await screen.findByRole('button', { name: 'New lesson' });
     expect(cardSubsections).toBeInTheDocument();
     expect(newSubsectionButton).toBeInTheDocument();
   });
@@ -243,7 +220,7 @@ describe('<SectionCard />', () => {
     renderComponent(collapsedSections, `/course/:courseId?show=${unitIdUrl}`);
 
     const cardSubsections = await screen.findByTestId('section-card__subsections');
-    const newSubsectionButton = await screen.findByRole('button', { name: 'New subsection' });
+    const newSubsectionButton = await screen.findByRole('button', { name: 'New lesson' });
     expect(cardSubsections).toBeInTheDocument();
     expect(newSubsectionButton).toBeInTheDocument();
   });
@@ -256,30 +233,9 @@ describe('<SectionCard />', () => {
     renderComponent(collapsedSections, `/course/:courseId?show=${randomId}`);
 
     const cardSubsections = screen.queryByTestId('section-card__subsections');
-    const newSubsectionButton = screen.queryByRole('button', { name: 'New subsection' });
+    const newSubsectionButton = screen.queryByRole('button', { name: 'New lesson' });
     expect(cardSubsections).toBeNull();
     expect(newSubsectionButton).toBeNull();
-  });
-
-  it('expands collapsed section when scrollState targets a child subsection', async () => {
-    queryClient.setQueryData(courseOutlineQueryKeys.scrollToCourseItemId('5'), { id: subsection.id });
-    renderComponent({ isSectionsExpanded: false });
-
-    expect(await screen.findByTestId('section-card__subsections')).toBeInTheDocument();
-  });
-
-  it('expands collapsed section when scrollState targets a unit inside a child subsection', async () => {
-    queryClient.setQueryData(courseOutlineQueryKeys.scrollToCourseItemId('5'), { id: unit.id });
-    renderComponent({ isSectionsExpanded: false });
-
-    expect(await screen.findByTestId('section-card__subsections')).toBeInTheDocument();
-  });
-
-  it('does not expand collapsed section when scrollState targets an unrelated id', async () => {
-    queryClient.setQueryData(courseOutlineQueryKeys.scrollToCourseItemId('5'), { id: 'unrelated-id' });
-    renderComponent({ isSectionsExpanded: false });
-
-    expect(screen.queryByTestId('section-card__subsections')).toBeNull();
   });
 
   it('should sync section changes from upstream', async () => {
@@ -325,68 +281,5 @@ describe('<SectionCard />', () => {
     fireEvent.click(ignoreButton);
 
     await waitFor(() => expect(mockUseIgnoreLibraryBlockChanges).toHaveBeenCalled());
-  });
-
-  it('should open align sidebar', async () => {
-    const user = userEvent.setup();
-    const mockSetCurrentPageKey = jest.fn();
-    const mockSetSelectedContainerState = jest.fn();
-
-    const testSidebarPage = {
-      component: CourseInfoSidebar,
-      icon: Info,
-      title: '',
-    };
-
-    jest
-      .spyOn(OutlineSidebarContext, 'useOutlineSidebarContext')
-      .mockImplementation(() => ({
-        setCurrentPageKey: mockSetCurrentPageKey,
-        currentPageKey: 'info',
-        sidebarPages: {
-          info: testSidebarPage,
-          help: testSidebarPage,
-          add: testSidebarPage,
-        },
-        currentTabKey: 'info',
-        setCurrentTabKey: jest.fn(),
-        openContainerSidebar: jest.fn(),
-        isOpen: true,
-        open: jest.fn(),
-        toggle: jest.fn(),
-        currentFlow: undefined,
-        startCurrentFlow: jest.fn(),
-        stopCurrentFlow: jest.fn(),
-        openContainerInfoSidebar: jest.fn(),
-        clearSelection: jest.fn(),
-        setSelectedContainerState: mockSetSelectedContainerState,
-      }));
-    setConfig({
-      ...getConfig(),
-      ENABLE_TAGGING_TAXONOMY_PAGES: 'true',
-    });
-    renderComponent();
-    const element = await screen.findByTestId('section-card');
-    const menu = await within(element).findByTestId('section-card-header__menu-button');
-    await user.click(menu);
-
-    const manageTagsBtn = await within(element).findByTestId('section-card-header__menu-manage-tags-button');
-    expect(manageTagsBtn).toBeInTheDocument();
-
-    await user.click(manageTagsBtn);
-
-    await waitFor(() => {
-      expect(mockSetCurrentPageKey).toHaveBeenCalledWith('align');
-    });
-    expect(setCurrentSelection).toHaveBeenCalledWith({
-      currentId: section.id,
-      sectionId: section.id,
-      index: 1,
-    });
-    expect(mockSetSelectedContainerState).toHaveBeenCalledWith({
-      currentId: section.id,
-      sectionId: section.id,
-      index: 1,
-    });
   });
 });

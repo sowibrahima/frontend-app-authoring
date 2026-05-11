@@ -1,24 +1,14 @@
-import { getConfig, setConfig } from '@edx/frontend-platform';
-import userEvent from '@testing-library/user-event';
-
+import { COMPONENT_TYPES } from '@src/generic/block-type-utils/constants';
 import {
-  act,
-  fireEvent,
-  initializeMocks,
-  render,
-  screen,
-  waitFor,
-  within,
+  act, fireEvent, initializeMocks, render, screen, waitFor, within,
 } from '@src/testUtils';
 import { XBlock } from '@src/data/types';
-import { ContainerType } from '@src/generic/key-utils';
-
 import cardHeaderMessages from '../card-header/messages';
-import { OutlineSidebarProvider } from '../outline-sidebar/OutlineSidebarContext';
 import SubsectionCard from './SubsectionCard';
 
-const handleOnAddUnitFromLibrary = { mutateAsync: jest.fn(), isPending: false };
-const setCurrentSelection = jest.fn();
+let store;
+const containerKey = 'lct:org:lib:unit:1';
+const handleOnAddUnitFromLibrary = jest.fn();
 
 const mockUseAcceptLibraryBlockChanges = jest.fn();
 const mockUseIgnoreLibraryBlockChanges = jest.fn();
@@ -32,36 +22,51 @@ jest.mock('@src/course-unit/data/apiHooks', () => ({
   }),
 }));
 
-jest.mock('@src/CourseAuthoringContext', () => ({
-  useCourseAuthoringContext: () => ({
-    courseId: 5,
-  }),
+jest.mock('@edx/frontend-component-header', () => ({}));
+
+jest.mock('@edx/frontend-component-header/dist/studio-header/StudioHeader', () => ({
+  __esModule: true,
+  default: () => <div data-testid="studio-header" />,
 }));
 
-jest.mock('@src/course-outline/CourseOutlineContext', () => ({
-  useCourseOutlineContext: () => ({
-    handleAddAndOpenUnit: handleOnAddUnitFromLibrary,
-    handleAddBlock: {},
-    setCurrentSelection,
-    openPublishModal: jest.fn(),
-  }),
+jest.mock('@edx/frontend-component-header/dist/studio-header/HeaderBody', () => ({
+  __esModule: true,
+  default: () => <div data-testid="studio-header-body" />,
 }));
 
-jest.mock('@src/studio-home/data/selectors', () => ({
-  ...jest.requireActual('@src/studio-home/data/selectors'),
-  getStudioHomeData: () => ({
+jest.mock('@src/editors/EditorPage', () => ({
+  __esModule: true,
+  default: () => <div data-testid="xblock-editor-page" />,
+}));
+
+jest.mock('@src/editors/VideoSelectorPage', () => ({
+  __esModule: true,
+  default: () => <div data-testid="video-selector-page" />,
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: () => ({
     librariesV2Enabled: true,
   }),
 }));
 
-const startCurrentFlow = jest.fn();
-
-jest.mock('@src/course-outline/outline-sidebar/OutlineSidebarContext', () => ({
-  ...jest.requireActual('@src/course-outline/outline-sidebar/OutlineSidebarContext'),
-  useOutlineSidebarContext: () => ({
-    ...jest.requireActual('@src/course-outline/outline-sidebar/OutlineSidebarContext').useOutlineSidebarContext(),
-    startCurrentFlow,
-  }),
+// Mock ComponentPicker to call onComponentSelected on click
+jest.mock('@src/library-authoring/component-picker', () => ({
+  ComponentPicker: (props) => {
+    const onClick = () => {
+      // eslint-disable-next-line react/prop-types
+      props.onComponentSelected({
+        usageKey: containerKey,
+        blockType: 'unti',
+      });
+    };
+    return (
+      <button type="submit" onClick={onClick}>
+        Dummy button
+      </button>
+    );
+  },
 }));
 
 const unit = {
@@ -84,7 +89,9 @@ const subsection: XBlock = {
   isHeaderVisible: true,
   releasedToStudents: true,
   childInfo: {
-    children: [unit],
+    children: [{
+      id: unit.id,
+    }],
   } as any, // 'as any' because we are omitting a lot of fields from 'childInfo'
   upstreamInfo: {
     readyToSync: true,
@@ -94,7 +101,6 @@ const subsection: XBlock = {
     versionDeclined: null,
     errorMessage: null,
     downstreamCustomized: [] as string[],
-    upstreamName: 'Upstream',
   },
 } satisfies Partial<XBlock> as XBlock;
 
@@ -106,7 +112,9 @@ const section: XBlock = {
   hasChanges: false,
   highlights: ['highlight 1', 'highlight 2'],
   childInfo: {
-    children: [subsection],
+    children: [{
+      id: subsection.id,
+    }],
   } as any, // 'as any' because we are omitting a lot of fields from 'childInfo'
   actions: {
     draggable: true,
@@ -116,66 +124,51 @@ const section: XBlock = {
   },
 } satisfies Partial<XBlock> as XBlock;
 
-const renderComponent = (props?: object, entry = '/course/:courseId') =>
-  render(
-    <SubsectionCard
-      section={section}
-      subsection={subsection}
-      index={1}
-      isSelfPaced={false}
-      getPossibleMoves={jest.fn()}
-      onOrderChange={jest.fn()}
-      onOpenDeleteModal={jest.fn()}
-      isCustomRelativeDatesActive={false}
-      onDuplicateSubmit={jest.fn()}
-      onOpenConfigureModal={jest.fn()}
-      onPasteClick={jest.fn()}
-      isSectionsExpanded={false}
-      {...props}
-    >
-      <span>children</span>
-    </SubsectionCard>,
-    {
-      path: '/course/:courseId',
-      params: { courseId: '5' },
-      routerProps: {
-        initialEntries: [entry],
-      },
-      extraWrapper: OutlineSidebarProvider,
+const onEditSubectionSubmit = jest.fn();
+
+const renderComponent = (props?: object, entry = '/course/:courseId') => render(
+  <SubsectionCard
+    section={section}
+    subsection={subsection}
+    index={1}
+    isSelfPaced={false}
+    getPossibleMoves={jest.fn()}
+    onOrderChange={jest.fn()}
+    onOpenPublishModal={jest.fn()}
+    onOpenDeleteModal={jest.fn()}
+    onOpenUnlinkModal={jest.fn()}
+    onNewUnitSubmit={jest.fn()}
+    onAddUnitFromLibrary={handleOnAddUnitFromLibrary}
+    isCustomRelativeDatesActive={false}
+    onEditSubmit={onEditSubectionSubmit}
+    onDuplicateSubmit={jest.fn()}
+    onOpenConfigureModal={jest.fn()}
+    onPasteClick={jest.fn()}
+    resetScrollState={jest.fn()}
+    isSectionsExpanded={false}
+    {...props}
+  >
+    <span>children</span>
+  </SubsectionCard>,
+  {
+    path: '/course/:courseId',
+    params: { courseId: '5' },
+    routerProps: {
+      initialEntries: [entry],
     },
-  );
+  },
+);
 
 describe('<SubsectionCard />', () => {
   beforeEach(() => {
-    initializeMocks();
+    const mocks = initializeMocks();
+    store = mocks.reduxStore;
   });
 
   it('render SubsectionCard component correctly', () => {
     renderComponent();
 
     expect(screen.getByTestId('subsection-card-header')).toBeInTheDocument();
-
-    // The card is not selected
-    const card = screen.getByTestId('subsection-card');
-    expect(card).not.toHaveClass('outline-card-selected');
-  });
-
-  it('render SubsectionCard component in selected state', () => {
-    const { container } = renderComponent();
-
-    expect(screen.getByTestId('subsection-card-header')).toBeInTheDocument();
-
-    // The card is not selected
-    const card = screen.getByTestId('subsection-card');
-    expect(card).not.toHaveClass('outline-card-selected');
-
-    // Get the <Row> that contains the card and click it to select the card
-    const el = container.querySelector('div.row.mx-0') as HTMLInputElement;
-    expect(el).not.toBeNull();
-    fireEvent.click(el!);
-
-    // The card is selected
-    expect(card).toHaveClass('outline-card-selected');
   });
 
   it('expands/collapses the card when the subsection button is clicked', async () => {
@@ -184,11 +177,11 @@ describe('<SubsectionCard />', () => {
     const expandButton = await screen.findByTestId('subsection-card-header__expanded-btn');
     fireEvent.click(expandButton);
     expect(screen.queryByTestId('subsection-card__units')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'New unit' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /new activity page/i })).toBeInTheDocument();
 
     fireEvent.click(expandButton);
     expect(screen.queryByTestId('subsection-card__units')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'New unit' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /new activity page/i })).not.toBeInTheDocument();
   });
 
   it('updates current section, subsection and item', async () => {
@@ -196,12 +189,28 @@ describe('<SubsectionCard />', () => {
 
     const menu = await screen.findByTestId('subsection-card-header__menu');
     fireEvent.click(menu);
-    expect(setCurrentSelection).toHaveBeenCalledWith({
-      currentId: subsection.id,
-      subsectionId: subsection.id,
-      sectionId: section.id,
-      index: 1,
-    });
+    const { currentSection, currentSubsection, currentItem } = store.getState().courseOutline;
+    expect(currentSection).toEqual(section);
+    expect(currentSubsection).toEqual(subsection);
+    expect(currentItem).toEqual(subsection);
+  });
+
+  it('title only updates if changed', async () => {
+    renderComponent();
+
+    let editButton = await screen.findByTestId('subsection-edit-button');
+    fireEvent.click(editButton);
+    let editField = await screen.findByTestId('subsection-edit-field');
+    fireEvent.blur(editField);
+
+    expect(onEditSubectionSubmit).not.toHaveBeenCalled();
+
+    editButton = await screen.findByTestId('subsection-edit-button');
+    fireEvent.click(editButton);
+    editField = await screen.findByTestId('subsection-edit-field');
+    fireEvent.change(editField, { target: { value: 'some random value' } });
+    fireEvent.keyDown(editField, { key: 'Enter', keyCode: 13 });
+    expect(onEditSubectionSubmit).toHaveBeenCalled();
   });
 
   it('hides header based on isHeaderVisible flag', async () => {
@@ -231,7 +240,7 @@ describe('<SubsectionCard />', () => {
     await act(async () => fireEvent.click(menu));
     expect(within(element).queryByTestId('subsection-card-header__menu-duplicate-button')).not.toBeInTheDocument();
     expect(within(element).queryByTestId('subsection-card-header__menu-delete-button')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'New unit' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /new activity page/i })).not.toBeInTheDocument();
   });
 
   it('hides move, duplicate & delete options if parent was imported from library', async () => {
@@ -301,7 +310,7 @@ describe('<SubsectionCard />', () => {
     renderComponent(undefined, `/course/:courseId?show=${unit.id}`);
 
     const cardUnits = await screen.findByTestId('subsection-card__units');
-    const newUnitButton = await screen.findByRole('button', { name: 'New unit' });
+    const newUnitButton = await screen.findByRole('button', { name: /new activity page/i });
     expect(cardUnits).toBeInTheDocument();
     expect(newUnitButton).toBeInTheDocument();
   });
@@ -311,29 +320,100 @@ describe('<SubsectionCard />', () => {
     renderComponent(undefined, `/course/:courseId?show=${randomId}`);
 
     const cardUnits = screen.queryByTestId('subsection-card__units');
-    const newUnitButton = screen.queryByRole('button', { name: 'New unit' });
+    const newUnitButton = screen.queryByRole('button', { name: /new activity page/i });
     expect(cardUnits).toBeNull();
     expect(newUnitButton).toBeNull();
   });
 
   it('should add unit from library', async () => {
-    const user = userEvent.setup();
     renderComponent();
 
     const expandButton = await screen.findByTestId('subsection-card-header__expanded-btn');
-    await user.click(expandButton);
+    fireEvent.click(expandButton);
 
     const useUnitFromLibraryButton = screen.getByRole('button', {
-      name: /use unit from library/i,
+      name: /use an activity from the library/i,
     });
     expect(useUnitFromLibraryButton).toBeInTheDocument();
-    await user.click(useUnitFromLibraryButton);
+    fireEvent.click(useUnitFromLibraryButton);
 
-    expect(startCurrentFlow).toHaveBeenCalledWith({
-      flowType: ContainerType.Unit,
+    expect(await screen.findByText('Select unit'));
+
+    // click dummy button to execute onComponentSelected prop.
+    const dummyBtn = await screen.findByRole('button', { name: 'Dummy button' });
+    fireEvent.click(dummyBtn);
+
+    expect(handleOnAddUnitFromLibrary).toHaveBeenCalled();
+    expect(handleOnAddUnitFromLibrary).toHaveBeenCalledWith({
+      type: COMPONENT_TYPES.libraryV2,
       parentLocator: 'block-v1:UNIX+UX1+2025_T3+type@subsection+block@0',
-      grandParentLocator: 'block-v1:UNIX+UX1+2025_T3+type@section+block@0',
+      category: 'vertical',
+      libraryContentKey: containerKey,
     });
+  });
+
+  it('opens the other activity choices without creating a blank unit', async () => {
+    const onNewUnitSubmit = jest.fn();
+    renderComponent({ onNewUnitSubmit });
+
+    const expandButton = await screen.findByTestId('subsection-card-header__expanded-btn');
+    fireEvent.click(expandButton);
+    fireEvent.click(screen.getByRole('button', { name: /new activity page/i }));
+    fireEvent.click(screen.getByRole('button', { name: /other/i }));
+
+    expect(onNewUnitSubmit).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: /html text/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /watch/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /quiz/i })).toBeInTheDocument();
+  });
+
+  it('opens the editor after creating a text activity from the outline picker', async () => {
+    const onNewUnitSubmit = jest.fn((...args) => {
+      const callback = args[3];
+      callback({
+        courseKey: 'course-v1:TestX+TST+2026',
+        locator: 'block-v1:TestX+TST+2026+type@html+block@abc',
+      });
+    });
+    renderComponent({ onNewUnitSubmit });
+
+    const expandButton = await screen.findByTestId('subsection-card-header__expanded-btn');
+    fireEvent.click(expandButton);
+    fireEvent.click(screen.getByRole('button', { name: /new activity page/i }));
+    fireEvent.click(screen.getByRole('button', { name: /read/i }));
+    fireEvent.click(screen.getByRole('button', { name: /html text/i }));
+
+    expect(onNewUnitSubmit).toHaveBeenCalledWith(
+      subsection.id,
+      section.id,
+      expect.objectContaining({ type: COMPONENT_TYPES.html }),
+      expect.any(Function),
+    );
+    expect(await screen.findByTestId('xblock-editor-page')).toBeInTheDocument();
+  });
+
+  it('opens the video selector after creating a video activity from the outline picker', async () => {
+    const onNewUnitSubmit = jest.fn((...args) => {
+      const callback = args[3];
+      callback({
+        courseKey: 'course-v1:TestX+TST+2026',
+        locator: 'block-v1:TestX+TST+2026+type@video+block@abc',
+      });
+    });
+    renderComponent({ onNewUnitSubmit });
+
+    const expandButton = await screen.findByTestId('subsection-card-header__expanded-btn');
+    fireEvent.click(expandButton);
+    fireEvent.click(screen.getByRole('button', { name: /new activity page/i }));
+    fireEvent.click(screen.getByRole('button', { name: /watch/i }));
+
+    expect(onNewUnitSubmit).toHaveBeenCalledWith(
+      subsection.id,
+      section.id,
+      expect.objectContaining({ type: COMPONENT_TYPES.video }),
+      expect.any(Function),
+    );
+    expect(await screen.findByTestId('video-selector-page')).toBeInTheDocument();
   });
 
   it('should sync subsection changes from upstream', async () => {
@@ -379,24 +459,5 @@ describe('<SubsectionCard />', () => {
     fireEvent.click(ignoreButton);
 
     await waitFor(() => expect(mockUseIgnoreLibraryBlockChanges).toHaveBeenCalled());
-  });
-
-  it('should open align sidebar', async () => {
-    const user = userEvent.setup();
-    setConfig({
-      ...getConfig(),
-      ENABLE_TAGGING_TAXONOMY_PAGES: 'true',
-    });
-    renderComponent();
-    const element = await screen.findByTestId('subsection-card');
-    const menu = await within(element).findByTestId('subsection-card-header__menu-button');
-    await user.click(menu);
-
-    const manageTagsBtn = await within(element).findByTestId('subsection-card-header__menu-manage-tags-button');
-    expect(manageTagsBtn).toBeInTheDocument();
-
-    await user.click(manageTagsBtn);
-
-    expect(screen.getByText('Manage tags')).toBeInTheDocument();
   });
 });

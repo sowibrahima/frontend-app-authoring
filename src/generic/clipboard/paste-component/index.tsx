@@ -18,30 +18,31 @@ const PasteComponent = ({
   className,
 }: PasteComponentProps) => {
   const [showPopover, togglePopover] = useState(false);
-  const popoverElementRef = useRef(null);
+  const popoverElementRef = useRef<HTMLDivElement>(null);
 
   const handlePopoverToggle = (isOpen: boolean) => togglePopover(isOpen);
 
   const renderPopover = (props) => (
-    <div role="link" ref={popoverElementRef} tabIndex={0}>
-      <Popover
-        className="clipboard-popover"
-        id="popover-positioned"
-        onMouseEnter={() => handlePopoverToggle(true)}
-        onMouseLeave={() => handlePopoverToggle(false)}
-        onFocus={() => handlePopoverToggle(true)}
-        onBlur={() => handlePopoverToggle(false)}
-        {...props}
-      >
-        <PopoverContent clipboardData={clipboardData} />
-      </Popover>
-    </div>
+    <Popover
+      className="clipboard-popover"
+      id="clipboard-popover"
+      ref={popoverElementRef}
+      tabIndex={0}
+      onMouseEnter={() => handlePopoverToggle(true)}
+      onMouseLeave={() => handlePopoverToggle(false)}
+      onFocus={() => handlePopoverToggle(true)}
+      onBlur={() => handlePopoverToggle(false)}
+      {...props}
+    >
+      <PopoverContent clipboardData={clipboardData} />
+    </Popover>
   );
 
   return (
-    <>
+    <div className="paste-component">
       <PasteButton className={className} onClick={onClick} text={text} />
       <OverlayTrigger
+        placement="top"
         show={showPopover}
         overlay={renderPopover}
       >
@@ -51,7 +52,7 @@ const PasteComponent = ({
           popoverElementRef={popoverElementRef}
         />
       </OverlayTrigger>
-    </>
+    </div>
   );
 };
 

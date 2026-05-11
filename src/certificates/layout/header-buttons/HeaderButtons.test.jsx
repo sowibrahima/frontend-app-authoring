@@ -71,6 +71,19 @@ describe('HeaderButtons Component', () => {
     });
   });
 
+  it('hides the mode selector when only one certificate mode is available', async () => {
+    axiosMock
+      .onGet(getCertificatesApiUrl(courseId))
+      .reply(200, { ...certificatesDataMock, courseModes: [certificatesDataMock.courseModes[0]] });
+    await executeThunk(fetchCertificates(courseId), store.dispatch);
+
+    const { getByRole, queryByRole } = renderComponent();
+    const previewLink = getByRole('link', { name: messages.headingActionsPreview.defaultMessage });
+
+    expect(previewLink).toHaveAttribute('href', expect.stringContaining(certificatesDataMock.courseModes[0]));
+    expect(queryByRole('button', { name: certificatesDataMock.courseModes[0] })).not.toBeInTheDocument();
+  });
+
   it('activates certificate when button is clicked', async () => {
     const user = userEvent.setup();
     const newCertificateData = {

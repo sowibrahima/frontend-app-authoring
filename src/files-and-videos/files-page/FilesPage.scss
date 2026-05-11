@@ -1,5 +1,39 @@
+.files-page {
+  .files-page__title {
+    margin: 2.5rem 0 1rem;
+    color: var(--wuti-color-text, #111827);
+    font-size: clamp(2rem, 3vw, 2.75rem);
+    font-weight: 800;
+    line-height: 1.05;
+  }
+}
+
 .files-table {
+  .pgn__data-table-container {
+    overflow-x: visible;
+  }
+
+  .pgn__data-table-wrapper {
+    border: 1px solid var(--wuti-color-border, #E5E7EB);
+    border-radius: .875rem;
+    background: var(--wuti-color-surface, #FFFFFF);
+    box-shadow: 0 10px 26px rgb(17 24 39 / .045);
+  }
+
+  .pgn__data-table-status-bar {
+    min-height: auto !important;
+    padding: 1.25rem !important;
+  }
+
+  .pgn__data-table {
+    min-width: 48rem;
+  }
+}
+
+@media (width <= 900px) {
+  .files-table {
     .pgn__data-table-container {
-        overflow-x: visible;
+      overflow-x: auto;
     }
+  }
 }

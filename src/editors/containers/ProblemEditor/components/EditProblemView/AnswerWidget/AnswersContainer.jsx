@@ -24,7 +24,7 @@ const AnswersContainer = ({ problemType }) => {
   useAnswerContainer({ answers, problemType, updateField });
 
   return (
-    <div className="answers-container border border-light-700 rounded py-4 pl-4 pr-3">
+    <div className="answers-container">
       {answers.map((answer) => (
         <AnswerOption
           key={answer.id}

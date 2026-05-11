@@ -1,4 +1,4 @@
-export const ITEM_BADGE_STATUS = {
+export const ITEM_BADGE_STATUS = /** @type {const} */ ({
   live: 'live',
   gated: 'gated',
   publishedNotLive: 'published_not_live',
@@ -7,23 +7,23 @@ export const ITEM_BADGE_STATUS = {
   draft: 'draft',
   unscheduled: 'unscheduled',
   needs_attention: 'needs_attention',
-} as const;
+});
 
 export const HIGHLIGHTS_FIELD_MAX_LENGTH = 250;
 
-export const CHECKLIST_FILTERS = {
+export const CHECKLIST_FILTERS = /** @type {const} */ ({
   ALL: 'ALL',
   SELF_PACED: 'SELF_PACED',
   INSTRUCTOR_PACED: 'INSTRUCTOR_PACED',
-} as const;
+});
 
-export const COURSE_BLOCK_NAMES = {
-  chapter: { id: 'chapter', name: 'Section' },
-  sequential: { id: 'sequential', name: 'Subsection' },
-  vertical: { id: 'vertical', name: 'Unit' },
-} as const;
+export const COURSE_BLOCK_NAMES = /** @type {const} */ ({
+  chapter: { id: 'chapter', name: 'Module' },
+  sequential: { id: 'sequential', name: 'Lesson' },
+  vertical: { id: 'vertical', name: 'Activity' },
+});
 
-export const LAUNCH_CHECKLIST = {
+export const LAUNCH_CHECKLIST = /** @type {const} */ ({
   data: [
     {
       id: 'welcomeMessage',
@@ -50,9 +50,9 @@ export const LAUNCH_CHECKLIST = {
       pacingTypeFilter: CHECKLIST_FILTERS.ALL,
     },
   ],
-} as const;
+});
 
-export const BEST_PRACTICES_CHECKLIST = {
+export const BEST_PRACTICES_CHECKLIST = /** @type {const} */ ({
   data: [
     {
       id: 'videoDuration',
@@ -71,17 +71,17 @@ export const BEST_PRACTICES_CHECKLIST = {
       pacingTypeFilter: CHECKLIST_FILTERS.ALL,
     },
   ],
-} as const;
+});
 
-export const VIDEO_SHARING_OPTIONS = {
+export const VIDEO_SHARING_OPTIONS = /** @type {const} */ ({
   perVideo: 'per-video',
   allOn: 'all-on',
   allOff: 'all-off',
-} as const;
+});
 
-export const API_ERROR_TYPES = {
+export const API_ERROR_TYPES = /** @type {const} */ ({
   networkError: 'networkError',
   serverError: 'serverError',
   unknown: 'unknown',
   forbidden: 'forbidden',
-} as const;
+});

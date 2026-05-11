@@ -1,0 +1,31 @@
+.delete-modal__description {
+  max-width: 42rem;
+  color: var(--wuti-color-text, #111827);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.delete-modal__actions.pgn__action-row {
+  justify-content: flex-end;
+  gap: .75rem;
+}
+
+.delete-modal__cancel-btn.btn,
+.delete-modal__delete-btn.btn {
+  min-width: 6.75rem;
+  min-height: 2.5rem;
+  padding-inline: 1rem;
+}
+
+.delete-modal__cancel-btn.btn {
+  border-color: transparent;
+  background: transparent;
+  color: var(--wuti-color-text, #111827);
+  box-shadow: none;
+}
+
+.delete-modal__cancel-btn.btn:hover:not(:disabled, .disabled) {
+  border-color: var(--wuti-color-border, #E5E7EB);
+  background: var(--wuti-color-hover, #F9FAFB);
+  color: var(--wuti-color-text, #111827);
+}

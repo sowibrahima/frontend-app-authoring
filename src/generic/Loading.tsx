@@ -2,12 +2,14 @@ import { Spinner } from '@openedx/paragon';
 import { FormattedMessage } from '@edx/frontend-platform/i18n';
 
 interface LoadingSpinnerProps {
+  className?: string;
   size?: 'sm';
 }
 
-export const LoadingSpinner = ({ size }: LoadingSpinnerProps) => (
+export const LoadingSpinner = ({ className, size }: LoadingSpinnerProps) => (
   <Spinner
     animation="border"
+    className={className}
     role="status"
     variant="primary"
     size={size}

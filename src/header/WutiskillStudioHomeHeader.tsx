@@ -1,10 +1,49 @@
 import React from 'react';
 import { getAuthenticatedUser } from '@edx/frontend-platform/auth';
+import { defineMessages, useIntl } from '@edx/frontend-platform/i18n';
 import { Icon } from '@openedx/paragon';
 import { ExpandMore } from '@openedx/paragon/icons';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import './WutiskillStudioHomeHeader.scss';
+
+const messages = defineMessages({
+  mainNavigation: {
+    id: 'wuti.authoring.studioHomeHeader.mainNavigation',
+    defaultMessage: 'Main navigation',
+    description: 'Accessible label for Studio home main navigation',
+  },
+  dashboard: {
+    id: 'wuti.authoring.studioHomeHeader.dashboard',
+    defaultMessage: 'Dashboard',
+    description: 'Dashboard nav label in Studio home header',
+  },
+  templates: {
+    id: 'wuti.authoring.studioHomeHeader.templates',
+    defaultMessage: 'Templates',
+    description: 'Templates nav label in Studio home header',
+  },
+  analytics: {
+    id: 'wuti.authoring.studioHomeHeader.analytics',
+    defaultMessage: 'Analytics',
+    description: 'Analytics nav label in Studio home header',
+  },
+  settings: {
+    id: 'wuti.authoring.studioHomeHeader.settings',
+    defaultMessage: 'Settings',
+    description: 'Settings nav label in Studio home header',
+  },
+  userMenu: {
+    id: 'wuti.authoring.studioHomeHeader.userMenu',
+    defaultMessage: 'User menu',
+    description: 'Accessible label for the user menu button',
+  },
+  fallbackUser: {
+    id: 'wuti.authoring.studioHomeHeader.fallbackUser',
+    defaultMessage: 'Instructor',
+    description: 'Fallback user name for initials',
+  },
+});
 
 const getInitials = (name: string) => {
   const normalized = name.trim();
@@ -19,10 +58,11 @@ const getInitials = (name: string) => {
 };
 
 const WutiskillStudioHomeHeader = () => {
+  const intl = useIntl();
   const navigate = useNavigate();
   const location = useLocation();
   const user = getAuthenticatedUser();
-  const username = user?.name || user?.username || 'Formateur';
+  const username = user?.name || user?.username || intl.formatMessage(messages.fallbackUser);
   const activePath = location.pathname;
 
   return (
@@ -40,31 +80,35 @@ const WutiskillStudioHomeHeader = () => {
               WutiSkill <span>Studio</span>
             </span>
           </button>
-          <nav className="ws-studio-home-header__nav" aria-label="Navigation principale">
+          <nav className="ws-studio-home-header__nav" aria-label={intl.formatMessage(messages.mainNavigation)}>
             <button
               type="button"
               className={`ws-studio-home-header__nav-item${activePath === '/home' ? ' ws-studio-home-header__nav-item--active' : ''}`}
               onClick={() => navigate('/home')}
             >
-              Tableau de bord
+              {intl.formatMessage(messages.dashboard)}
             </button>
             <button
               type="button"
               className={`ws-studio-home-header__nav-item${activePath.startsWith('/home/course-templates') ? ' ws-studio-home-header__nav-item--active' : ''}`}
               onClick={() => navigate('/home/course-templates')}
             >
-              Modèles
+              {intl.formatMessage(messages.templates)}
             </button>
             <button type="button" className="ws-studio-home-header__nav-item" disabled>
-              Analytique
+              {intl.formatMessage(messages.analytics)}
             </button>
             <button type="button" className="ws-studio-home-header__nav-item" disabled>
-              Paramètres
+              {intl.formatMessage(messages.settings)}
             </button>
           </nav>
         </div>
 
-        <button type="button" className="ws-studio-home-header__user-btn" aria-label="Menu utilisateur">
+        <button
+          type="button"
+          className="ws-studio-home-header__user-btn"
+          aria-label={intl.formatMessage(messages.userMenu)}
+        >
           <span className="ws-studio-home-header__avatar">
             {getInitials(username)}
           </span>

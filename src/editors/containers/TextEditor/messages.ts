@@ -11,6 +11,11 @@ const messages = defineMessages({
     defaultMessage: 'loading',
     description: 'Loading message for spinner screenreader text.',
   },
+  generateTextWithAi: {
+    id: 'authoring.texteditor.generateWithAi',
+    defaultMessage: 'Generate with AI',
+    description: 'Button label for generating text component content with AI.',
+  },
 });
 
 export default messages;

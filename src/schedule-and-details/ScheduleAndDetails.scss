@@ -11,8 +11,71 @@
 @import "./license-section/LicenseSection";
 
 .schedule-and-details {
-  .help-sidebar {
-    margin-top: 3.438rem;
+  &__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(20rem, 25rem);
+    gap: 1.875rem;
+    align-items: start;
+  }
+
+  &__main {
+    padding: 1.25rem 1.35rem 1.5rem;
+    border: var(--pgn-size-border-width) solid var(--pgn-color-light-400);
+    border-radius: .875rem;
+    background: var(--pgn-color-white);
+    box-shadow: var(--pgn-elevation-box-shadow-down-1);
+
+    .section-container {
+      &:not(:last-child) {
+        padding-bottom: 1.375rem;
+        margin-bottom: 1.375rem;
+        border-bottom: var(--pgn-size-border-width) solid var(--pgn-color-light-300);
+      }
+
+      .section-header {
+        margin-bottom: 1rem;
+        border-bottom-color: var(--pgn-color-light-500);
+
+        h2 {
+          color: var(--pgn-color-gray-900);
+          font-weight: var(--pgn-typography-font-weight-bold);
+        }
+      }
+    }
+
+    .form-group-custom .pgn__form-label,
+    .datepicker-custom .pgn__form-label {
+      color: var(--pgn-color-gray-700);
+      font-weight: var(--pgn-typography-font-weight-bold);
+    }
+
+    .form-group-custom .pgn__form-control-description,
+    .form-group-custom .pgn__form-text,
+    .datepicker-custom .pgn__form-control-description,
+    .datepicker-custom .pgn__form-text {
+      color: var(--pgn-color-gray-600);
+    }
+
+    .form-control,
+    .pgn__form-control,
+    .datepicker-custom-control {
+      border-color: var(--pgn-color-light-500);
+      background-color: var(--pgn-color-white);
+      box-shadow: var(--pgn-elevation-box-shadow-down-1);
+    }
+
+    .form-control:hover,
+    .pgn__form-control:hover,
+    .datepicker-custom-control:hover {
+      border-color: var(--pgn-color-gray-500);
+    }
+
+    .form-control:focus,
+    .pgn__form-control:focus,
+    .datepicker-custom-control:focus {
+      border-color: var(--pgn-color-primary-500);
+      box-shadow: var(--pgn-elevation-form-input-focus);
+    }
   }
 
   .section-container {
@@ -31,6 +94,72 @@
         color: var(--pgn-color-black);
         margin-bottom: .75rem;
       }
+    }
+  }
+
+  &__summary {
+    position: sticky;
+    top: 6rem;
+  }
+
+  &__summary .basic-section {
+    padding: 1.25rem;
+    border: var(--pgn-size-border-width) solid var(--pgn-color-light-400);
+    border-radius: .875rem;
+    background: var(--pgn-color-white);
+    box-shadow: var(--pgn-elevation-box-shadow-down-1);
+
+    .section-sub-header {
+      display: block;
+      margin-bottom: 1rem;
+      border-bottom: 0;
+
+      h2 {
+        margin-bottom: .25rem;
+      }
+    }
+
+    .basic-info-list {
+      display: grid;
+      gap: .875rem;
+      margin-bottom: 1.25rem;
+
+      li {
+        padding-bottom: .875rem;
+        border-bottom: var(--pgn-size-border-width) solid var(--pgn-color-light-300);
+      }
+
+      li:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+      }
+    }
+
+    .pgn__card {
+      overflow: hidden;
+      border-color: var(--pgn-color-light-400);
+      box-shadow: none;
+    }
+
+    .pgn__card-header-content {
+      margin-top: 0;
+    }
+
+    .pgn__card-section a {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+  }
+}
+
+@media (max-width: 61.98em) {
+  .schedule-and-details {
+    &__layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    &__summary {
+      position: static;
     }
   }
 }

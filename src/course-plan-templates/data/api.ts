@@ -7,7 +7,10 @@ import {
   CoursePlanTemplateSummary,
 } from '../../course-plan-builder';
 
-const getApiRoot = () => new URL('/api/wutiskill-ai', getConfig().STUDIO_BASE_URL).href.replace(/\/$/, '');
+const getCoreApiRoot = () => new URL('/api/wutiskill-core/v1', getConfig().STUDIO_BASE_URL).href.replace(/\/$/, '');
+const getAiApiRoot = () => new URL('/api/wutiskill-ai', getConfig().STUDIO_BASE_URL).href.replace(/\/$/, '');
+
+const wait = (ms: number) => new Promise(resolve => { setTimeout(resolve, ms); });
 
 const normalizeTemplateSummary = (template: any): CoursePlanTemplateSummary => ({
   id: template.id,
@@ -50,7 +53,7 @@ export async function getCoursePlanTemplates({
 
   const query = params.toString();
   const { data } = await getAuthenticatedHttpClient().get(
-    `${getApiRoot()}/course-plan-templates/${query ? `?${query}` : ''}`,
+    `${getCoreApiRoot()}/course-plan-templates/${query ? `?${query}` : ''}`,
   );
 
   return (data.templates || []).map(normalizeTemplateSummary);
@@ -58,7 +61,7 @@ export async function getCoursePlanTemplates({
 
 export async function getCoursePlanTemplate(templateId: string): Promise<CoursePlanTemplate> {
   const { data } = await getAuthenticatedHttpClient().get(
-    `${getApiRoot()}/course-plan-templates/${templateId}/`,
+    `${getCoreApiRoot()}/course-plan-templates/${templateId}/`,
   );
 
   return normalizeTemplate(data);
@@ -74,7 +77,7 @@ export async function createCoursePlanTemplate(payload: {
   structure: CoursePlanStructure;
 }): Promise<CoursePlanTemplate> {
   const { data } = await getAuthenticatedHttpClient().post(
-    `${getApiRoot()}/course-plan-templates/`,
+    `${getCoreApiRoot()}/course-plan-templates/`,
     payload,
   );
 
@@ -95,7 +98,7 @@ export async function updateCoursePlanTemplate(
   }>,
 ): Promise<CoursePlanTemplate> {
   const { data } = await getAuthenticatedHttpClient().patch(
-    `${getApiRoot()}/course-plan-templates/${templateId}/`,
+    `${getCoreApiRoot()}/course-plan-templates/${templateId}/`,
     payload,
   );
 
@@ -112,7 +115,7 @@ export async function duplicateCoursePlanTemplate(
   } = {},
 ): Promise<CoursePlanTemplate> {
   const { data } = await getAuthenticatedHttpClient().post(
-    `${getApiRoot()}/course-plan-templates/${templateId}/duplicate/`,
+    `${getCoreApiRoot()}/course-plan-templates/${templateId}/duplicate/`,
     payload,
   );
 
@@ -121,7 +124,7 @@ export async function duplicateCoursePlanTemplate(
 
 export async function archiveCoursePlanTemplate(templateId: string): Promise<CoursePlanTemplate> {
   const { data } = await getAuthenticatedHttpClient().delete(
-    `${getApiRoot()}/course-plan-templates/${templateId}/`,
+    `${getCoreApiRoot()}/course-plan-templates/${templateId}/`,
   );
 
   return normalizeTemplate(data);
@@ -133,14 +136,44 @@ export async function applyCoursePlanToCourse(
   mode: 'append' | 'replace' = 'append',
 ): Promise<any> {
   const { data } = await getAuthenticatedHttpClient().post(
-    `${getApiRoot()}/courses/${courseId}/plans/apply/`,
+    `${getCoreApiRoot()}/courses/${courseId}/plans/apply/`,
     {
       structure,
       mode,
     },
   );
 
+  if (!data.id || ['completed', 'failed'].includes(data.status)) {
+    if (data.status === 'failed') {
+      throw new Error(data.error_message || 'Failed to apply course plan');
+    }
+    return data.result || data;
+  }
+
+  return waitForCoursePlanApplyJob(data.id);
+}
+
+export async function getCoursePlanApplyJob(jobId: string): Promise<any> {
+  const { data } = await getAuthenticatedHttpClient().get(
+    `${getCoreApiRoot()}/course-plan-apply-jobs/${jobId}/`,
+  );
   return data;
+}
+
+export async function waitForCoursePlanApplyJob(jobId: string, timeoutMs = 120000): Promise<any> {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    const job = await getCoursePlanApplyJob(jobId);
+    if (job.status === 'completed') {
+      return job.result || job;
+    }
+    if (job.status === 'failed') {
+      throw new Error(job.error_message || 'Failed to apply course plan');
+    }
+    await wait(1000);
+  }
+
+  throw new Error('Timed out while applying course plan');
 }
 
 export async function uploadCourseGenerationFile(file: File): Promise<any> {
@@ -148,7 +181,7 @@ export async function uploadCourseGenerationFile(file: File): Promise<any> {
   formData.append('file', file);
 
   const { data } = await getAuthenticatedHttpClient().post(
-    `${getApiRoot()}/upload/`,
+    `${getAiApiRoot()}/upload/`,
     formData,
     {
       headers: {
@@ -166,7 +199,7 @@ export async function createCourseGenerationJob(courseId: string, payload: {
   filePaths?: string[];
 }): Promise<any> {
   const { data } = await getAuthenticatedHttpClient().post(
-    `${getApiRoot()}/courses/${courseId}/generate/`,
+    `${getAiApiRoot()}/courses/${courseId}/generate/`,
     {
       instructions: payload.instructions || '',
       source_text: payload.sourceText || '',
@@ -180,6 +213,6 @@ export async function createCourseGenerationJob(courseId: string, payload: {
 }
 
 export async function getCourseGenerationJob(jobId: string): Promise<any> {
-  const { data } = await getAuthenticatedHttpClient().get(`${getApiRoot()}/jobs/${jobId}/`);
+  const { data } = await getAuthenticatedHttpClient().get(`${getAiApiRoot()}/jobs/${jobId}/`);
   return data;
 }

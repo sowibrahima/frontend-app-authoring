@@ -11,27 +11,27 @@ const messages = defineMessages({
   },
   statusBadgeLive: {
     id: 'course-authoring.course-outline.card.status-badge.live',
-    defaultMessage: 'En direct',
+    defaultMessage: 'Live',
   },
   statusBadgeGated: {
     id: 'course-authoring.course-outline.card.status-badge.gated',
-    defaultMessage: 'Restreint',
+    defaultMessage: 'Restricted',
   },
   statusBadgePublishedNotLive: {
     id: 'course-authoring.course-outline.card.status-badge.published-not-live',
-    defaultMessage: 'Publié (hors ligne)',
+    defaultMessage: 'Published (offline)',
   },
   statusBadgeStaffOnly: {
     id: 'course-authoring.course-outline.card.status-badge.staff-only',
-    defaultMessage: 'Équipe uniquement',
+    defaultMessage: 'Staff only',
   },
   statusBadgeDraft: {
     id: 'course-authoring.course-outline.card.status-badge.draft',
-    defaultMessage: 'Brouillon',
+    defaultMessage: 'Draft',
   },
   statusBadgeUnpublishedChanges: {
     id: 'course-authoring.course-outline.card.status-badge.draft-unpublished-changes',
-    defaultMessage: 'Brouillon (modifications non publiées)',
+    defaultMessage: 'Draft (unpublished changes)',
   },
   altButtonRename: {
     id: 'course-authoring.course-outline.card.button.edit.alt',
@@ -85,7 +85,7 @@ const messages = defineMessages({
   },
   discussionEnabledBadgeText: {
     id: 'course-authoring.course-outline.card.badge.discussionEnabled',
-    defaultMessage: 'Discussions activées',
+    defaultMessage: 'Discussions enabled',
   },
   menuManageTags: {
     id: 'course-authoring.course-outline.card.menu.manageTags',

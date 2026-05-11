@@ -95,9 +95,6 @@ const StudioHome = () => {
             <h1 className="ws-studio-home__title">
               {intl.formatMessage(messages.headingTitle)}
             </h1>
-            <p className="ws-studio-home__subtitle">
-              {intl.formatMessage(messages.heroSubtitle)}
-            </p>
           </div>
           <div className="ws-studio-home__hero-actions">
             {hasAbilityToCreateNewCourse && (

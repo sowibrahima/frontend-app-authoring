@@ -1,6 +1,10 @@
 @import "variables";
 
 .advanced-settings {
+  .advanced-settings__content {
+    max-width: 78rem;
+  }
+
   .help-sidebar {
     margin-top: 8.75rem;
   }
@@ -19,10 +23,12 @@
   }
 
   .setting-card {
-    margin-bottom: 1.75rem;
+    margin-bottom: 1rem;
+    border-radius: .875rem;
 
     .pgn__card-header .pgn__card-header-title-md {
-      font-size: 1.125rem;
+      font-size: 1rem;
+      line-height: 1.25;
     }
   }
 }
@@ -50,7 +56,7 @@
   }
 
   .pgn__card-header {
-    padding: 0 0 0 1.5rem;
+    padding: 0 0 0 1.25rem;
   }
 
   .pgn__card-status {
@@ -58,8 +64,23 @@
   }
 
   .pgn__card-header-content {
-    margin-top: 1.438rem;
-    margin-bottom: 1.438rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .pgn__card-body {
+    padding: .75rem 1rem;
+  }
+
+  .pgn__card-section {
+    padding: .75rem 1rem;
+  }
+
+  textarea.form-control,
+  textarea.pgn__form-control {
+    min-height: 2.25rem;
+    padding-top: .5rem;
+    padding-bottom: .5rem;
   }
 }
 

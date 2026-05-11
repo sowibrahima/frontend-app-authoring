@@ -9,7 +9,44 @@
     margin-bottom: .5rem;
   }
 
+  article > .pgn__card {
+    min-height: 5.5rem;
+    overflow: visible;
+  }
+
+  article > .pgn__card .pgn__card-section {
+    min-height: 5.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+  }
+
   .certificate-details {
+    article > .pgn__card .pgn__card-section {
+      display: block;
+    }
+
+    .pgn__form-group,
+    .form-group {
+      margin-bottom: 1.15rem;
+    }
+
+    .pgn__form-label,
+    label {
+      display: block;
+      margin-bottom: .45rem;
+      color: var(--wuti-color-text, #111827);
+      font-weight: 760;
+    }
+
+    .pgn__form-control-description,
+    .pgn__form-text {
+      margin-top: .55rem;
+      color: var(--wuti-color-muted, #667085);
+      line-height: 1.45;
+    }
+
     .certificate-details__info {
       color: var(--pgn-color-black);
       justify-content: space-between;
@@ -103,9 +140,23 @@
   }
 
   .certificates-card-form {
+    padding: .75rem 0 0;
+
     .pgn__form-control-description,
     .pgn__form-text {
       margin-top: .62rem;
+    }
+
+    .btn {
+      margin-top: .25rem;
+    }
+
+    .pgn__card-footer,
+    .card-footer {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: 1rem 1.5rem;
     }
   }
 }

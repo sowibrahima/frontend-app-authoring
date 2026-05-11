@@ -2,25 +2,17 @@ import { setConfig, getConfig } from '@edx/frontend-platform';
 
 import { ITEM_BADGE_STATUS } from '@src/course-outline/constants';
 import {
-  act,
-  fireEvent,
-  initializeMocks,
-  render,
-  screen,
-  waitFor,
+  act, fireEvent, initializeMocks, render, screen, waitFor,
 } from '@src/testUtils';
-import { CourseAuthoringProvider } from '@src/CourseAuthoringContext';
-import { courseId } from '@src/schedule-and-details/__mocks__/courseDetails';
-import { userEvent } from '@testing-library/user-event';
 import CardHeader from './CardHeader';
 import TitleButton from './TitleButton';
 import messages from './messages';
-import { OutlineSidebarProvider } from '../outline-sidebar/OutlineSidebarContext';
-import { CourseOutlineProvider } from '../CourseOutlineContext';
+import { RequestStatus } from '../../data/constants';
 
 const onExpandMock = jest.fn();
 const onClickMenuButtonMock = jest.fn();
 const onClickPublishMock = jest.fn();
+const onClickEditMock = jest.fn();
 const onClickDeleteMock = jest.fn();
 const onClickUnlinkMock = jest.fn();
 const onClickDuplicateMock = jest.fn();
@@ -31,15 +23,9 @@ const closeFormMock = jest.fn();
 
 const mockGetTagsCount = jest.fn();
 
-jest.mock('@src/generic/data/api', () => ({
-  ...jest.requireActual('@src/generic/data/api'),
+jest.mock('../../generic/data/api', () => ({
+  ...jest.requireActual('../../generic/data/api'),
   getTagsCount: () => mockGetTagsCount(),
-}));
-
-const useUpdateCourseBlockNameMock = { mutateAsync: jest.fn(), isPending: false };
-jest.mock('@src/course-outline/data/apiHooks', () => ({
-  ...jest.requireActual('@src/course-outline/data/apiHooks'),
-  useUpdateCourseBlockName: () => useUpdateCourseBlockNameMock,
 }));
 
 const cardHeaderProps = {
@@ -49,6 +35,8 @@ const cardHeaderProps = {
   hasChanges: false,
   onClickMenuButton: onClickMenuButtonMock,
   onClickPublish: onClickPublishMock,
+  onClickEdit: onClickEditMock,
+  isFormOpen: false,
   onEditSubmit: jest.fn(),
   closeForm: closeFormMock,
   isDisabledEditField: false,
@@ -91,15 +79,6 @@ const renderComponent = (props?: object, entry = '/') => {
       routerProps: {
         initialEntries: [entry],
       },
-      extraWrapper: ({ children }) => (
-        <CourseAuthoringProvider courseId={courseId}>
-          <CourseOutlineProvider>
-            <OutlineSidebarProvider>
-              {children}
-            </OutlineSidebarProvider>
-          </CourseOutlineProvider>
-        </CourseAuthoringProvider>
-      ),
     },
   );
 };
@@ -205,19 +184,7 @@ describe('<CardHeader />', () => {
     expect(onClickPublishMock).toHaveBeenCalled();
   });
 
-  it('only shows Manage tags menu if the waffle flag is enabled', async () => {
-    setConfig({
-      ...getConfig(),
-      ENABLE_TAGGING_TAXONOMY_PAGES: 'false',
-    });
-    renderComponent();
-    const menuButton = await screen.findByTestId('subsection-card-header__menu-button');
-    fireEvent.click(menuButton);
-
-    expect(screen.queryByText(messages.menuManageTags.defaultMessage)).not.toBeInTheDocument();
-  });
-
-  it('shows ContentTagsDrawer when the menu is clicked', async () => {
+  it('does not show Manage tags in the card menu', async () => {
     setConfig({
       ...getConfig(),
       ENABLE_TAGGING_TAXONOMY_PAGES: 'true',
@@ -226,30 +193,25 @@ describe('<CardHeader />', () => {
     const menuButton = await screen.findByTestId('subsection-card-header__menu-button');
     fireEvent.click(menuButton);
 
-    const manageTagsMenuItem = await screen.findByText(messages.menuManageTags.defaultMessage);
-    fireEvent.click(manageTagsMenuItem);
-
-    // Check if the drawer is open
-    expect(screen.getAllByText('Manage tags').length).toBe(1);
+    expect(screen.queryByText(messages.menuManageTags.defaultMessage)).not.toBeInTheDocument();
   });
 
-  it('calls onClickMenu when the edit button is clicked', async () => {
-    const user = userEvent.setup();
+  it('calls onClickEdit when the button is clicked', async () => {
     renderComponent();
 
     const editButton = await screen.findByTestId('subsection-edit-button');
-    await user.click(editButton);
-    expect(onClickMenuButtonMock).toHaveBeenCalled();
+    await act(async () => fireEvent.click(editButton));
+    expect(onClickEditMock).toHaveBeenCalled();
   });
 
-  it('check is field visible when edit is clicked', async () => {
-    const user = userEvent.setup();
-    renderComponent();
+  it('check is field visible when isFormOpen is true', async () => {
+    renderComponent({
+      ...cardHeaderProps,
+      isFormOpen: true,
+    });
 
-    const editButton = await screen.findByTestId('subsection-edit-button');
-    await user.click(editButton);
     expect(await screen.findByTestId('subsection-edit-field')).toBeInTheDocument();
-    await waitFor(() => {
+    waitFor(() => {
       expect(screen.queryByTestId('subsection-card-header__expanded-btn')).not.toBeInTheDocument();
       expect(screen.queryByTestId('edit-button')).not.toBeInTheDocument();
     });
@@ -263,30 +225,18 @@ describe('<CardHeader />', () => {
     // Ensure menu items related to editing are enabled
     const menuButton = screen.getByTestId('subsection-card-header__menu-button');
     await act(async () => fireEvent.click(menuButton));
-    expect(await screen.findByTestId('subsection-card-header__menu-configure-button')).not.toHaveAttribute(
-      'aria-disabled',
-    );
-    expect(await screen.findByTestId('subsection-card-header__menu-manage-tags-button')).not.toHaveAttribute(
-      'aria-disabled',
-    );
+    expect(await screen.findByTestId('subsection-card-header__menu-configure-button')).not.toHaveAttribute('aria-disabled');
   });
 
   it('check editing is disabled when saving is in progress', async () => {
-    setConfig({
-      ...getConfig(),
-      ENABLE_TAGGING_TAXONOMY_PAGES: 'true',
-    });
-    useUpdateCourseBlockNameMock.isPending = true;
-    const user = userEvent.setup();
-    renderComponent();
+    renderComponent({ ...cardHeaderProps, savingStatus: RequestStatus.IN_PROGRESS });
 
-    expect(await screen.findByLabelText('Rename')).toBeDisabled();
+    expect(await screen.findByTestId('subsection-edit-button')).toBeDisabled();
 
     // Ensure menu items related to editing are disabled
     const menuButton = await screen.findByTestId('subsection-card-header__menu-button');
-    await user.click(menuButton);
-    expect(await screen.findByText('Configure')).toHaveAttribute('aria-disabled', 'true');
-    expect(await screen.findByText('Manage tags')).toHaveAttribute('aria-disabled', 'true');
+    await act(async () => fireEvent.click(menuButton));
+    expect(await screen.findByTestId('subsection-card-header__menu-configure-button')).toHaveAttribute('aria-disabled', 'true');
   });
 
   it('calls onClickDelete when item is clicked', async () => {
