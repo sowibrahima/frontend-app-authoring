@@ -111,9 +111,9 @@ const AnswerOption = ({
     <Collapsible.Advanced
       open={isFeedbackVisible}
       onToggle={toggleFeedback}
-      className="answer-option d-flex flex-row justify-content-between flex-nowrap pb-2 pt-2"
+      className="answer-option"
     >
-      <div className="mr-1 d-flex">
+      <div className="answer-option__checker">
         <Checker
           hasSingleAnswer={hasSingleAnswer}
           answer={answer}
@@ -121,7 +121,7 @@ const AnswerOption = ({
           disabled={problemType === ProblemTypeKeys.NUMERIC}
         />
       </div>
-      <div className="ml-1 flex-grow-1">
+      <div className="answer-option__input">
         {getInputArea()}
         <Collapsible.Body>
           <FeedbackBox
@@ -136,7 +136,7 @@ const AnswerOption = ({
           />
         </Collapsible.Body>
       </div>
-      <div className="d-flex flex-row flex-nowrap">
+      <div className="answer-option__actions">
         <Collapsible.Trigger aria-label={intl.formatMessage(messages.feedbackToggleIconAriaLabel)} className="btn-icon btn-icon-primary btn-icon-md align-items-center">
           <Icon
             src={FeedbackOutline}

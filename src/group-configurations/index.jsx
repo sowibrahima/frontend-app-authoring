@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import {
-  Container, Layout, Stack, Row,
+  Container, Stack, Row,
 } from '@openedx/paragon';
 
 import { LoadingSpinner } from '../generic/Loading';
@@ -14,7 +14,6 @@ import messages from './messages';
 import ContentGroupsSection from './content-groups-section';
 import ExperimentConfigurationsSection from './experiment-configurations-section';
 import EnrollmentTrackGroupsSection from './enrollment-track-groups-section';
-import GroupConfigurationSidebar from './group-configuration-sidebar';
 import { useGroupConfigurations } from './hooks';
 import ConnectionErrorAlert from '../generic/ConnectionErrorAlert';
 
@@ -72,47 +71,30 @@ const GroupConfigurations = ({ courseId }) => {
           title={formatMessage(messages.headingTitle)}
           subtitle={formatMessage(messages.headingSubtitle)}
         />
-        <Layout
-          lg={[{ span: 9 }, { span: 3 }]}
-          md={[{ span: 9 }, { span: 3 }]}
-          sm={[{ span: 9 }, { span: 3 }]}
-          xs={[{ span: 9 }, { span: 3 }]}
-          xl={[{ span: 9 }, { span: 3 }]}
+        <Stack
+          gap={3}
+          className="group-configurations__content"
+          data-testid="group-configurations-main-content-wrapper"
         >
-          <Layout.Element>
-            <Stack
-              gap={3}
-              data-testid="group-configurations-main-content-wrapper"
-            >
-              {!!enrollmentTrackGroup && (
-                <EnrollmentTrackGroupsSection
-                  availableGroup={enrollmentTrackGroup}
-                />
-              )}
-              {!!contentGroup && (
-                <ContentGroupsSection
-                  availableGroup={contentGroup}
-                  contentGroupActions={contentGroupActions}
-                />
-              )}
-              {shouldShowExperimentGroups && (
-                <ExperimentConfigurationsSection
-                  courseId={courseId}
-                  availableGroups={experimentGroupConfigurations}
-                  experimentConfigurationActions={experimentConfigurationActions}
-                />
-              )}
-            </Stack>
-          </Layout.Element>
-          <Layout.Element>
-            <GroupConfigurationSidebar
-              courseId={courseId}
-              shouldShowExperimentGroups={shouldShowExperimentGroups}
-              shouldShowContentGroup={!!contentGroup}
-              shouldShowEnrollmentTrackGroup={!!enrollmentTrackGroup}
+          {!!enrollmentTrackGroup && (
+            <EnrollmentTrackGroupsSection
+              availableGroup={enrollmentTrackGroup}
             />
-          </Layout.Element>
-        </Layout>
+          )}
+          {!!contentGroup && (
+            <ContentGroupsSection
+              availableGroup={contentGroup}
+              contentGroupActions={contentGroupActions}
+            />
+          )}
+          {shouldShowExperimentGroups && (
+            <ExperimentConfigurationsSection
+              courseId={courseId}
+              availableGroups={experimentGroupConfigurations}
+              experimentConfigurationActions={experimentConfigurationActions}
+            />
+          )}
+        </Stack>
       </Container>
       <div className="alert-toast">
         <SavingErrorAlert

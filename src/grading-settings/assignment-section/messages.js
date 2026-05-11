@@ -55,11 +55,11 @@ const messages = defineMessages({
   },
   numberOfDroppableTitle: {
     id: 'course-authoring.grading-settings.assignment.number-of-droppable.title',
-    defaultMessage: 'Number of droppable',
+    defaultMessage: 'Scores to ignore',
   },
   numberOfDroppableDescription: {
     id: 'course-authoring.grading-settings.assignment.number-of-droppable.description',
-    defaultMessage: 'The number of assignments of this type that will be dropped. The lowest scoring assignments are dropped first.',
+    defaultMessage: 'Lowest scores ignored for this assignment category.',
   },
   numberOfDroppableErrorMessage: {
     id: 'course-authoring.grading-settings.assignment.number-of-droppable.error.message',
@@ -68,6 +68,14 @@ const messages = defineMessages({
   numberOfDroppableSecondErrorMessage: {
     id: 'course-authoring.grading-settings.assignment.number-of-droppable.second.error.message',
     defaultMessage: 'Cannot drop more {type} assignments than are assigned.',
+  },
+  ignoreLowestScoresTitle: {
+    id: 'course-authoring.grading-settings.assignment.ignore-lowest-scores.title',
+    defaultMessage: 'Ignore lowest scores',
+  },
+  ignoreLowestScoresDescription: {
+    id: 'course-authoring.grading-settings.assignment.ignore-lowest-scores.description',
+    defaultMessage: 'When enabled, the lowest scores in this category are ignored before calculating the category grade.',
   },
   assignmentAlertWarningTitle: {
     id: 'course-authoring.grading-settings.assignment.alert.warning.title',

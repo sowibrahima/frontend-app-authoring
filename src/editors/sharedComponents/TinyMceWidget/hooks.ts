@@ -284,6 +284,29 @@ export const setupCustomBehavior = ({
   lmsEndpointUrl,
   learningContextId,
 }) => (editor) => {
+  const componentGenerator = (window as any).WSAIAssistant?.openComponentGenerationModal;
+  if (componentGenerator && ['text', 'question'].includes(editorType)) {
+    editor.ui.registry.addButton(tinyMCE.buttons.aiGenerate, {
+      text: 'AI',
+      tooltip: 'Generate with AI',
+      onAction: () => componentGenerator({
+        courseId: learningContextId,
+        blockId: editor.id,
+        componentType: editorType === 'question' ? 'quiz' : 'text',
+        onInsert: (generatedContent) => {
+          if (editorType === 'question' && generatedContent?.question) {
+            editor.setContent(generatedContent.question);
+          } else if (typeof generatedContent === 'string') {
+            editor.insertContent(generatedContent);
+          }
+          editor.setDirty(true);
+          editor.undoManager.add();
+          editor.focus();
+        },
+      }),
+    });
+  }
+
   // image upload button
   editor.ui.registry.addButton(tinyMCE.buttons.imageUploadButton, {
     icon: 'image',

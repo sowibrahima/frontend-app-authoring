@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useToggle } from '@openedx/paragon';
 import { getConfig } from '@edx/frontend-platform';
+import { useIntl } from '@edx/frontend-platform/i18n';
 import { useQueryClient } from '@tanstack/react-query';
 
 import moment from 'moment';
@@ -38,6 +39,7 @@ import {
   addNewSectionQuery,
   addNewSubsectionQuery,
   addNewUnitQuery,
+  addNewUnitWithComponentQuery,
   deleteCourseSectionQuery,
   deleteCourseSubsectionQuery,
   deleteCourseUnitQuery,
@@ -66,9 +68,11 @@ import {
 import { useCreateCourseBlock } from './data/apiHooks';
 import { getCourseItem } from './data/api';
 import { containerComparisonQueryKeys } from '../container-comparison/data/apiHooks';
+import messages from './messages';
 
 const useCourseOutline = ({ courseId }) => {
   const dispatch = useDispatch();
+  const intl = useIntl();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const waffleFlags = useWaffleFlags(courseId);
@@ -108,6 +112,7 @@ const useCourseOutline = ({ courseId }) => {
   const [isConfigureModalOpen, openConfigureModal, closeConfigureModal] = useToggle(false);
   const [isDeleteModalOpen, openDeleteModal, closeDeleteModal] = useToggle(false);
   const [isUnlinkModalOpen, openUnlinkModal, closeUnlinkModal] = useToggle(false);
+  const [pendingCreateItem, setPendingCreateItem] = useState(null);
   const [
     isAddLibrarySectionModalOpen,
     openAddLibrarySectionModal,
@@ -121,11 +126,19 @@ const useCourseOutline = ({ courseId }) => {
   };
 
   const handleNewSectionSubmit = () => {
-    dispatch(addNewSectionQuery(courseStructure.id));
+    setPendingCreateItem({
+      type: COURSE_BLOCK_NAMES.chapter.id,
+      parentLocator: courseStructure.id,
+      itemType: intl.formatMessage(messages.defaultModuleName),
+    });
   };
 
   const handleNewSubsectionSubmit = (sectionId) => {
-    dispatch(addNewSubsectionQuery(sectionId));
+    setPendingCreateItem({
+      type: COURSE_BLOCK_NAMES.sequential.id,
+      parentLocator: sectionId,
+      itemType: intl.formatMessage(messages.defaultLessonName),
+    });
   };
 
   const getUnitUrl = (locator) => {
@@ -144,8 +157,51 @@ const useCourseOutline = ({ courseId }) => {
     }
   };
 
-  const handleNewUnitSubmit = (subsectionId) => {
-    dispatch(addNewUnitQuery(subsectionId, openUnitPage));
+  const handleNewUnitSubmit = (subsectionId, sectionId, component, callback) => {
+    setPendingCreateItem({
+      type: COURSE_BLOCK_NAMES.vertical.id,
+      parentLocator: subsectionId,
+      sectionId,
+      component,
+      callback,
+      itemType: intl.formatMessage(messages.defaultActivityName),
+    });
+  };
+
+  const closeCreateItemNameModal = () => {
+    setPendingCreateItem(null);
+  };
+
+  const handleCreateItemNameSubmit = (displayName) => {
+    if (!pendingCreateItem) {
+      return;
+    }
+
+    switch (pendingCreateItem.type) {
+      case COURSE_BLOCK_NAMES.chapter.id:
+        dispatch(addNewSectionQuery(pendingCreateItem.parentLocator, displayName));
+        break;
+      case COURSE_BLOCK_NAMES.sequential.id:
+        dispatch(addNewSubsectionQuery(pendingCreateItem.parentLocator, displayName));
+        break;
+      case COURSE_BLOCK_NAMES.vertical.id:
+        if (pendingCreateItem.sectionId && pendingCreateItem.component) {
+          dispatch(addNewUnitWithComponentQuery(
+            pendingCreateItem.parentLocator,
+            pendingCreateItem.sectionId,
+            pendingCreateItem.component,
+            pendingCreateItem.callback,
+            displayName,
+          ));
+        } else {
+          dispatch(addNewUnitQuery(pendingCreateItem.parentLocator, openUnitPage, displayName));
+        }
+        break;
+      default:
+        break;
+    }
+
+    closeCreateItemNameModal();
   };
 
   /**
@@ -383,6 +439,10 @@ const useCourseOutline = ({ courseId }) => {
     isAddLibrarySectionModalOpen,
     openAddLibrarySectionModal,
     closeAddLibrarySectionModal,
+    isCreateItemNameModalOpen: Boolean(pendingCreateItem),
+    createItemNameModalItemType: pendingCreateItem?.itemType || '',
+    closeCreateItemNameModal,
+    handleCreateItemNameSubmit,
     handleConfigureModalClose,
     headerNavigationsActions,
     handleEnableHighlightsSubmit,

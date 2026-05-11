@@ -1386,16 +1386,16 @@ describe('<CourseUnit />', () => {
     });
   });
 
-  it('shows the Tags sidebar when enabled', async () => {
+  it('does not render the Tags sidebar on the unit page when tagging is enabled', async () => {
     setConfig({
       ...getConfig(),
       ENABLE_TAGGING_TAXONOMY_PAGES: 'true',
     });
     render(<RootWrapper />);
-    await waitFor(() => { expect(screen.getByText('Unit tags')).toBeInTheDocument(); });
+    await waitFor(() => { expect(screen.queryByText('Unit tags')).not.toBeInTheDocument(); });
   });
 
-  it('hides the Tags sidebar when not enabled', async () => {
+  it('does not render the Tags sidebar on the unit page when tagging is disabled', async () => {
     setConfig({
       ...getConfig(),
       ENABLE_TAGGING_TAXONOMY_PAGES: 'false',

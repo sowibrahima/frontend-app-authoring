@@ -47,7 +47,7 @@ const FilesPage = ({
 
   return (
     <FilesPageProvider courseId={courseId}>
-      <Container size="xl" className="p-4 pt-4.5">
+      <Container size="xl" className="files-page p-4 pt-4.5">
         <EditFileErrors
           resetErrors={handleErrorReset}
           errorMessages={errorMessages}
@@ -57,7 +57,7 @@ const FilesPage = ({
           loadingStatus={loadingStatus}
         />
         <EditFileAlertsSlot />
-        <div className="h2">
+        <div className="files-page__title h2">
           {intl.formatMessage(messages.heading)}
         </div>
         {loadingStatus !== RequestStatus.FAILED && (

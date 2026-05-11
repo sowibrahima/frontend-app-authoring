@@ -1,7 +1,5 @@
-import { getConfig } from '@edx/frontend-platform';
 import { PluginSlot } from '@openedx/frontend-plugin-framework/dist';
 import { Stack } from '@openedx/paragon';
-import TagsSidebarControls from '../../content-tags-drawer/tags-sidebar-controls';
 import Sidebar from '../../course-unit/sidebar';
 import LocationInfo from '../../course-unit/sidebar/LocationInfo';
 import PublishControls from '../../course-unit/sidebar/PublishControls';
@@ -36,11 +34,6 @@ export const CourseAuthoringUnitSidebarSlot = (
           <Sidebar data-testid="course-unit-sidebar">
             <PublishControls blockId={blockId} />
           </Sidebar>
-          {getConfig().ENABLE_TAGGING_TAXONOMY_PAGES === 'true' && (
-            <Sidebar className="tags-sidebar">
-              <TagsSidebarControls readOnly={readOnly} />
-            </Sidebar>
-          )}
           <Sidebar data-testid="course-unit-location-sidebar">
             <LocationInfo />
           </Sidebar>

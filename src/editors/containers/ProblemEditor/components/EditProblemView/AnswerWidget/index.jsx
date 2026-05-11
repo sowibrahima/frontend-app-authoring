@@ -17,8 +17,8 @@ const AnswerWidget = ({
   const localizedProblemStaticData = localizedProblemTypes[problemType];
 
   return (
-    <div>
-      <div className="mt-4 text-primary-500">
+    <div className="editProblemView-section">
+      <div className="mt-4">
         <div className="h4">
           <FormattedMessage {...messages.answerWidgetTitle} />
         </div>

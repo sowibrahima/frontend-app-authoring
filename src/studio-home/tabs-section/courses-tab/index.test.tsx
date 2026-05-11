@@ -19,7 +19,6 @@ const isShowProcessing = false;
 const isLoading = false;
 const isFailed = false;
 const numPages = 1;
-const coursesCount = studioHomeMock.courses.length;
 const showNewCourseContainer = true;
 
 const renderComponent = (overrideProps = {}, studioHomeState: Partial<StudioHomeState> = {}) => {
@@ -45,7 +44,6 @@ const renderComponent = (overrideProps = {}, studioHomeState: Partial<StudioHome
         isLoading={isLoading}
         isFailed={isFailed}
         numPages={numPages}
-        coursesCount={coursesCount}
         {...overrideProps}
       />,
     ),

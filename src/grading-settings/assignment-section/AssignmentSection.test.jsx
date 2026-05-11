@@ -34,30 +34,53 @@ const RootWrapper = (props = {}) => (
   </IntlProvider>
 );
 
+const StatefulRootWrapper = () => {
+  const [state, setState] = React.useState({ graders: [defaultAssignments] });
+
+  const setStatefulGradingData = (fn) => {
+    setState((prevState) => {
+      const nextState = fn(prevState);
+      testObj.graders = nextState.graders;
+      return nextState;
+    });
+  };
+
+  return (
+    <RootWrapper
+      graders={state.graders}
+      setGradingData={setStatefulGradingData}
+    />
+  );
+};
+
 describe('<AssignmentSection />', () => {
   it('checking the correct display of titles, labels, descriptions', async () => {
-    const { getByText } = render(<RootWrapper />);
+    const { getByText, queryByText } = render(<RootWrapper />);
     await waitFor(() => {
       expect(getByText(messages.assignmentTypeNameTitle.defaultMessage)).toBeInTheDocument();
       expect(getByText(messages.assignmentTypeNameDescription.defaultMessage)).toBeInTheDocument();
-      expect(getByText(messages.abbreviationTitle.defaultMessage)).toBeInTheDocument();
-      expect(getByText(messages.abbreviationDescription.defaultMessage)).toBeInTheDocument();
+      expect(queryByText(messages.abbreviationTitle.defaultMessage)).not.toBeInTheDocument();
+      expect(queryByText(messages.abbreviationDescription.defaultMessage)).not.toBeInTheDocument();
       expect(getByText(messages.weightOfTotalGradeTitle.defaultMessage)).toBeInTheDocument();
       expect(getByText(messages.weightOfTotalGradeDescription.defaultMessage)).toBeInTheDocument();
       expect(getByText(messages.totalNumberTitle.defaultMessage)).toBeInTheDocument();
       expect(getByText(messages.totalNumberDescription.defaultMessage)).toBeInTheDocument();
+      expect(getByText(messages.ignoreLowestScoresTitle.defaultMessage)).toBeInTheDocument();
+      expect(getByText(messages.ignoreLowestScoresDescription.defaultMessage)).toBeInTheDocument();
       expect(getByText(messages.numberOfDroppableTitle.defaultMessage)).toBeInTheDocument();
       expect(getByText(messages.numberOfDroppableDescription.defaultMessage)).toBeInTheDocument();
       expect(getByText(messages.assignmentAlertWarningDescription.defaultMessage)).toBeInTheDocument();
       expect(getByText(messages.assignmentDeleteButton.defaultMessage)).toBeInTheDocument();
     });
   });
-  it('checking correct assignment abbreviation value', () => {
-    const { getByTestId } = render(<RootWrapper setGradingData={setGradingData} />);
-    const assignmentShortLabelInput = getByTestId('assignment-shortLabel-input');
-    expect(assignmentShortLabelInput.value).toBe('TT');
-    fireEvent.change(assignmentShortLabelInput, { target: { value: '123' } });
-    expect(testObj.graders[0].shortLabel).toBe('123');
+  it('keeps hidden assignment abbreviation synced to the full assignment type name', () => {
+    const { getByTestId, queryByTestId } = render(<RootWrapper setGradingData={setGradingData} />);
+    expect(queryByTestId('assignment-shortLabel-input')).not.toBeInTheDocument();
+
+    const assignmentTypeNameInput = getByTestId('assignment-type-name-input');
+    fireEvent.change(assignmentTypeNameInput, { target: { name: 'type', value: 'Project work' } });
+    expect(testObj.graders[0].type).toBe('Project work');
+    expect(testObj.graders[0].shortLabel).toBe('Project work');
   });
   it('checking correct assignment weight of total grade value', async () => {
     const { getByTestId } = render(<RootWrapper setGradingData={setGradingData} />);
@@ -80,10 +103,23 @@ describe('<AssignmentSection />', () => {
   it('checking correct assignment number of droppable value', async () => {
     const { getByTestId } = render(<RootWrapper setGradingData={setGradingData} />);
     await waitFor(() => {
+      expect(getByTestId('assignment-ignore-lowest-toggle')).toBeInTheDocument();
       const assignmentNumberOfDroppableInput = getByTestId('assignment-dropCount-input');
       expect(assignmentNumberOfDroppableInput.value).toBe('1');
       fireEvent.change(assignmentNumberOfDroppableInput, { target: { value: '2' } });
       expect(testObj.graders[0].dropCount).toBe(2);
+    });
+  });
+  it('hides and clears scores to ignore when ignore lowest scores is disabled', async () => {
+    const { getByTestId, queryByTestId } = render(<StatefulRootWrapper />);
+    await waitFor(() => {
+      expect(getByTestId('assignment-dropCount-input')).toBeInTheDocument();
+    });
+
+    fireEvent.click(getByTestId('assignment-ignore-lowest-toggle'));
+    expect(testObj.graders[0].dropCount).toBe(0);
+    await waitFor(() => {
+      expect(queryByTestId('assignment-dropCount-input')).not.toBeInTheDocument();
     });
   });
   it('checking correct error msg if dropCount have negative number or empty string', async () => {

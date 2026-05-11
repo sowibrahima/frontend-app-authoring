@@ -1,5 +1,6 @@
 import { camelCaseObject, getConfig } from '@edx/frontend-platform';
 import { getAuthenticatedHttpClient } from '@edx/frontend-platform/auth';
+import { withMinimalResponse } from '../../data/apiUtils';
 import { convertObjectToSnakeCase } from '../../utils';
 
 const getApiBaseUrl = () => getConfig().STUDIO_BASE_URL;
@@ -27,7 +28,7 @@ export async function getCourseDetails(courseId) {
  */
 export async function updateCourseDetails(courseId, details) {
   const { data } = await getAuthenticatedHttpClient().put(
-    `${getCourseDetailsApiUrl(courseId)}`,
+    withMinimalResponse(getCourseDetailsApiUrl(courseId)),
     convertObjectToSnakeCase(details, true),
   );
   return camelCaseObject(data);

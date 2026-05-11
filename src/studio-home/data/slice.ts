@@ -41,6 +41,7 @@ const slice = createSlice({
       allowCourseReruns?: boolean;
       allowToCreateNewOrg?: boolean;
       canCreateOrganizations?: boolean; // TODO: redundant with 'allowToCreateNewOrg' ???
+      canAccessAdvancedSettings?: boolean;
       allowedOrganizations?: string[];
       allowedOrganizationsForLibraries?: string[];
       courseCreatorStatus?: (typeof COURSE_CREATOR_STATES)[keyof typeof COURSE_CREATOR_STATES];

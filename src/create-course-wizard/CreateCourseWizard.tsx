@@ -7,12 +7,16 @@ import React, {
 } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { useIntl } from '@edx/frontend-platform/i18n';
 import { Icon } from '@openedx/paragon';
 import {
   ArrowLeft,
   ArrowRight,
   Check,
   CreditCard,
+  EditNote,
+  LibraryBooks,
+  MoneyOff,
   People,
   Settings,
 } from '@openedx/paragon/icons';
@@ -113,78 +117,97 @@ const MAX_THUMBNAIL_SIZE = 2 * 1024 * 1024;
 const COURSE_SETUP_STORAGE_PREFIX = 'wutiskill.course-setup.';
 
 const LANGUAGE_OPTIONS: Array<{ value: string; label: string }> = [
-  { value: 'fr', label: 'Français' },
-  { value: 'en', label: 'Anglais' },
+  { value: 'fr', label: 'French' },
+  { value: 'en', label: 'English' },
   { value: 'wo', label: 'Wolof' },
-  { value: 'ar', label: 'Arabe' },
+  { value: 'ar', label: 'Arabic' },
 ];
 
 const BLUEPRINT_OPTIONS: Array<{
   value: BlueprintType;
+  labelId: string;
   label: string;
+  descriptionId: string;
   description: string;
 }> = [
   {
     value: 'videoQuiz',
+    labelId: 'wuti.authoring.wizard.blueprint.videoQuiz.label',
     label: 'Video + quiz',
-    description: 'Un parcours guide par des videos courtes suivies de verifications rapides.',
+    descriptionId: 'wuti.authoring.wizard.blueprint.videoQuiz.description',
+    description: 'A guided path built around short videos followed by quick checks.',
   },
   {
     value: 'reading',
-    label: 'Lecture guidee',
-    description: 'Une progression centree sur la lecture, la synthese et la discussion.',
+    labelId: 'wuti.authoring.wizard.blueprint.reading.label',
+    label: 'Guided reading',
+    descriptionId: 'wuti.authoring.wizard.blueprint.reading.description',
+    description: 'A progression centered on reading, synthesis, and discussion.',
   },
   {
     value: 'project',
-    label: 'Projet accompagne',
-    description: 'Un chemin d apprentissage qui mene vers une production concrete.',
+    labelId: 'wuti.authoring.wizard.blueprint.project.label',
+    label: 'Guided project',
+    descriptionId: 'wuti.authoring.wizard.blueprint.project.description',
+    description: 'A learning path that leads to a concrete deliverable.',
   },
   {
     value: 'assessment',
-    label: 'Preparation a l evaluation',
-    description: 'Une structure orientee revision, questions types et pratique ciblee.',
+    labelId: 'wuti.authoring.wizard.blueprint.assessment.label',
+    label: 'Assessment preparation',
+    descriptionId: 'wuti.authoring.wizard.blueprint.assessment.description',
+    description: 'A structure focused on review, sample questions, and targeted practice.',
   },
   {
     value: 'corporate',
-    label: 'Formation interne',
-    description: 'Un format court et cadenced pour la montee en competence en entreprise.',
+    labelId: 'wuti.authoring.wizard.blueprint.corporate.label',
+    label: 'Internal training',
+    descriptionId: 'wuti.authoring.wizard.blueprint.corporate.description',
+    description: 'A short, paced format for workplace skill development.',
   },
 ];
 
 const RECIPE_OPTIONS: Array<{
   value: RecipeType;
+  labelId: string;
   label: string;
   description: string;
 }> = [
   {
     value: 'read',
-    label: 'Lire',
-    description: 'Expliquer un concept avec du texte, des exemples et des visuels.',
+    labelId: 'wuti.authoring.wizard.recipe.read.label',
+    label: 'Read',
+    description: 'Explain a concept with text, examples, and visuals.',
   },
   {
     value: 'watch',
-    label: 'Regarder',
-    description: 'Introduire le sujet avec une video ou une demonstration.',
+    labelId: 'wuti.authoring.wizard.recipe.watch.label',
+    label: 'Watch',
+    description: 'Introduce the topic with a video or demonstration.',
   },
   {
     value: 'practice',
-    label: 'Pratiquer',
-    description: 'Faire appliquer la notion dans un exercice ou une manipulation.',
+    labelId: 'wuti.authoring.wizard.recipe.practice.label',
+    label: 'Practice',
+    description: 'Apply the concept through an exercise or hands-on task.',
   },
   {
     value: 'answer',
-    label: 'Repondre',
-    description: 'Verifier la comprehension avec un quiz ou une question ouverte.',
+    labelId: 'wuti.authoring.wizard.recipe.answer.label',
+    label: 'Answer',
+    description: 'Check understanding with a quiz or open question.',
   },
   {
     value: 'discuss',
-    label: 'Discuter',
-    description: 'Faire reflechir ensemble les apprenants autour d un point cle.',
+    labelId: 'wuti.authoring.wizard.recipe.discuss.label',
+    label: 'Discuss',
+    description: 'Invite learners to reflect together on a key point.',
   },
   {
     value: 'submit',
-    label: 'Rendre un travail',
-    description: 'Collecter un devoir, un projet ou une production finale.',
+    labelId: 'wuti.authoring.wizard.recipe.submit.label',
+    label: 'Submit work',
+    description: 'Collect an assignment, project, or final deliverable.',
   },
 ];
 
@@ -239,6 +262,18 @@ function toIsoOrNull(localDateTime: string): string | null {
   return parsed.toISOString();
 }
 
+function removeUnsetDateFields<T extends Record<string, unknown>>(details: T, dateUpdates: Record<string, string>) {
+  const sanitizedDetails = { ...details };
+
+  (['startDate', 'endDate', 'enrollmentStart', 'enrollmentEnd'] as const).forEach((field) => {
+    if (!dateUpdates[field]) {
+      delete sanitizedDetails[field];
+    }
+  });
+
+  return sanitizedDetails;
+}
+
 function parseLocalDateTime(value: string): Date | null {
   if (!value) {
     return null;
@@ -285,7 +320,7 @@ function buildModule(title: string, lessons: OutlineLesson[] = []): OutlineModul
 function extractTopicSeed(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) {
-    return 'ce sujet';
+    return 'this topic';
   }
   return trimmed;
 }
@@ -296,95 +331,95 @@ function buildTemplateOutline(blueprintType: BlueprintType, courseTitle: string)
   switch (blueprintType) {
     case 'videoQuiz':
       return [
-        buildModule(`Decouvrir ${subject}`, [
-          buildLesson('Bienvenue et repere initial', [
-            buildActivity('Video d introduction', 'watch'),
-            buildActivity('Verifier les notions clefs', 'answer'),
+        buildModule(`Discover ${subject}`, [
+          buildLesson('Welcome and initial overview', [
+            buildActivity('Introductory video', 'watch'),
+            buildActivity('Check key concepts', 'answer'),
           ]),
-          buildLesson('Bases a retenir', [
-            buildActivity('Lecture de reference', 'read'),
-            buildActivity('Questionnaire rapide', 'answer'),
+          buildLesson('Core basics to remember', [
+            buildActivity('Reference reading', 'read'),
+            buildActivity('Quick quiz', 'answer'),
           ]),
         ]),
-        buildModule(`Passer a l action avec ${subject}`, [
-          buildLesson('Demonstration guidee', [
-            buildActivity('Video pas a pas', 'watch'),
-            buildActivity('Mise en pratique', 'practice'),
+        buildModule(`Take action with ${subject}`, [
+          buildLesson('Guided demonstration', [
+            buildActivity('Step-by-step video', 'watch'),
+            buildActivity('Practice task', 'practice'),
           ]),
-          buildLesson('Consolider les acquis', [
-            buildActivity('Discussion de synthese', 'discuss'),
+          buildLesson('Consolidate learning', [
+            buildActivity('Synthesis discussion', 'discuss'),
           ]),
         ]),
       ];
     case 'reading':
       return [
-        buildModule(`Comprendre ${subject}`, [
-          buildLesson('Contexte et definitions', [
-            buildActivity('Lecture principale', 'read'),
+        buildModule(`Understand ${subject}`, [
+          buildLesson('Context and definitions', [
+            buildActivity('Main reading', 'read'),
           ]),
-          buildLesson('Points de vigilance', [
-            buildActivity('Lecture annotee', 'read'),
-            buildActivity('Discussion d interpretation', 'discuss'),
+          buildLesson('Watch points', [
+            buildActivity('Annotated reading', 'read'),
+            buildActivity('Interpretation discussion', 'discuss'),
           ]),
         ]),
-        buildModule(`Approfondir ${subject}`, [
-          buildLesson('Etude de cas', [
-            buildActivity('Lecture guidee', 'read'),
-            buildActivity('Question de synthese', 'answer'),
+        buildModule(`Go deeper into ${subject}`, [
+          buildLesson('Case study', [
+            buildActivity('Guided reading', 'read'),
+            buildActivity('Synthesis question', 'answer'),
           ]),
         ]),
       ];
     case 'project':
       return [
-        buildModule(`Lancer le projet ${subject}`, [
-          buildLesson('Objectif et livrable', [
-            buildActivity('Cadrage du projet', 'read'),
-            buildActivity('Exemple de reference', 'watch'),
+        buildModule(`Launch the ${subject} project`, [
+          buildLesson('Goal and deliverable', [
+            buildActivity('Project framing', 'read'),
+            buildActivity('Reference example', 'watch'),
           ]),
         ]),
-        buildModule('Construire progressivement', [
-          buildLesson('Premiere iteration', [
-            buildActivity('Atelier pratique', 'practice'),
+        buildModule('Build progressively', [
+          buildLesson('First iteration', [
+            buildActivity('Hands-on workshop', 'practice'),
           ]),
-          buildLesson('Feedback et ajustements', [
-            buildActivity('Echange de groupe', 'discuss'),
+          buildLesson('Feedback and adjustments', [
+            buildActivity('Group exchange', 'discuss'),
           ]),
         ]),
-        buildModule('Livrer et evaluer', [
-          buildLesson('Rendu final', [
-            buildActivity('Depot du projet', 'submit'),
+        buildModule('Deliver and evaluate', [
+          buildLesson('Final submission', [
+            buildActivity('Project submission', 'submit'),
           ]),
         ]),
       ];
     case 'assessment':
       return [
-        buildModule(`Reviser ${subject}`, [
-          buildLesson('Rappels essentiels', [
-            buildActivity('Synthese des notions', 'read'),
-            buildActivity('Questions types', 'answer'),
+        buildModule(`Review ${subject}`, [
+          buildLesson('Essential reminders', [
+            buildActivity('Concept summary', 'read'),
+            buildActivity('Sample questions', 'answer'),
           ]),
         ]),
-        buildModule('S entrainer', [
-          buildLesson('Serie d exercices', [
-            buildActivity('Mise en pratique chronometree', 'practice'),
+        buildModule('Train', [
+          buildLesson('Exercise series', [
+            buildActivity('Timed practice', 'practice'),
           ]),
-          buildLesson('Correction commente', [
-            buildActivity('Debrief collectif', 'discuss'),
+          buildLesson('Annotated correction', [
+            buildActivity('Group debrief', 'discuss'),
           ]),
         ]),
       ];
     case 'corporate':
       return [
-        buildModule(`Pourquoi ${subject} compte`, [
-          buildLesson('Contexte metier', [
-            buildActivity('Capsule video', 'watch'),
-            buildActivity('Lecture de politique interne', 'read'),
+        buildModule(`Why ${subject} matters`, [
+          buildLesson('Business context', [
+            buildActivity('Short video', 'watch'),
+            buildActivity('Internal policy reading', 'read'),
           ]),
         ]),
-        buildModule('Appliquer la bonne pratique', [
-          buildLesson('Mise en situation', [
-            buildActivity('Exercice de validation', 'practice'),
-            buildActivity('Attestation de comprehension', 'answer'),
+        buildModule('Apply the best practice', [
+          buildLesson('Scenario', [
+            buildActivity('Validation exercise', 'practice'),
+            buildActivity('Understanding check', 'answer'),
           ]),
         ]),
       ];
@@ -399,21 +434,21 @@ function buildAiOutline(sourcePrompt: string, variant: number): OutlineModule[] 
 
   if (variantIndex === 0) {
     return [
-      buildModule(`Fondamentaux de ${topic}`, [
-        buildLesson('Comprendre les bases', [
-          buildActivity('Lecture de cadrage', 'read'),
-          buildActivity('Questionnaire de positionnement', 'answer'),
+      buildModule(`Foundations of ${topic}`, [
+        buildLesson('Understand the basics', [
+          buildActivity('Framing reading', 'read'),
+          buildActivity('Placement quiz', 'answer'),
         ]),
       ]),
-      buildModule(`Utiliser ${topic} dans un cas simple`, [
-        buildLesson('Demonstration guidee', [
-          buildActivity('Video d exemple', 'watch'),
-          buildActivity('Exercice d application', 'practice'),
+      buildModule(`Use ${topic} in a simple case`, [
+        buildLesson('Guided demonstration', [
+          buildActivity('Example video', 'watch'),
+          buildActivity('Application exercise', 'practice'),
         ]),
       ]),
-      buildModule(`Consolider ${topic}`, [
-        buildLesson('Synthese et projection', [
-          buildActivity('Discussion de cloture', 'discuss'),
+      buildModule(`Consolidate ${topic}`, [
+        buildLesson('Synthesis and next steps', [
+          buildActivity('Closing discussion', 'discuss'),
         ]),
       ]),
     ];
@@ -421,36 +456,36 @@ function buildAiOutline(sourcePrompt: string, variant: number): OutlineModule[] 
 
   if (variantIndex === 1) {
     return [
-      buildModule(`Prendre en main ${topic}`, [
-        buildLesson('Vocabulaire et reperes', [
-          buildActivity('Lecture d introduction', 'read'),
+      buildModule(`Get started with ${topic}`, [
+        buildLesson('Vocabulary and landmarks', [
+          buildActivity('Introductory reading', 'read'),
         ]),
-        buildLesson('Premier test de comprehension', [
-          buildActivity('Quiz diagnostique', 'answer'),
+        buildLesson('First understanding check', [
+          buildActivity('Diagnostic quiz', 'answer'),
         ]),
       ]),
-      buildModule(`Mettre ${topic} en pratique`, [
-        buildLesson('Scenario accompagne', [
-          buildActivity('Atelier pratique', 'practice'),
-          buildActivity('Debrief en groupe', 'discuss'),
+      buildModule(`Put ${topic} into practice`, [
+        buildLesson('Guided scenario', [
+          buildActivity('Practical workshop', 'practice'),
+          buildActivity('Group debrief', 'discuss'),
         ]),
       ]),
     ];
   }
 
   return [
-    buildModule(`Explorer ${topic}`, [
-      buildLesson('Panorama du sujet', [
-        buildActivity('Video de contexte', 'watch'),
-        buildActivity('Lecture complementaire', 'read'),
+    buildModule(`Explore ${topic}`, [
+      buildLesson('Topic overview', [
+        buildActivity('Context video', 'watch'),
+        buildActivity('Additional reading', 'read'),
       ]),
     ]),
-    buildModule(`Passer a l action`, [
-      buildLesson('Premiere mise en oeuvre', [
-        buildActivity('Cas pratique', 'practice'),
+    buildModule('Take action', [
+      buildLesson('First implementation', [
+        buildActivity('Practical case', 'practice'),
       ]),
-      buildLesson('Evaluation finale', [
-        buildActivity('Travail a rendre', 'submit'),
+      buildLesson('Final evaluation', [
+        buildActivity('Work to submit', 'submit'),
       ]),
     ]),
   ];
@@ -474,9 +509,28 @@ function wait(ms: number) {
   });
 }
 
+function resolveCreatedCourseKey(redirectData: unknown): string {
+  const response = redirectData as {
+    courseKey?: string;
+    course_key?: string;
+    destinationCourseKey?: string;
+    url?: string;
+  };
+
+  const explicitCourseKey = response?.destinationCourseKey || response?.courseKey || response?.course_key;
+  if (explicitCourseKey) {
+    return explicitCourseKey;
+  }
+
+  const courseUrl = response?.url || '';
+  const match = courseUrl.match(/course-v1:[^/?#]+/);
+  return match?.[0] || '';
+}
+
 async function resolveCourseUsageKey(courseId: string): Promise<string | null> {
   for (let attempt = 0; attempt < 8; attempt += 1) {
     try {
+      // eslint-disable-next-line no-await-in-loop
       const outlineIndex: any = await getCourseOutlineIndex(courseId);
       if (outlineIndex?.courseStructure?.id) {
         return outlineIndex.courseStructure.id;
@@ -485,6 +539,7 @@ async function resolveCourseUsageKey(courseId: string): Promise<string | null> {
       // Retry below; course shell can take a short moment to become queryable.
     }
 
+    // eslint-disable-next-line no-await-in-loop
     await wait(350 * (attempt + 1));
   }
 
@@ -501,13 +556,14 @@ async function safeCreateCourseXblock(payload: Record<string, unknown>) {
   }
 }
 
+/* eslint-disable no-await-in-loop, no-continue */
 async function scaffoldActivityPage(unitLocator: string, activity: OutlineActivity) {
   switch (activity.recipe) {
     case 'read':
       await safeCreateCourseXblock({
         type: COMPONENT_TYPES.html,
         boilerplate: COMPONENT_TYPES.html,
-        displayName: 'Texte principal',
+        displayName: 'Main text',
         parentLocator: unitLocator,
       });
       break;
@@ -522,12 +578,12 @@ async function scaffoldActivityPage(unitLocator: string, activity: OutlineActivi
       await safeCreateCourseXblock({
         type: COMPONENT_TYPES.html,
         boilerplate: COMPONENT_TYPES.html,
-        displayName: 'Consigne',
+        displayName: 'Instructions',
         parentLocator: unitLocator,
       });
       await safeCreateCourseXblock({
         type: COMPONENT_TYPES.problem,
-        displayName: 'Exercice',
+        displayName: 'Exercise',
         parentLocator: unitLocator,
       });
       break;
@@ -556,7 +612,7 @@ async function scaffoldActivityPage(unitLocator: string, activity: OutlineActivi
         type: COMPONENT_TYPES.openassessment,
         category: COMPONENT_TYPES.openassessment,
         boilerplate: 'peer-assessment',
-        displayName: 'Travail a rendre',
+        displayName: 'Work to submit',
         parentLocator: unitLocator,
       });
       break;
@@ -572,14 +628,14 @@ async function provisionOutlineDraft(courseId: string, outlineDraft: OutlineModu
 
   const courseUsageKey = await resolveCourseUsageKey(courseId);
   if (!courseUsageKey) {
-    return;
+    throw new Error(`Course outline was not ready for ${courseId}.`);
   }
 
   for (const moduleItem of outlineDraft) {
     const sectionResult: any = await addNewCourseItem(
       courseUsageKey,
       'chapter',
-      cleanTitle(moduleItem.title, 'Nouveau module'),
+      cleanTitle(moduleItem.title, 'New module'),
     );
     const sectionLocator = sectionResult?.locator;
 
@@ -591,7 +647,7 @@ async function provisionOutlineDraft(courseId: string, outlineDraft: OutlineModu
       const subsectionResult: any = await addNewCourseItem(
         sectionLocator,
         'sequential',
-        cleanTitle(lessonItem.title, 'Nouvelle lecon'),
+        cleanTitle(lessonItem.title, 'New lesson'),
       );
       const subsectionLocator = subsectionResult?.locator;
 
@@ -603,7 +659,7 @@ async function provisionOutlineDraft(courseId: string, outlineDraft: OutlineModu
         const unitResult: any = await addNewCourseItem(
           subsectionLocator,
           'vertical',
-          cleanTitle(activityItem.title, 'Nouvelle page d activite'),
+          cleanTitle(activityItem.title, 'New activity page'),
         );
         const unitLocator = unitResult?.locator;
 
@@ -615,8 +671,11 @@ async function provisionOutlineDraft(courseId: string, outlineDraft: OutlineModu
   }
 }
 
+/* eslint-enable no-await-in-loop, no-continue */
+
 async function pollGenerationStructure(jobId: string): Promise<CoursePlanStructure | null> {
   for (let attempt = 0; attempt < 80; attempt += 1) {
+    // eslint-disable-next-line no-await-in-loop
     const job = await getCourseGenerationJob(jobId);
 
     if (job?.status === 'completed') {
@@ -624,18 +683,37 @@ async function pollGenerationStructure(jobId: string): Promise<CoursePlanStructu
     }
 
     if (job?.status === 'failed' || job?.status === 'cancelled') {
-      throw new Error(job.error_message || 'La génération IA a échoué.');
+      throw new Error(job.error_message || 'AI generation failed.');
     }
 
+    // eslint-disable-next-line no-await-in-loop
     await wait(1500);
   }
 
-  throw new Error('La génération IA prend trop de temps. Le cours a été créé, mais le plan IA n’a pas encore été appliqué.');
+  throw new Error(
+    'AI generation is taking too long. The course was created, but the AI plan has not been applied yet.',
+  );
 }
 
 const CreateCourseWizard = () => {
+  const intl = useIntl();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const t = useCallback((
+    id: string,
+    defaultMessage: string,
+    values?: Record<string, string | number | boolean | null | undefined>,
+  ) => intl.formatMessage({ id, defaultMessage }, values), [intl]);
+  const getLanguageLabel = useCallback((language: string) => {
+    const labels: Record<string, string> = {
+      fr: t('wuti.authoring.wizard.languageFrench', 'French'),
+      en: t('wuti.authoring.wizard.languageEnglish', 'English'),
+      wo: t('wuti.authoring.wizard.languageWolof', 'Wolof'),
+      ar: t('wuti.authoring.wizard.languageArabic', 'Arabic'),
+    };
+
+    return labels[language] || language;
+  }, [t]);
 
   const allOrganizations: string[] = useSelector(getOrganizations) ?? [];
   const studioHomeData = useSelector(getStudioHomeData) || {};
@@ -731,7 +809,7 @@ const CreateCourseWizard = () => {
   useEffect(() => {
     if (!data.org) {
       setCoursePlanTemplates([]);
-      return;
+      return undefined;
     }
 
     let isMounted = true;
@@ -747,7 +825,10 @@ const CreateCourseWizard = () => {
       .catch((error) => {
         if (isMounted) {
           setCoursePlanTemplates([]);
-          setTemplateError(error?.message || 'Impossible de charger les modèles de plan.');
+          setTemplateError(error?.message || t(
+            'wuti.authoring.wizard.templateLoadError',
+            'Unable to load plan templates.',
+          ));
         }
       })
       .finally(() => {
@@ -759,7 +840,7 @@ const CreateCourseWizard = () => {
     return () => {
       isMounted = false;
     };
-  }, [data.org]);
+  }, [data.org, t]);
 
   useEffect(() => () => {
     if (thumbnailPreview.startsWith('blob:')) {
@@ -815,8 +896,26 @@ const CreateCourseWizard = () => {
 
     try {
       const currentCourseDetails: any = await getCourseDetails(courseId);
+      const dateUpdates: Record<string, string> = {};
+      const courseStart = toIsoOrNull(data.courseStart);
+      const courseEnd = toIsoOrNull(data.courseEnd);
+      const enrollmentStart = toIsoOrNull(data.enrollmentStart);
+      const enrollmentEnd = toIsoOrNull(data.enrollmentEnd);
 
-      const mergedCourseDetails = {
+      if (courseStart) {
+        dateUpdates.startDate = courseStart;
+      }
+      if (courseEnd) {
+        dateUpdates.endDate = courseEnd;
+      }
+      if (enrollmentStart) {
+        dateUpdates.enrollmentStart = enrollmentStart;
+      }
+      if (enrollmentEnd) {
+        dateUpdates.enrollmentEnd = enrollmentEnd;
+      }
+
+      const mergedCourseDetails = removeUnsetDateFields({
         ...currentCourseDetails,
         shortDescription: data.shortDescription.trim(),
         language: data.language,
@@ -825,15 +924,12 @@ const CreateCourseWizard = () => {
         preRequisiteCourses: data.prerequisiteMode === 'required' && data.prerequisiteCourse.trim()
           ? [data.prerequisiteCourse.trim()]
           : [],
-        startDate: toIsoOrNull(data.courseStart),
-        endDate: toIsoOrNull(data.courseEnd),
-        enrollmentStart: toIsoOrNull(data.enrollmentStart),
-        enrollmentEnd: toIsoOrNull(data.enrollmentEnd),
+        ...dateUpdates,
         ...(uploadedCourseImagePath ? {
           courseImageAssetPath: uploadedCourseImagePath,
           courseImageName: uploadedCourseImageName,
         } : {}),
-      };
+      }, dateUpdates);
 
       await updateCourseDetails(courseId, mergedCourseDetails);
     } catch (error) {
@@ -850,24 +946,19 @@ const CreateCourseWizard = () => {
         });
         const generatedStructure = await pollGenerationStructure(job.id);
         if (generatedStructure?.sections?.length) {
-          await applyCoursePlanToCourse(
-            courseId,
-            hydratePlanStructure(generatedStructure, data.displayName.trim(), data.language),
-            'append',
-          );
+          const hydratedStructure = hydratePlanStructure(generatedStructure, data.displayName.trim(), data.language);
+          await applyCoursePlanToCourse(courseId, hydratedStructure, 'append');
         }
       } else if (data.creationStrategy === 'template' && planDraft.structure.sections.length > 0) {
-        await applyCoursePlanToCourse(
-          courseId,
-          hydratePlanStructure(planDraft.structure, data.displayName.trim(), data.language),
-          'append',
-        );
+        const hydratedStructure = hydratePlanStructure(planDraft.structure, data.displayName.trim(), data.language);
+        await applyCoursePlanToCourse(courseId, hydratedStructure, 'append');
       } else {
         await provisionOutlineDraft(courseId, outlineDraft);
       }
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Unable to provision the initial course plan:', error);
+      throw error;
     }
   }, [
     data.blueprintType,
@@ -895,6 +986,7 @@ const CreateCourseWizard = () => {
   useEffect(() => {
     if (savingStatus === RequestStatus.SUCCESSFUL) {
       const { url, destinationCourseKey } = redirectUrlObj as any;
+      const createdCourseKey = resolveCreatedCourseKey(redirectUrlObj);
       dispatch(updateSavingStatus({ status: '' }));
 
       if (!url) {
@@ -907,12 +999,26 @@ const CreateCourseWizard = () => {
 
       const finalizeSetupAndNavigate = async () => {
         setIsFinalizing(true);
-        if (destinationCourseKey) {
-          await persistCourseSetup(destinationCourseKey);
+        try {
+          if (createdCourseKey) {
+            await persistCourseSetup(createdCourseKey);
+          } else {
+            // eslint-disable-next-line no-console
+            console.error('Unable to resolve created course key from create response:', redirectUrlObj);
+          }
+          setIsFinalizing(false);
+          setIsSubmitting(false);
+          navigate(destination);
+        } catch (error: any) {
+          setIsFinalizing(false);
+          setIsSubmitting(false);
+          dispatch(updatePostErrors({
+            errMsg: error?.message || t(
+              'wuti.authoring.wizard.coursePlanApplyError',
+              'The course was created, but the selected course plan could not be applied.',
+            ),
+          }));
         }
-        setIsFinalizing(false);
-        setIsSubmitting(false);
-        navigate(destination);
       };
 
       finalizeSetupAndNavigate();
@@ -921,7 +1027,7 @@ const CreateCourseWizard = () => {
       setIsSubmitting(false);
       setIsFinalizing(false);
     }
-  }, [dispatch, navigate, persistCourseSetup, redirectUrlObj, savingStatus]);
+  }, [dispatch, navigate, persistCourseSetup, redirectUrlObj, savingStatus, t]);
 
   const goToStep = useCallback((next: number) => {
     setStep(next);
@@ -994,7 +1100,10 @@ const CreateCourseWizard = () => {
         { templateId },
       ));
     } catch (error: any) {
-      setTemplateError(error?.message || 'Impossible de charger ce modèle.');
+      setTemplateError(error?.message || t(
+        'wuti.authoring.wizard.templateSelectError',
+        'Unable to load this template.',
+      ));
       setPlanDraft(createPlanDraftFromStructure(
         'template',
         createEmptyPlanStructure(data.displayName, data.language),
@@ -1011,12 +1120,18 @@ const CreateCourseWizard = () => {
     }
 
     if (!file.type.startsWith('image/')) {
-      setThumbnailError('Le fichier doit etre une image PNG, JPG ou WEBP.');
+      setThumbnailError(t(
+        'wuti.authoring.wizard.thumbnailTypeError',
+        'File must be a PNG, JPG, or WEBP image.',
+      ));
       return;
     }
 
     if (file.size > MAX_THUMBNAIL_SIZE) {
-      setThumbnailError('La taille maximale autorisee est de 2MB.');
+      setThumbnailError(t(
+        'wuti.authoring.wizard.thumbnailSizeError',
+        'Maximum allowed size is 2MB.',
+      ));
       return;
     }
 
@@ -1039,27 +1154,45 @@ const CreateCourseWizard = () => {
     const enrollmentEnd = parseLocalDateTime(data.enrollmentEnd);
 
     if ((data.courseStart && !data.courseEnd) || (!data.courseStart && data.courseEnd)) {
-      nextErrors.courseRange = 'Veuillez renseigner a la fois la date de debut et de fin du cours.';
+      nextErrors.courseRange = t(
+        'wuti.authoring.wizard.courseRangeRequired',
+        'Enter both course start and end dates.',
+      );
     }
 
     if ((data.enrollmentStart && !data.enrollmentEnd) || (!data.enrollmentStart && data.enrollmentEnd)) {
-      nextErrors.enrollmentRange = 'Veuillez renseigner a la fois la date de debut et de fin des inscriptions.';
+      nextErrors.enrollmentRange = t(
+        'wuti.authoring.wizard.enrollmentRangeRequired',
+        'Enter both enrollment start and end dates.',
+      );
     }
 
     if (courseStart && courseEnd && courseStart >= courseEnd) {
-      nextErrors.courseRange = 'La date de fin du cours doit etre apres la date de debut.';
+      nextErrors.courseRange = t(
+        'wuti.authoring.wizard.courseEndAfterStart',
+        'Course end date must be after the start date.',
+      );
     }
 
     if (enrollmentStart && enrollmentEnd && enrollmentStart >= enrollmentEnd) {
-      nextErrors.enrollmentRange = 'La fin des inscriptions doit etre apres le debut des inscriptions.';
+      nextErrors.enrollmentRange = t(
+        'wuti.authoring.wizard.enrollmentEndAfterStart',
+        'Enrollment end date must be after the start date.',
+      );
     }
 
     if (courseStart && enrollmentStart && enrollmentStart > courseStart) {
-      nextErrors.enrollmentRange = 'Le debut des inscriptions doit etre avant le debut du cours.';
+      nextErrors.enrollmentRange = t(
+        'wuti.authoring.wizard.enrollmentBeforeCourseStart',
+        'Enrollment start date must be before the course starts.',
+      );
     }
 
     if (courseEnd && enrollmentEnd && enrollmentEnd > courseEnd) {
-      nextErrors.enrollmentRange = 'La fin des inscriptions doit etre avant la fin du cours.';
+      nextErrors.enrollmentRange = t(
+        'wuti.authoring.wizard.enrollmentBeforeCourseEnd',
+        'Enrollment end date must be before the course ends.',
+      );
     }
 
     return nextErrors;
@@ -1068,6 +1201,7 @@ const CreateCourseWizard = () => {
     data.courseStart,
     data.enrollmentEnd,
     data.enrollmentStart,
+    t,
   ]);
 
   const validateCalendarStep = () => {
@@ -1085,7 +1219,7 @@ const CreateCourseWizard = () => {
     const start = textarea.selectionStart ?? 0;
     const end = textarea.selectionEnd ?? 0;
     const currentValue = data.overviewHtml;
-    const selectedText = currentValue.slice(start, end) || 'texte';
+    const selectedText = currentValue.slice(start, end) || t('wuti.authoring.wizard.selectedTextFallback', 'text');
     const replacement = `${before}${selectedText}${after}`;
 
     const updated = `${currentValue.slice(0, start)}${replacement}${currentValue.slice(end)}`;
@@ -1106,7 +1240,7 @@ const CreateCourseWizard = () => {
     const start = textarea.selectionStart ?? 0;
     const end = textarea.selectionEnd ?? 0;
     const currentValue = data.overviewHtml;
-    const selectedText = currentValue.slice(start, end) || 'Element';
+    const selectedText = currentValue.slice(start, end) || t('wuti.authoring.wizard.listItemFallback', 'Item');
     const replacement = `<ul>\n  <li>${selectedText}</li>\n</ul>`;
 
     const updated = `${currentValue.slice(0, start)}${replacement}${currentValue.slice(end)}`;
@@ -1207,7 +1341,7 @@ const CreateCourseWizard = () => {
     setOutlineDraft((prev) => [
       ...prev,
       buildModule(`Module ${prev.length + 1}`, [
-        buildLesson('Lecon 1'),
+        buildLesson(t('wuti.authoring.wizard.defaultFirstLesson', 'Lesson 1')),
       ]),
     ]);
   };
@@ -1224,7 +1358,9 @@ const CreateCourseWizard = () => {
           ...moduleItem,
           lessons: [
             ...moduleItem.lessons,
-            buildLesson(`Lecon ${moduleItem.lessons.length + 1}`),
+            buildLesson(t('wuti.authoring.wizard.defaultLessonWithIndex', 'Lesson {index}', {
+              index: moduleItem.lessons.length + 1,
+            })),
           ],
         }
     )));
@@ -1254,7 +1390,9 @@ const CreateCourseWizard = () => {
                 ...lesson,
                 activities: [
                   ...lesson.activities,
-                  buildActivity(`Activite ${lesson.activities.length + 1}`, 'read'),
+                  buildActivity(t('wuti.authoring.wizard.defaultActivityWithIndex', 'Activity {index}', {
+                    index: lesson.activities.length + 1,
+                  }), 'read'),
                 ],
               }
           )),
@@ -1292,13 +1430,10 @@ const CreateCourseWizard = () => {
     && data.templateId !== ''
     && planDraft.structure.sections.length > 0
   ) || (
-    data.creationStrategy === 'ai' && aiPromptSeed !== ''
-  ) || (
     data.creationStrategy === 'scratch'
   );
 
   const outlineReviewValid = data.creationStrategy === 'scratch'
-    || data.creationStrategy === 'ai'
     || planDraft.structure.sections.length > 0;
   const mediaAndDescriptionValid = Boolean(thumbnailPreview) && data.overviewHtml.trim().length > 0;
   const calendarValid = useMemo(
@@ -1309,8 +1444,16 @@ const CreateCourseWizard = () => {
   const pacingValid = data.pacing !== ''
     && (data.prerequisiteMode !== 'required' || data.prerequisiteCourse.trim() !== '');
 
-  const pricingValid = data.priceMode === 'free'
-    || (data.priceMode === 'paid' && Number(data.paidPrice) > 0);
+  const pricingValid = data.priceMode === 'free';
+  const submitButtonLabel = useMemo(() => {
+    if (!isSubmitting) {
+      return t('wuti.authoring.wizard.createCourse', 'Create course');
+    }
+
+    return isFinalizing
+      ? t('wuti.authoring.wizard.preparingPlan', 'Preparing plan...')
+      : t('wuti.authoring.wizard.creatingCourse', 'Creating course...');
+  }, [isFinalizing, isSubmitting, t]);
   const referencePreview = data.org ? data.number : '';
   const runPreview = data.run;
 
@@ -1330,7 +1473,14 @@ const CreateCourseWizard = () => {
       prerequisiteCourse: true,
     }));
 
-    if (!courseBasicsValid || !startingPointValid || !outlineReviewValid || !calendarValid || !pacingValid || !pricingValid) {
+    if (
+      !courseBasicsValid
+      || !startingPointValid
+      || !outlineReviewValid
+      || !calendarValid
+      || !pacingValid
+      || !pricingValid
+    ) {
       return;
     }
 
@@ -1353,7 +1503,7 @@ const CreateCourseWizard = () => {
         <header className="ws-wizard__header">
           <button type="button" className="ws-wizard__back-btn" onClick={handleBack}>
             <Icon src={ArrowLeft} />
-            Retour
+            {t('wuti.authoring.wizard.back', 'Back')}
           </button>
 
           <div className="ws-wizard__progress">
@@ -1374,34 +1524,45 @@ const CreateCourseWizard = () => {
             })}
           </div>
 
-          <span className="ws-wizard__step-indicator">Étape {step} sur {TOTAL_STEPS}</span>
+          <span className="ws-wizard__step-indicator">
+            {t('wuti.authoring.wizard.stepIndicator', 'Step {step} of {total}', {
+              step,
+              total: TOTAL_STEPS,
+            })}
+          </span>
         </header>
 
         <div className="ws-wizard__card">
           <div key={animKey} className="ws-wizard__step-content">
             {step === 1 && (
               <>
-                <h1 className="ws-wizard__step-title">Définir le cours</h1>
+                <h1 className="ws-wizard__step-title">{t('wuti.authoring.wizard.basicsTitle', 'Define the course')}</h1>
 
                 <div className="ws-wizard__field-group">
                   <div className="ws-wizard__field">
-                    <label className="ws-wizard__label" htmlFor="ww-name">Nom du cours</label>
+                    <label className="ws-wizard__label" htmlFor="ww-name">
+                      {t('wuti.authoring.wizard.courseName', 'Course name')}
+                    </label>
                     <input
                       id="ww-name"
                       className={`ws-wizard__input${touched.displayName && !data.displayName ? ' ws-wizard__input--error' : ''}`}
                       type="text"
-                      placeholder="ex. Introduction au Machine Learning"
+                      placeholder={t('wuti.authoring.wizard.courseNamePlaceholder', 'e.g. Introduction to Machine Learning')}
                       value={data.displayName}
                       onChange={(event) => setField('displayName', event.target.value)}
                     />
                     {touched.displayName && !data.displayName && (
-                      <span className="ws-wizard__field-error">Le nom du cours est requis.</span>
+                      <span className="ws-wizard__field-error">
+                        {t('wuti.authoring.wizard.courseNameRequired', 'Course name is required.')}
+                      </span>
                     )}
                   </div>
 
                   <div className="ws-wizard__field-row">
                     <div className="ws-wizard__field">
-                      <label className="ws-wizard__label" htmlFor="ww-org">Organisation</label>
+                      <label className="ws-wizard__label" htmlFor="ww-org">
+                        {t('wuti.authoring.wizard.organization', 'Organization')}
+                      </label>
                       <select
                         id="ww-org"
                         className={`ws-wizard__select${touched.org && !data.org ? ' ws-wizard__input--error' : ''}`}
@@ -1410,19 +1571,25 @@ const CreateCourseWizard = () => {
                         disabled={organizations.length === 0}
                       >
                         <option value="" disabled>
-                          {organizations.length > 0 ? 'Sélectionner une organisation' : 'Aucune organisation disponible'}
+                          {organizations.length > 0
+                            ? t('wuti.authoring.wizard.selectOrganization', 'Select an organization')
+                            : t('wuti.authoring.wizard.noOrganizations', 'No organizations available')}
                         </option>
                         {organizations.map((orgValue) => (
                           <option key={orgValue} value={orgValue}>{orgValue}</option>
                         ))}
                       </select>
                       {touched.org && !data.org && (
-                        <span className="ws-wizard__field-error">L'organisation est requise.</span>
+                        <span className="ws-wizard__field-error">
+                          {t('wuti.authoring.wizard.organizationRequired', 'Organization is required.')}
+                        </span>
                       )}
                     </div>
 
                     <div className="ws-wizard__field">
-                      <label className="ws-wizard__label" htmlFor="ww-language">Langue du cours</label>
+                      <label className="ws-wizard__label" htmlFor="ww-language">
+                        {t('wuti.authoring.wizard.courseLanguage', 'Course language')}
+                      </label>
                       <select
                         id="ww-language"
                         className="ws-wizard__select"
@@ -1430,7 +1597,7 @@ const CreateCourseWizard = () => {
                         onChange={(event) => setField('language', event.target.value)}
                       >
                         {LANGUAGE_OPTIONS.map((option) => (
-                          <option key={option.value} value={option.value}>{option.label}</option>
+                          <option key={option.value} value={option.value}>{getLanguageLabel(option.value)}</option>
                         ))}
                       </select>
                     </div>
@@ -1438,38 +1605,46 @@ const CreateCourseWizard = () => {
 
                   <div className="ws-wizard__field">
                     <label className="ws-wizard__label" htmlFor="ww-short-description">
-                      Brève description
-                      <span className="ws-wizard__label-hint">Max 150 caractères</span>
+                      {t('wuti.authoring.wizard.shortDescription', 'Short description')}
+                      <span className="ws-wizard__label-hint">
+                        {t('wuti.authoring.wizard.maxCharacters', 'Max {count} characters', { count: 150 })}
+                      </span>
                     </label>
                     <textarea
                       id="ww-short-description"
                       className={`ws-wizard__textarea${touched.shortDescription && !data.shortDescription ? ' ws-wizard__input--error' : ''}`}
-                      placeholder="Une ligne claire pour décrire le cours dans le catalogue."
+                      placeholder={t('wuti.authoring.wizard.shortDescriptionPlaceholder', 'A clear one-line course description for the catalog.')}
                       value={data.shortDescription}
                       maxLength={150}
                       onChange={(event) => setField('shortDescription', event.target.value)}
                     />
                     {touched.shortDescription && !data.shortDescription && (
-                      <span className="ws-wizard__field-error">La brève description est requise.</span>
+                      <span className="ws-wizard__field-error">
+                        {t('wuti.authoring.wizard.shortDescriptionRequired', 'Short description is required.')}
+                      </span>
                     )}
                   </div>
 
                   <div className="ws-wizard__field-row">
                     <div className="ws-wizard__field">
-                      <label className="ws-wizard__label" htmlFor="ww-reference">Référence</label>
+                      <label className="ws-wizard__label" htmlFor="ww-reference">
+                        {t('wuti.authoring.wizard.reference', 'Reference')}
+                      </label>
                       <input
                         id="ww-reference"
                         className="ws-wizard__input ws-wizard__input--readonly"
                         type="text"
                         value={referencePreview}
-                        placeholder="Générée après sélection de l'organisation"
+                        placeholder={t('wuti.authoring.wizard.referencePlaceholder', 'Generated after organization selection')}
                         readOnly
                         aria-readonly="true"
                       />
                     </div>
 
                     <div className="ws-wizard__field">
-                      <label className="ws-wizard__label" htmlFor="ww-run">Session</label>
+                      <label className="ws-wizard__label" htmlFor="ww-run">
+                        {t('wuti.authoring.wizard.session', 'Session')}
+                      </label>
                       <input
                         id="ww-run"
                         className="ws-wizard__input ws-wizard__input--readonly"
@@ -1501,7 +1676,7 @@ const CreateCourseWizard = () => {
                       }
                     }}
                   >
-                    Continuer
+                    {t('wuti.authoring.wizard.continue', 'Continue')}
                     <Icon src={ArrowRight} />
                   </button>
                 </div>
@@ -1510,27 +1685,27 @@ const CreateCourseWizard = () => {
 
             {step === 70 && (
               <>
-                <h1 className="ws-wizard__step-title">Choisir un point de départ</h1>
+                <h1 className="ws-wizard__step-title">{t('wuti.authoring.wizard.startingPointTitle', 'Choose a starting point')}</h1>
                 <p className="ws-wizard__step-subtitle">
-                  Sélectionnez comment le premier plan de cours doit être préparé.
+                  {t('wuti.authoring.wizard.startingPointSubtitle', 'Select how the first course plan should be prepared.')}
                 </p>
 
                 <div className="ws-wizard__strategy-grid ws-wizard__strategy-grid--three">
                   {[
                     {
                       value: 'template' as CreationStrategy,
-                      title: "Partir d'un modèle",
-                      description: "Utiliser une structure pédagogique prédéfinie adaptée à un cas d'usage.",
+                      title: t('wuti.authoring.wizard.fromTemplateLegacy', 'Start from a template'),
+                      description: t('wuti.authoring.wizard.fromTemplateLegacyDescription', 'Use a predefined teaching structure adapted to a use case.'),
                     },
                     {
                       value: 'ai' as CreationStrategy,
-                      title: 'Générer à partir du sujet',
-                      description: 'Produire un brouillon de modules, leçons et activités à partir de votre contexte.',
+                      title: t('wuti.authoring.wizard.generateFromTopic', 'Generate from topic'),
+                      description: t('wuti.authoring.wizard.generateFromTopicDescription', 'Produce a draft of modules, lessons, and activities from your context.'),
                     },
                     {
                       value: 'scratch' as CreationStrategy,
-                      title: 'Commencer à vide',
-                      description: "Créer un cours sans structure imposée et construire ensuite dans l'outline.",
+                      title: t('wuti.authoring.wizard.startEmpty', 'Start empty'),
+                      description: t('wuti.authoring.wizard.startEmptyDescription', 'Create a course without an imposed structure and build it later in the outline.'),
                     },
                   ].map((option) => (
                     <button
@@ -1550,9 +1725,11 @@ const CreateCourseWizard = () => {
                 {data.creationStrategy === 'template' && (
                   <div className="ws-wizard__nested-panel">
                     <div className="ws-wizard__nested-panel-header">
-                      <p className="ws-wizard__nested-panel-title">Choisir un modèle pédagogique</p>
+                      <p className="ws-wizard__nested-panel-title">
+                        {t('wuti.authoring.wizard.choosePedagogicalTemplate', 'Choose a teaching template')}
+                      </p>
                       <p className="ws-wizard__nested-panel-copy">
-                        Le modèle crée un brouillon modifiable avant la création du cours.
+                        {t('wuti.authoring.wizard.choosePedagogicalTemplateCopy', 'The template creates an editable draft before course creation.')}
                       </p>
                     </div>
 
@@ -1564,8 +1741,10 @@ const CreateCourseWizard = () => {
                           className={`ws-wizard__blueprint-card${data.blueprintType === option.value ? ' ws-wizard__blueprint-card--selected' : ''}`}
                           onClick={() => setField('blueprintType', option.value)}
                         >
-                          <p className="ws-wizard__blueprint-title">{option.label}</p>
-                          <p className="ws-wizard__blueprint-description">{option.description}</p>
+                          <p className="ws-wizard__blueprint-title">{t(option.labelId, option.label)}</p>
+                          <p className="ws-wizard__blueprint-description">
+                            {t(option.descriptionId, option.description)}
+                          </p>
                         </button>
                       ))}
                     </div>
@@ -1575,23 +1754,29 @@ const CreateCourseWizard = () => {
                 {data.creationStrategy === 'ai' && (
                   <div className="ws-wizard__nested-panel">
                     <div className="ws-wizard__nested-panel-header">
-                      <p className="ws-wizard__nested-panel-title">Sujet ou intention de génération</p>
+                      <p className="ws-wizard__nested-panel-title">
+                        {t('wuti.authoring.wizard.generationIntentTitle', 'Generation topic or intent')}
+                      </p>
                       <p className="ws-wizard__nested-panel-copy">
-                        Le brouillon proposé restera modifiable avant d'être appliqué au cours.
+                        {t('wuti.authoring.wizard.generationIntentCopy', 'The proposed draft will remain editable before being applied to the course.')}
                       </p>
                     </div>
 
                     <div className="ws-wizard__field">
-                      <label className="ws-wizard__label" htmlFor="ww-topic-prompt">Prompt de départ</label>
+                      <label className="ws-wizard__label" htmlFor="ww-topic-prompt">
+                        {t('wuti.authoring.wizard.initialPrompt', 'Starting prompt')}
+                      </label>
                       <textarea
                         id="ww-topic-prompt"
                         className={`ws-wizard__textarea${touched.topicPrompt && !aiPromptSeed ? ' ws-wizard__input--error' : ''}`}
-                        placeholder="ex. Introduction à Python pour débutants avec un accent sur la pratique."
+                        placeholder={t('wuti.authoring.wizard.initialPromptPlaceholder', 'e.g. Introduction to Python for beginners with a focus on practice.')}
                         value={data.topicPrompt}
                         onChange={(event) => setField('topicPrompt', event.target.value)}
                       />
                       {touched.topicPrompt && !aiPromptSeed && (
-                        <span className="ws-wizard__field-error">Ajoutez un sujet ou un objectif pour générer un plan.</span>
+                        <span className="ws-wizard__field-error">
+                          {t('wuti.authoring.wizard.promptRequired', 'Add a topic or objective to generate a plan.')}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -1600,9 +1785,11 @@ const CreateCourseWizard = () => {
                 {data.creationStrategy === 'scratch' && (
                   <div className="ws-wizard__nested-panel">
                     <div className="ws-wizard__nested-panel-header">
-                      <p className="ws-wizard__nested-panel-title">Création libre</p>
+                      <p className="ws-wizard__nested-panel-title">
+                        {t('wuti.authoring.wizard.freeCreationTitle', 'Free creation')}
+                      </p>
                       <p className="ws-wizard__nested-panel-copy">
-                        Le cours sera créé avec un outline vide. Vous ajouterez ensuite modules, leçons et pages d'activité directement dans l'interface d'auteur.
+                        {t('wuti.authoring.wizard.freeCreationCopy', 'The course will be created with an empty outline. You will then add modules, lessons, and activity pages directly in the authoring interface.')}
                       </p>
                     </div>
                   </div>
@@ -1615,7 +1802,7 @@ const CreateCourseWizard = () => {
                     onClick={handleBack}
                   >
                     <Icon src={ArrowLeft} />
-                    Précédent
+                    {t('wuti.authoring.wizard.previous', 'Previous')}
                   </button>
                   <button
                     type="button"
@@ -1633,7 +1820,7 @@ const CreateCourseWizard = () => {
                       }
                     }}
                   >
-                    Créer le plan
+                    {t('wuti.authoring.wizard.createPlan', 'Create plan')}
                     <Icon src={ArrowRight} />
                   </button>
                 </div>
@@ -1642,9 +1829,9 @@ const CreateCourseWizard = () => {
 
             {step === 71 && (
               <>
-                <h1 className="ws-wizard__step-title">Réviser le plan initial</h1>
+                <h1 className="ws-wizard__step-title">{t('wuti.authoring.wizard.reviewInitialPlanTitle', 'Review the initial plan')}</h1>
                 <p className="ws-wizard__step-subtitle">
-                  Ajustez les modules, les leçons et les pages d'activité avant de créer le cours.
+                  {t('wuti.authoring.wizard.reviewInitialPlanSubtitle', 'Adjust modules, lessons, and activity pages before creating the course.')}
                 </p>
 
                 {outlineDraft.length > 0 ? (
@@ -1652,13 +1839,15 @@ const CreateCourseWizard = () => {
                     {outlineDraft.map((moduleItem, moduleIndex) => (
                       <section key={moduleItem.id} className="ws-wizard__proposal-module">
                         <div className="ws-wizard__proposal-header">
-                          <span className="ws-wizard__proposal-kicker">Module {moduleIndex + 1}</span>
+                          <span className="ws-wizard__proposal-kicker">
+                            {t('wuti.authoring.wizard.moduleKicker', 'Module {index}', { index: moduleIndex + 1 })}
+                          </span>
                           <button
                             type="button"
                             className="ws-wizard__mini-action"
                             onClick={() => removeModuleFromDraft(moduleItem.id)}
                           >
-                            Retirer
+                            {t('wuti.authoring.wizard.remove', 'Remove')}
                           </button>
                         </div>
 
@@ -1672,20 +1861,26 @@ const CreateCourseWizard = () => {
                           {moduleItem.lessons.map((lessonItem, lessonIndex) => (
                             <article key={lessonItem.id} className="ws-wizard__proposal-lesson">
                               <div className="ws-wizard__proposal-header">
-                                <span className="ws-wizard__proposal-kicker">Leçon {lessonIndex + 1}</span>
+                                <span className="ws-wizard__proposal-kicker">
+                                  {t('wuti.authoring.wizard.lessonKicker', 'Lesson {index}', { index: lessonIndex + 1 })}
+                                </span>
                                 <button
                                   type="button"
                                   className="ws-wizard__mini-action"
                                   onClick={() => removeLessonFromDraft(moduleItem.id, lessonItem.id)}
                                 >
-                                  Retirer
+                                  {t('wuti.authoring.wizard.remove', 'Remove')}
                                 </button>
                               </div>
 
                               <input
                                 className="ws-wizard__proposal-input"
                                 value={lessonItem.title}
-                                onChange={(event) => updateLessonTitle(moduleItem.id, lessonItem.id, event.target.value)}
+                                onChange={(event) => updateLessonTitle(
+                                  moduleItem.id,
+                                  lessonItem.id,
+                                  event.target.value,
+                                )}
                               />
 
                               {lessonItem.activities.length > 0 ? (
@@ -1714,23 +1909,27 @@ const CreateCourseWizard = () => {
                                       >
                                         {RECIPE_OPTIONS.map((recipeOption) => (
                                           <option key={recipeOption.value} value={recipeOption.value}>
-                                            {recipeOption.label}
+                                            {t(recipeOption.labelId, recipeOption.label)}
                                           </option>
                                         ))}
                                       </select>
                                       <button
                                         type="button"
                                         className="ws-wizard__mini-action"
-                                        onClick={() => removeActivityFromDraft(moduleItem.id, lessonItem.id, activityItem.id)}
+                                        onClick={() => removeActivityFromDraft(
+                                          moduleItem.id,
+                                          lessonItem.id,
+                                          activityItem.id,
+                                        )}
                                       >
-                                        Retirer
+                                        {t('wuti.authoring.wizard.remove', 'Remove')}
                                       </button>
                                     </div>
                                   ))}
                                 </div>
                               ) : (
                                 <div className="ws-wizard__proposal-empty">
-                                  Cette leçon sera créée sans page d'activité. Vous pourrez lancer le lesson builder dans l'outline ensuite.
+                                  {t('wuti.authoring.wizard.lessonWithoutActivity', 'This lesson will be created without an activity page. You can launch the lesson builder from the outline later.')}
                                 </div>
                               )}
 
@@ -1739,7 +1938,7 @@ const CreateCourseWizard = () => {
                                 className="ws-wizard__link-btn"
                                 onClick={() => addActivityToDraft(moduleItem.id, lessonItem.id)}
                               >
-                                Ajouter une page d'activité
+                                {t('wuti.authoring.wizard.addActivityPage', 'Add activity page')}
                               </button>
                             </article>
                           ))}
@@ -1750,16 +1949,18 @@ const CreateCourseWizard = () => {
                           className="ws-wizard__link-btn"
                           onClick={() => addLessonToDraft(moduleItem.id)}
                         >
-                          Ajouter une leçon
+                          {t('wuti.authoring.wizard.addLesson', 'Add lesson')}
                         </button>
                       </section>
                     ))}
                   </div>
                 ) : (
                   <div className="ws-wizard__proposal-empty-state">
-                    <p className="ws-wizard__proposal-empty-title">Le cours démarrera avec un outline vide.</p>
+                    <p className="ws-wizard__proposal-empty-title">
+                      {t('wuti.authoring.wizard.emptyOutlineTitle', 'The course will start with an empty outline.')}
+                    </p>
                     <p className="ws-wizard__proposal-empty-copy">
-                      Ajoutez un premier module maintenant, ou continuez pour construire le parcours directement depuis l'outline.
+                      {t('wuti.authoring.wizard.emptyOutlineCopy', 'Add a first module now, or continue to build the path directly from the outline.')}
                     </p>
                   </div>
                 )}
@@ -1770,7 +1971,7 @@ const CreateCourseWizard = () => {
                     className="ws-wizard__btn ws-wizard__btn--secondary"
                     onClick={addModuleToDraft}
                   >
-                    Ajouter un module
+                    {t('wuti.authoring.wizard.addModule', 'Add module')}
                   </button>
                   {data.creationStrategy !== 'scratch' && (
                     <button
@@ -1778,7 +1979,7 @@ const CreateCourseWizard = () => {
                       className="ws-wizard__btn ws-wizard__btn--secondary"
                       onClick={regenerateOutline}
                     >
-                      Régénérer
+                      {t('wuti.authoring.wizard.regenerate', 'Regenerate')}
                     </button>
                   )}
                 </div>
@@ -1790,7 +1991,7 @@ const CreateCourseWizard = () => {
                     onClick={handleBack}
                   >
                     <Icon src={ArrowLeft} />
-                    Précédent
+                    {t('wuti.authoring.wizard.previous', 'Previous')}
                   </button>
                   <button
                     type="button"
@@ -1802,7 +2003,7 @@ const CreateCourseWizard = () => {
                       }
                     }}
                   >
-                    Confirmer le plan
+                    {t('wuti.authoring.wizard.confirmPlan', 'Confirm plan')}
                     <Icon src={ArrowRight} />
                   </button>
                 </div>
@@ -1811,9 +2012,11 @@ const CreateCourseWizard = () => {
 
             {step === 2 && (
               <>
-                <h1 className="ws-wizard__step-title">Média et description du cours</h1>
+                <h1 className="ws-wizard__step-title">
+                  {t('wuti.authoring.wizard.mediaTitle', 'Course media and description')}
+                </h1>
                 <p className="ws-wizard__step-subtitle">
-                  Ajoutez la miniature et la présentation longue du cours. Vous pouvez ignorer cette étape si nécessaire.
+                  {t('wuti.authoring.wizard.mediaSubtitle', 'Add the course thumbnail and long description. You can skip this step if needed.')}
                 </p>
 
                 <div className="ws-wizard__content-grid">
@@ -1830,15 +2033,19 @@ const CreateCourseWizard = () => {
                         <div className="ws-wizard__thumbnail-preview-wrap">
                           <img
                             src={thumbnailPreview}
-                            alt="Miniature du cours"
+                            alt={t('wuti.authoring.wizard.thumbnailAlt', 'Course thumbnail')}
                             className="ws-wizard__thumbnail-preview"
                           />
                         </div>
                       ) : (
                         <>
                           <div className="ws-wizard__thumbnail-icon">IMG</div>
-                          <p className="ws-wizard__thumbnail-title">Glissez une image ici</p>
-                          <p className="ws-wizard__thumbnail-hint">PNG, JPG ou WEBP. Maximum 2MB. Ratio 16:9 recommandé.</p>
+                          <p className="ws-wizard__thumbnail-title">
+                            {t('wuti.authoring.wizard.dropImage', 'Drop an image here')}
+                          </p>
+                          <p className="ws-wizard__thumbnail-hint">
+                            {t('wuti.authoring.wizard.thumbnailHint', 'PNG, JPG, or WEBP. Maximum 2MB. Recommended 16:9 ratio.')}
+                          </p>
                         </>
                       )}
 
@@ -1847,7 +2054,7 @@ const CreateCourseWizard = () => {
                         className="ws-wizard__btn ws-wizard__btn--secondary ws-wizard__thumbnail-upload"
                         onClick={() => fileInputRef.current?.click()}
                       >
-                        Parcourir les fichiers
+                        {t('wuti.authoring.wizard.browseFiles', 'Browse files')}
                       </button>
 
                       <input
@@ -1870,26 +2077,34 @@ const CreateCourseWizard = () => {
                           <button type="button" onClick={() => wrapOverviewSelection('<em>', '</em>')}>I</button>
                           <button type="button" onClick={() => wrapOverviewSelection('<u>', '</u>')}>U</button>
                           <button type="button" onClick={insertListTemplate}>List</button>
-                          <button type="button" onClick={() => wrapOverviewSelection('<a href=\"https://\">', '</a>')}>Link</button>
+                          <button type="button" onClick={() => wrapOverviewSelection('<a href="https://">', '</a>')}>Link</button>
                         </div>
                         <button
                           type="button"
                           className="ws-wizard__editor-preview-toggle"
                           onClick={() => setOverviewPreviewMode((prev) => !prev)}
                         >
-                          {overviewPreviewMode ? 'Édition' : 'Aperçu'}
+                          {overviewPreviewMode
+                            ? t('wuti.authoring.wizard.editing', 'Editing')
+                            : t('wuti.authoring.wizard.preview', 'Preview')}
                         </button>
                       </div>
 
                       {overviewPreviewMode ? (
-                        <div className="ws-wizard__editor-preview" dangerouslySetInnerHTML={{ __html: data.overviewHtml || '<p>Aucun contenu pour le moment.</p>' }} />
+                        <div
+                          className="ws-wizard__editor-preview"
+                          dangerouslySetInnerHTML={{
+                            __html: data.overviewHtml
+                              || `<p>${t('wuti.authoring.wizard.noContentYet', 'No content yet.')}</p>`,
+                          }}
+                        />
                       ) : (
                         <textarea
                           ref={overviewTextareaRef}
                           className="ws-wizard__editor-input"
                           value={data.overviewHtml}
                           onChange={(event) => setField('overviewHtml', event.target.value)}
-                          placeholder="Présentez le cours, le déroulé, les attentes et la valeur pour l'apprenant."
+                          placeholder={t('wuti.authoring.wizard.overviewPlaceholder', 'Present the course, flow, expectations, and learner value.')}
                         />
                       )}
                     </div>
@@ -1902,7 +2117,7 @@ const CreateCourseWizard = () => {
                     className="ws-wizard__btn ws-wizard__btn--ghost"
                     onClick={() => goToStep(3)}
                   >
-                    Ignorer pour le moment
+                    {t('wuti.authoring.wizard.skipForNow', 'Skip for now')}
                   </button>
                   <button
                     type="button"
@@ -1914,7 +2129,7 @@ const CreateCourseWizard = () => {
                       }
                     }}
                   >
-                    Étape suivante
+                    {t('wuti.authoring.wizard.nextStep', 'Next step')}
                     <Icon src={ArrowRight} />
                   </button>
                 </div>
@@ -1923,16 +2138,18 @@ const CreateCourseWizard = () => {
 
             {step === 3 && (
               <>
-                <h1 className="ws-wizard__step-title">Calendrier du cours</h1>
+                <h1 className="ws-wizard__step-title">{t('wuti.authoring.wizard.calendarTitle', 'Course calendar')}</h1>
                 <p className="ws-wizard__step-subtitle">
-                  Définissez la période du cours et la période d'inscription. Cette étape peut être ignorée.
+                  {t('wuti.authoring.wizard.calendarSubtitle', 'Define the course period and enrollment period. This step can be skipped.')}
                 </p>
 
                 <div className="ws-wizard__calendar-section">
-                  <h2 className="ws-wizard__section-title">Période du cours</h2>
+                  <h2 className="ws-wizard__section-title">{t('wuti.authoring.wizard.coursePeriod', 'Course period')}</h2>
                   <div className="ws-wizard__field-row">
                     <div className="ws-wizard__field">
-                      <label className="ws-wizard__label" htmlFor="ww-course-start">Date et heure de début (UTC)</label>
+                      <label className="ws-wizard__label" htmlFor="ww-course-start">
+                        {t('wuti.authoring.wizard.courseStartUtc', 'Start date and time (UTC)')}
+                      </label>
                       <input
                         id="ww-course-start"
                         type="datetime-local"
@@ -1945,7 +2162,9 @@ const CreateCourseWizard = () => {
                       />
                     </div>
                     <div className="ws-wizard__field">
-                      <label className="ws-wizard__label" htmlFor="ww-course-end">Date et heure de fin (UTC)</label>
+                      <label className="ws-wizard__label" htmlFor="ww-course-end">
+                        {t('wuti.authoring.wizard.courseEndUtc', 'End date and time (UTC)')}
+                      </label>
                       <input
                         id="ww-course-end"
                         type="datetime-local"
@@ -1964,10 +2183,14 @@ const CreateCourseWizard = () => {
                 </div>
 
                 <div className="ws-wizard__calendar-section">
-                  <h2 className="ws-wizard__section-title">Période d'inscription</h2>
+                  <h2 className="ws-wizard__section-title">
+                    {t('wuti.authoring.wizard.enrollmentPeriod', 'Enrollment period')}
+                  </h2>
                   <div className="ws-wizard__field-row">
                     <div className="ws-wizard__field">
-                      <label className="ws-wizard__label" htmlFor="ww-enrollment-start">Début des inscriptions (UTC)</label>
+                      <label className="ws-wizard__label" htmlFor="ww-enrollment-start">
+                        {t('wuti.authoring.wizard.enrollmentStartUtc', 'Enrollment start (UTC)')}
+                      </label>
                       <input
                         id="ww-enrollment-start"
                         type="datetime-local"
@@ -1980,7 +2203,9 @@ const CreateCourseWizard = () => {
                       />
                     </div>
                     <div className="ws-wizard__field">
-                      <label className="ws-wizard__label" htmlFor="ww-enrollment-end">Fin des inscriptions (UTC)</label>
+                      <label className="ws-wizard__label" htmlFor="ww-enrollment-end">
+                        {t('wuti.authoring.wizard.enrollmentEndUtc', 'Enrollment end (UTC)')}
+                      </label>
                       <input
                         id="ww-enrollment-end"
                         type="datetime-local"
@@ -2004,7 +2229,7 @@ const CreateCourseWizard = () => {
                     className="ws-wizard__btn ws-wizard__btn--ghost"
                     onClick={() => goToStep(4)}
                   >
-                    Ignorer
+                    {t('wuti.authoring.wizard.skip', 'Skip')}
                   </button>
                   <button
                     type="button"
@@ -2016,7 +2241,7 @@ const CreateCourseWizard = () => {
                       }
                     }}
                   >
-                    Étape suivante
+                    {t('wuti.authoring.wizard.nextStep', 'Next step')}
                     <Icon src={ArrowRight} />
                   </button>
                 </div>
@@ -2025,26 +2250,26 @@ const CreateCourseWizard = () => {
 
             {step === 4 && (
               <>
-                <h1 className="ws-wizard__step-title">Rythme et Prérequis</h1>
+                <h1 className="ws-wizard__step-title">{t('wuti.authoring.wizard.pacingTitle', 'Pacing and prerequisites')}</h1>
                 <p className="ws-wizard__step-subtitle">
-                  Définissez la cadence du cours et les conditions requises pour s'inscrire.
+                  {t('wuti.authoring.wizard.pacingSubtitle', 'Define the course pace and enrollment requirements.')}
                 </p>
 
                 <div className="ws-wizard__calendar-section">
-                  <h2 className="ws-wizard__section-title">Rythme du cours</h2>
+                  <h2 className="ws-wizard__section-title">{t('wuti.authoring.wizard.coursePacing', 'Course pacing')}</h2>
                   <div className="ws-wizard__pacing-grid">
                     {[
                       {
                         value: 'instructor' as PacingType,
                         icon: People,
-                        title: "Au rythme de l'instructeur",
-                        description: "Les dates et les échéances sont définies par l'équipe pédagogique.",
+                        title: t('wuti.authoring.wizard.instructorPaced', 'Instructor-paced'),
+                        description: t('wuti.authoring.wizard.instructorPacedDescription', 'Dates and deadlines are defined by the course team.'),
                       },
                       {
                         value: 'self' as PacingType,
                         icon: Settings,
-                        title: 'En autonomie',
-                        description: 'Chaque apprenant avance à son rythme avec une plus grande flexibilité.',
+                        title: t('wuti.authoring.wizard.selfPaced', 'Self-paced'),
+                        description: t('wuti.authoring.wizard.selfPacedDescription', 'Each learner progresses at their own pace with more flexibility.'),
                       },
                     ].map((option) => (
                       <label
@@ -2073,28 +2298,34 @@ const CreateCourseWizard = () => {
                     ))}
                   </div>
                   {touched.pacing && !data.pacing && (
-                    <span className="ws-wizard__field-error">Veuillez sélectionner un rythme de cours.</span>
+                    <span className="ws-wizard__field-error">
+                      {t('wuti.authoring.wizard.pacingRequired', 'Select a course pacing.')}
+                    </span>
                   )}
                 </div>
 
                 <div className="ws-wizard__calendar-section">
-                  <h2 className="ws-wizard__section-title">Cours Prérequis</h2>
+                  <h2 className="ws-wizard__section-title">{t('wuti.authoring.wizard.prerequisiteCourse', 'Prerequisite course')}</h2>
                   <div className="ws-wizard__field">
-                    <label className="ws-wizard__label" htmlFor="ww-prerequisite-mode">Exiger un autre cours avant inscription ?</label>
+                    <label className="ws-wizard__label" htmlFor="ww-prerequisite-mode">
+                      {t('wuti.authoring.wizard.requirePrerequisite', 'Require another course before enrollment?')}
+                    </label>
                     <select
                       id="ww-prerequisite-mode"
                       className="ws-wizard__select"
                       value={data.prerequisiteMode}
                       onChange={(event) => setField('prerequisiteMode', event.target.value as PrerequisiteMode)}
                     >
-                      <option value="none">Aucun prérequis</option>
-                      <option value="required">Oui, un cours est requis</option>
+                      <option value="none">{t('wuti.authoring.wizard.noPrerequisite', 'No prerequisite')}</option>
+                      <option value="required">{t('wuti.authoring.wizard.prerequisiteRequiredOption', 'Yes, a course is required')}</option>
                     </select>
                   </div>
 
                   {data.prerequisiteMode === 'required' && (
                     <div className="ws-wizard__field">
-                      <label className="ws-wizard__label" htmlFor="ww-prerequisite-course">Identifiant du cours prérequis</label>
+                      <label className="ws-wizard__label" htmlFor="ww-prerequisite-course">
+                        {t('wuti.authoring.wizard.prerequisiteCourseId', 'Prerequisite course ID')}
+                      </label>
                       <input
                         id="ww-prerequisite-course"
                         type="text"
@@ -2104,7 +2335,9 @@ const CreateCourseWizard = () => {
                         onChange={(event) => setField('prerequisiteCourse', event.target.value)}
                       />
                       {touched.prerequisiteCourse && !data.prerequisiteCourse && (
-                        <span className="ws-wizard__field-error">L'identifiant du cours prérequis est requis.</span>
+                        <span className="ws-wizard__field-error">
+                          {t('wuti.authoring.wizard.prerequisiteCourseIdRequired', 'Prerequisite course ID is required.')}
+                        </span>
                       )}
                     </div>
                   )}
@@ -2117,7 +2350,7 @@ const CreateCourseWizard = () => {
                     onClick={handleBack}
                   >
                     <Icon src={ArrowLeft} />
-                    Précédent
+                    {t('wuti.authoring.wizard.previous', 'Previous')}
                   </button>
                   <button
                     type="button"
@@ -2130,7 +2363,7 @@ const CreateCourseWizard = () => {
                       }
                     }}
                   >
-                    Étape suivante
+                    {t('wuti.authoring.wizard.nextStep', 'Next step')}
                     <Icon src={ArrowRight} />
                   </button>
                 </div>
@@ -2139,9 +2372,9 @@ const CreateCourseWizard = () => {
 
             {step === 5 && (
               <>
-                <h1 className="ws-wizard__step-title">Prix du cours</h1>
+                <h1 className="ws-wizard__step-title">{t('wuti.authoring.wizard.priceTitle', 'Course price')}</h1>
                 <p className="ws-wizard__step-subtitle">
-                  Définissez si ce cours est gratuit ou s'il nécessite un achat.
+                  {t('wuti.authoring.wizard.priceSubtitle', 'Define whether this course is free or requires purchase.')}
                 </p>
 
                 {hasApiError && (
@@ -2154,22 +2387,29 @@ const CreateCourseWizard = () => {
                   {[
                     {
                       value: 'free' as PriceMode,
-                      title: 'Gratuit',
-                      description: 'Le cours est ouvert à tous les apprenants sans frais.',
-                      icon: Check,
+                      title: t('wuti.authoring.wizard.free', 'Free'),
+                      description: t('wuti.authoring.wizard.freeDescription', 'The course is open to all learners at no cost.'),
+                      icon: MoneyOff,
+                      disabled: false,
                     },
                     {
                       value: 'paid' as PriceMode,
-                      title: 'Payant',
-                      description: "Définissez un prix de vente pour l'accès au cours.",
+                      title: t('wuti.authoring.wizard.paid', 'Paid'),
+                      description: t('wuti.authoring.wizard.paidUnavailableDescription', 'Paid course sales will be available soon.'),
                       icon: CreditCard,
+                      disabled: true,
                     },
                   ].map((option) => (
                     <button
                       key={option.value}
                       type="button"
-                      className={`ws-wizard__price-card${data.priceMode === option.value ? ' ws-wizard__price-card--selected' : ''}`}
-                      onClick={() => setField('priceMode', option.value)}
+                      className={`ws-wizard__price-card${data.priceMode === option.value ? ' ws-wizard__price-card--selected' : ''}${option.disabled ? ' ws-wizard__price-card--disabled' : ''}`}
+                      disabled={option.disabled}
+                      onClick={() => {
+                        if (!option.disabled) {
+                          setField('priceMode', option.value);
+                        }
+                      }}
                     >
                       <span className="ws-wizard__price-card-header">
                         <span className={`ws-wizard__price-card-emblem ws-wizard__price-card-emblem--${option.value}`} aria-hidden="true">
@@ -2183,6 +2423,11 @@ const CreateCourseWizard = () => {
                       <span className="ws-wizard__price-card-body">
                         <span className="ws-wizard__price-card-title">{option.title}</span>
                         <span className="ws-wizard__price-card-description">{option.description}</span>
+                        {option.disabled && (
+                          <span className="ws-wizard__price-card-soon">
+                            {t('wuti.authoring.wizard.availableSoon', 'Available soon')}
+                          </span>
+                        )}
                       </span>
                     </button>
                   ))}
@@ -2192,7 +2437,9 @@ const CreateCourseWizard = () => {
                   <div className="ws-wizard__price-fields-panel">
                     <div className="ws-wizard__field-row ws-wizard__price-fields">
                       <div className="ws-wizard__field">
-                        <label className="ws-wizard__label" htmlFor="ww-price-amount">Prix</label>
+                        <label className="ws-wizard__label" htmlFor="ww-price-amount">
+                          {t('wuti.authoring.wizard.price', 'Price')}
+                        </label>
                         <input
                           id="ww-price-amount"
                           type="number"
@@ -2204,11 +2451,15 @@ const CreateCourseWizard = () => {
                           onChange={(event) => setField('paidPrice', event.target.value)}
                         />
                         {touched.paidPrice && Number(data.paidPrice) <= 0 && (
-                          <span className="ws-wizard__field-error">Le prix doit être supérieur à 0.</span>
+                          <span className="ws-wizard__field-error">
+                            {t('wuti.authoring.wizard.priceGreaterThanZero', 'Price must be greater than 0.')}
+                          </span>
                         )}
                       </div>
                       <div className="ws-wizard__field">
-                        <label className="ws-wizard__label" htmlFor="ww-price-currency">Devise</label>
+                        <label className="ws-wizard__label" htmlFor="ww-price-currency">
+                          {t('wuti.authoring.wizard.currency', 'Currency')}
+                        </label>
                         <select
                           id="ww-price-currency"
                           className="ws-wizard__select"
@@ -2225,7 +2476,7 @@ const CreateCourseWizard = () => {
                 )}
 
                 <div className="ws-wizard__course-mode-note">
-                  Le mode d'accès choisi sera appliqué dès la création du cours.
+                  {t('wuti.authoring.wizard.accessModeNote', 'The selected access mode will be applied when the course is created.')}
                 </div>
 
                 <div className="ws-wizard__footer">
@@ -2235,7 +2486,7 @@ const CreateCourseWizard = () => {
                     onClick={handleBack}
                   >
                     <Icon src={ArrowLeft} />
-                    Précédent
+                    {t('wuti.authoring.wizard.previous', 'Previous')}
                   </button>
                   <button
                     type="button"
@@ -2248,7 +2499,7 @@ const CreateCourseWizard = () => {
                       }
                     }}
                   >
-                    Étape suivante
+                    {t('wuti.authoring.wizard.nextStep', 'Next step')}
                     <Icon src={ArrowRight} />
                   </button>
                 </div>
@@ -2257,9 +2508,9 @@ const CreateCourseWizard = () => {
 
             {step === 6 && (
               <>
-                <h1 className="ws-wizard__step-title">Vérifier les réglages</h1>
+                <h1 className="ws-wizard__step-title">{t('wuti.authoring.wizard.reviewSettingsTitle', 'Review settings')}</h1>
                 <p className="ws-wizard__step-subtitle">
-                  Relisez les informations principales avant de choisir comment démarrer le plan du cours.
+                  {t('wuti.authoring.wizard.reviewSettingsSubtitle', 'Review the main information before choosing how to start the course plan.')}
                 </p>
 
                 {hasApiError && (
@@ -2270,13 +2521,35 @@ const CreateCourseWizard = () => {
 
                 <div className="ws-wizard__review-grid">
                   {[
-                    ['Nom du cours', data.displayName || 'Non renseigné'],
-                    ['Organisation', data.org || 'Non renseignée'],
-                    ['Langue', LANGUAGE_OPTIONS.find((option) => option.value === data.language)?.label || data.language],
-                    ['Référence', referencePreview || 'Générée après création'],
-                    ['Session', runPreview],
-                    ['Rythme', data.pacing === 'self' ? 'En autonomie' : "Au rythme de l'instructeur"],
-                    ['Accès', data.priceMode === 'paid' ? `Payant · ${data.paidPrice} ${data.currency}` : 'Gratuit'],
+                    [
+                      t('wuti.authoring.wizard.reviewCourseName', 'Course name'),
+                      data.displayName || t('wuti.authoring.wizard.notProvided', 'Not provided'),
+                    ],
+                    [
+                      t('wuti.authoring.wizard.reviewOrganization', 'Organization'),
+                      data.org || t('wuti.authoring.wizard.notProvidedFeminine', 'Not provided'),
+                    ],
+                    [
+                      t('wuti.authoring.wizard.reviewLanguage', 'Language'),
+                      getLanguageLabel(data.language),
+                    ],
+                    [
+                      t('wuti.authoring.wizard.reviewReference', 'Reference'),
+                      referencePreview || t('wuti.authoring.wizard.generatedAfterCreation', 'Generated after creation'),
+                    ],
+                    [t('wuti.authoring.wizard.reviewSession', 'Session'), runPreview],
+                    [
+                      t('wuti.authoring.wizard.reviewPacing', 'Pacing'),
+                      data.pacing === 'self'
+                        ? t('wuti.authoring.wizard.selfPaced', 'Self-paced')
+                        : t('wuti.authoring.wizard.instructorPaced', 'Instructor-paced'),
+                    ],
+                    [
+                      t('wuti.authoring.wizard.reviewAccess', 'Access'),
+                      data.priceMode === 'paid'
+                        ? `${t('wuti.authoring.wizard.paid', 'Paid')} · ${data.paidPrice} ${data.currency}`
+                        : t('wuti.authoring.wizard.free', 'Free'),
+                    ],
                   ].map(([label, value]) => (
                     <div key={label} className="ws-wizard__review-item">
                       <span>{label}</span>
@@ -2292,14 +2565,14 @@ const CreateCourseWizard = () => {
                     onClick={handleBack}
                   >
                     <Icon src={ArrowLeft} />
-                    Précédent
+                    {t('wuti.authoring.wizard.previous', 'Previous')}
                   </button>
                   <button
                     type="button"
                     className="ws-wizard__btn ws-wizard__btn--primary"
                     onClick={() => goToStep(7)}
                   >
-                    Choisir le point de départ
+                    {t('wuti.authoring.wizard.chooseStartingPoint', 'Choose starting point')}
                     <Icon src={ArrowRight} />
                   </button>
                 </div>
@@ -2308,9 +2581,9 @@ const CreateCourseWizard = () => {
 
             {step === 7 && (
               <>
-                <h1 className="ws-wizard__step-title">Comment voulez-vous commencer ?</h1>
+                <h1 className="ws-wizard__step-title">{t('wuti.authoring.wizard.finalStartTitle', 'How do you want to start?')}</h1>
                 <p className="ws-wizard__step-subtitle">
-                  Sélectionnez la méthode de création de votre plan de cours.
+                  {t('wuti.authoring.wizard.finalStartSubtitle', 'Select the method for creating your course plan.')}
                 </p>
 
                 {hasApiError && (
@@ -2329,131 +2602,97 @@ const CreateCourseWizard = () => {
                   {[
                     {
                       value: 'template' as CreationStrategy,
-                      emblem: 'M',
-                      title: "From a template",
-                      description: 'Utilisez une structure de cours prédéfinie adaptée à votre domaine.',
-                    },
-                    {
-                      value: 'ai' as CreationStrategy,
-                      emblem: 'IA',
-                      title: 'Generate with AI',
-                      description: "Laissez notre assistant créer le plan de cours à partir de vos documents ou d'un prompt.",
-                      badge: 'Nouveau',
+                      icon: LibraryBooks,
+                      title: t('wuti.authoring.wizard.fromTemplateMethodTitle', 'From a template'),
+                      description: t('wuti.authoring.wizard.templateMethodDescription', 'Use a predefined course structure adapted to your domain.'),
                     },
                     {
                       value: 'scratch' as CreationStrategy,
-                      emblem: '0',
-                      title: 'Start from scratch',
-                      description: 'Créez votre propre plan de cours en ajoutant manuellement chaque section.',
+                      icon: EditNote,
+                      title: t('wuti.authoring.wizard.scratchMethodTitle', 'Start from scratch'),
+                      description: t('wuti.authoring.wizard.scratchMethodDescription', 'Create your own course plan by manually adding each section.'),
                     },
                   ].map((option) => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      className={`ws-wizard__method-card${data.creationStrategy === option.value ? ' ws-wizard__method-card--selected' : ''}`}
-                      onClick={() => handleStrategyChange(option.value)}
-                    >
-                      <span className="ws-wizard__method-emblem">{option.emblem}</span>
-                      <span className="ws-wizard__method-copy">
-                        <span className="ws-wizard__method-title-row">
-                          <span className="ws-wizard__method-title">{option.title}</span>
-                          {option.badge && <span className="ws-wizard__strategy-badge">{option.badge}</span>}
+                    <React.Fragment key={option.value}>
+                      <button
+                        type="button"
+                        className={`ws-wizard__method-card${data.creationStrategy === option.value ? ' ws-wizard__method-card--selected' : ''}`}
+                        onClick={() => handleStrategyChange(option.value)}
+                      >
+                        <span className="ws-wizard__method-emblem" aria-hidden="true">
+                          <Icon src={option.icon} />
                         </span>
-                        <span className="ws-wizard__method-description">{option.description}</span>
-                      </span>
-                    </button>
+                        <span className="ws-wizard__method-copy">
+                          <span className="ws-wizard__method-title-row">
+                            <span className="ws-wizard__method-title">{option.title}</span>
+                          </span>
+                          <span className="ws-wizard__method-description">{option.description}</span>
+                        </span>
+                      </button>
+
+                      {option.value === 'template' && data.creationStrategy === 'template' && (
+                        <div className="ws-wizard__nested-panel">
+                          <div className="ws-wizard__nested-panel-header">
+                            <p className="ws-wizard__nested-panel-title">
+                              {t('wuti.authoring.wizard.chooseTemplate', 'Choose template')}
+                            </p>
+                            <p className="ws-wizard__nested-panel-copy">
+                              {t('wuti.authoring.wizard.chooseTemplateCopy', 'Global templates and templates for the selected organization are available here.')}
+                            </p>
+                          </div>
+
+                          <div className="ws-wizard__field">
+                            <label className="ws-wizard__label" htmlFor="ww-template-id">
+                              {t('wuti.authoring.wizard.courseTemplate', 'Course template')}
+                            </label>
+                            <select
+                              id="ww-template-id"
+                              className={`ws-wizard__select${touched.templateId && !data.templateId ? ' ws-wizard__input--error' : ''}`}
+                              value={data.templateId}
+                              disabled={isLoadingTemplates || coursePlanTemplates.length === 0}
+                              onChange={(event) => handleTemplateSelect(event.target.value)}
+                            >
+                              <option value="" disabled>
+                                {isLoadingTemplates
+                                  ? t('wuti.authoring.wizard.loadingTemplates', 'Loading templates...')
+                                  : t('wuti.authoring.wizard.selectTemplate', 'Select a template')}
+                              </option>
+                              {coursePlanTemplates.map((template) => (
+                                <option key={template.id} value={template.id}>
+                                  {template.name}
+                                  {template.visibility === 'default'
+                                    ? ` · ${t('wuti.authoring.wizard.globalTemplateOption', 'Global')}`
+                                    : ` · ${template.org}`}
+                                </option>
+                              ))}
+                            </select>
+                            {touched.templateId && !data.templateId && (
+                              <span className="ws-wizard__field-error">
+                                {t('wuti.authoring.wizard.selectTemplateRequired', 'Select a template.')}
+                              </span>
+                            )}
+                          </div>
+
+                          {data.templateId && planDraft.structure.sections.length > 0 && (
+                            <div className="ws-wizard__plan-builder-wrap">
+                              <CoursePlanBuilder
+                                structure={planDraft.structure}
+                                onChange={(nextStructure) => setPlanDraft((prev) => ({
+                                  ...prev,
+                                  structure: nextStructure,
+                                }))}
+                                sourceLabel={t('wuti.authoring.wizard.selectedTemplate', 'Selected template')}
+                                title={coursePlanTemplates.find((template) => template.id === data.templateId)?.name
+                                  || t('wuti.authoring.wizard.coursePlan', 'Course plan')}
+                                description={t('wuti.authoring.wizard.adjustTemplatePlan', 'Adjust this plan before creating the course. Changes do not modify the source template.')}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </React.Fragment>
                   ))}
                 </div>
-
-                {data.creationStrategy === 'template' && (
-                  <div className="ws-wizard__nested-panel">
-                    <div className="ws-wizard__nested-panel-header">
-                      <p className="ws-wizard__nested-panel-title">Choisir le modèle</p>
-                      <p className="ws-wizard__nested-panel-copy">
-                        Les modèles globaux et ceux de l'organisation sélectionnée sont disponibles ici.
-                      </p>
-                    </div>
-
-                    <div className="ws-wizard__field">
-                      <label className="ws-wizard__label" htmlFor="ww-template-id">Modèle de cours</label>
-                      <select
-                        id="ww-template-id"
-                        className={`ws-wizard__select${touched.templateId && !data.templateId ? ' ws-wizard__input--error' : ''}`}
-                        value={data.templateId}
-                        disabled={isLoadingTemplates || coursePlanTemplates.length === 0}
-                        onChange={(event) => handleTemplateSelect(event.target.value)}
-                      >
-                        <option value="" disabled>
-                          {isLoadingTemplates ? 'Chargement des modèles...' : 'Sélectionner un modèle'}
-                        </option>
-                        {coursePlanTemplates.map((template) => (
-                          <option key={template.id} value={template.id}>
-                            {template.name}
-                            {template.visibility === 'default' ? ' · Global' : ` · ${template.org}`}
-                          </option>
-                        ))}
-                      </select>
-                      {touched.templateId && !data.templateId && (
-                        <span className="ws-wizard__field-error">Sélectionnez un modèle.</span>
-                      )}
-                    </div>
-
-                    {data.templateId && planDraft.structure.sections.length > 0 && (
-                      <div className="ws-wizard__plan-builder-wrap">
-                        <CoursePlanBuilder
-                          structure={planDraft.structure}
-                          onChange={(nextStructure) => setPlanDraft((prev) => ({
-                            ...prev,
-                            structure: nextStructure,
-                          }))}
-                          sourceLabel="Modèle sélectionné"
-                          title={coursePlanTemplates.find((template) => template.id === data.templateId)?.name || 'Plan du cours'}
-                          description="Ajustez ce plan avant de créer le cours. Les changements ne modifient pas le modèle source."
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {data.creationStrategy === 'ai' && (
-                  <div className="ws-wizard__nested-panel">
-                    <div className="ws-wizard__nested-panel-header">
-                      <p className="ws-wizard__nested-panel-title">Assistant de création IA</p>
-                      <p className="ws-wizard__nested-panel-copy">
-                        Le cours sera créé, puis le plugin IA générera une structure initiale à partir de ce contexte.
-                      </p>
-                    </div>
-
-                    <div className="ws-wizard__field">
-                      <label className="ws-wizard__label" htmlFor="ww-topic-prompt-final">Prompt de génération</label>
-                      <textarea
-                        id="ww-topic-prompt-final"
-                        className={`ws-wizard__textarea${touched.topicPrompt && !aiPromptSeed ? ' ws-wizard__input--error' : ''}`}
-                        placeholder="ex. Génère un plan de cours sur Python pour débutants, avec des exercices pratiques et des quiz courts."
-                        value={data.topicPrompt}
-                        onChange={(event) => setField('topicPrompt', event.target.value)}
-                      />
-                      {touched.topicPrompt && !aiPromptSeed && (
-                        <span className="ws-wizard__field-error">Ajoutez un sujet ou un objectif pour générer un plan.</span>
-                      )}
-                    </div>
-
-                    <div className="ws-wizard__course-mode-note">
-                      La génération IA utilise le plugin WutiSkill AI. Le plan généré sera appliqué après la création du shell du cours. L'édition fine du plan IA dans le builder partagé sera branchée sur cette même structure.
-                    </div>
-                  </div>
-                )}
-
-                {data.creationStrategy === 'scratch' && (
-                  <div className="ws-wizard__nested-panel">
-                    <div className="ws-wizard__nested-panel-header">
-                      <p className="ws-wizard__nested-panel-title">Création libre</p>
-                      <p className="ws-wizard__nested-panel-copy">
-                        Le cours sera créé sans structure initiale. Vous arriverez directement dans l'éditeur d'outline pour construire le plan manuellement.
-                      </p>
-                    </div>
-                  </div>
-                )}
 
                 <div className="ws-wizard__footer">
                   <button
@@ -2462,7 +2701,7 @@ const CreateCourseWizard = () => {
                     onClick={handleBack}
                   >
                     <Icon src={ArrowLeft} />
-                    Précédent
+                    {t('wuti.authoring.wizard.previous', 'Previous')}
                   </button>
                   <button
                     type="button"
@@ -2478,11 +2717,12 @@ const CreateCourseWizard = () => {
                       || isFinalizing
                     }
                     onClick={handleSubmit}
+                    aria-busy={isSubmitting}
                   >
-                    <Icon src={Check} />
                     {isSubmitting
-                      ? (isFinalizing ? 'Préparation du plan...' : 'Création du cours...')
-                      : 'Créer le cours'}
+                      ? <span className="ws-wizard__btn-spinner" aria-hidden="true" />
+                      : <Icon src={Check} />}
+                    {submitButtonLabel}
                   </button>
                 </div>
               </>

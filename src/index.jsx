@@ -28,6 +28,7 @@ import initializeStore from './store';
 import CourseAuthoringRoutes from './CourseAuthoringRoutes';
 import { CreateCourseWizard } from './create-course-wizard';
 import CoursePlanTemplatesPage from './course-plan-templates/CoursePlanTemplatesPage';
+import StudioFaqPage from './faq/StudioFaqPage';
 import Head from './head/Head';
 import { StudioHome } from './studio-home';
 import CourseRerun from './course-rerun';
@@ -36,6 +37,7 @@ import { ContentTagsDrawer } from './content-tags-drawer';
 import AccessibilityPage from './accessibility-page';
 import { ToastProvider } from './generic/toast-context';
 import { ContentType } from './library-authoring/routes';
+import './setupParagonOverlays';
 
 import 'react-datepicker/dist/react-datepicker.css';
 import './index.scss';
@@ -130,6 +132,7 @@ const App = () => {
     createRoutesFromElements(
       <Route>
         <Route path="/home" element={<StudioHome />} />
+        <Route path="/faq" element={<StudioFaqPage />} />
         <Route path="/home/create-course" element={<CreateCourseWizard />} />
         <Route path="/home/course-templates" element={<CoursePlanTemplatesPage />} />
         <Route path="/libraries" element={<StudioHome />} />

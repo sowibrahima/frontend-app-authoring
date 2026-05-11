@@ -83,4 +83,14 @@ const updateWithDefaultValues = (values) => {
   return values;
 };
 
-export { updateWithDefaultValues, validateScheduleAndDetails };
+const getChangedValues = (values, fieldNames) => fieldNames.reduce((changedValues, fieldName) => {
+  if (Object.prototype.hasOwnProperty.call(values, fieldName)) {
+    return {
+      ...changedValues,
+      [fieldName]: values[fieldName],
+    };
+  }
+  return changedValues;
+}, {});
+
+export { getChangedValues, updateWithDefaultValues, validateScheduleAndDetails };

@@ -10,6 +10,7 @@ export const commands = StrictDict({
 
 export const buttons = StrictDict({
   addImageButton: 'addimagebutton',
+  aiGenerate: 'wutiskillAiGenerate',
   blockQuote: 'blockquote',
   codeBlock: 'codeBlock',
   align: StrictDict({

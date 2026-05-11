@@ -25,29 +25,25 @@ const WhatsInClipboard = ({
   };
 
   return (
-    <div
-      className="whats-in-clipboard mt-2 d-flex align-items-center"
+    <button
+      type="button"
+      className="whats-in-clipboard"
       data-testid="whats-in-clipboard"
       onMouseEnter={() => handlePopoverToggle(true)}
       onMouseLeave={() => handlePopoverToggle(false)}
       onFocus={() => togglePopover(true)}
       onBlur={() => togglePopover(false)}
+      onKeyDown={handleKeyDown}
+      ref={triggerElementRef}
     >
       <Icon
-        className="whats-in-clipboard-icon mr-1"
+        className="whats-in-clipboard-icon"
         src={QuestionIcon}
       />
-      <p
-        /* eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex */
-        tabIndex={0}
-        role="presentation"
-        ref={triggerElementRef}
-        className="whats-in-clipboard-text m-0"
-        onKeyDown={handleKeyDown}
-      >
+      <span className="whats-in-clipboard-text">
         {intl.formatMessage(messages.pasteButtonWhatsInClipboardText)}
-      </p>
-    </div>
+      </span>
+    </button>
   );
 };
 

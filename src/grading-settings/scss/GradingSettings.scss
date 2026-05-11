@@ -3,17 +3,120 @@
 @import "../grading-scale/GradingScale.scss";
 
 .grading {
+  padding-top: 2rem;
+  padding-bottom: 3rem;
+
+  .setting-items {
+    margin-bottom: 0;
+  }
+
+  article {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .sub-header {
+    display: block;
+    margin-bottom: .75rem;
+  }
+
+  .sub-header-title {
+    margin-bottom: 1.25rem;
+    color: var(--wuti-color-text, #111827);
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(2.25rem, 4vw, 3.1rem);
+    font-weight: 800;
+    line-height: 1.02;
+
+    .sub-header-title-subtitle,
+    .sub-header-breadcrumbs {
+      margin-bottom: .35rem;
+      color: var(--wuti-color-muted, #6B7280);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+  }
+
+  .sub-header-content,
+  .section-sub-header,
+  section > header.row {
+    padding-bottom: .75rem;
+    border-bottom: 1px solid var(--wuti-color-border, #E5E7EB);
+  }
+
+  .sub-header-content-title,
+  .section-sub-header h2,
+  section > header.row h2 {
+    color: var(--wuti-color-text, #111827);
+    font-size: 1.05rem;
+    font-weight: 800;
+    line-height: 1.35;
+  }
+
+  .sub-header-instructions,
+  .section-sub-header span,
+  section > header.row .small {
+    max-width: 34rem;
+    color: var(--wuti-color-muted, #6B7280);
+    line-height: 1.45;
+  }
+
   .help-sidebar {
-    margin-top: 8.75rem;
+    position: sticky;
+    top: 8.25rem;
+    margin-top: 8.25rem;
+    padding: 1.15rem;
+    border: 1px solid var(--wuti-color-border, #E5E7EB);
+    border-radius: 1rem;
+    background: var(--wuti-color-surface, #FFFFFF);
+    box-shadow: 0 12px 28px rgba(17, 24, 39, .05);
   }
 
   .grading-label {
-    font: normal var(--pgn-typography-font-weight-bold) .75rem/1.25rem var(--pgn-typography-font-family-base);
-    color: var(--pgn-color-gray-500);
+    color: var(--wuti-color-text, #111827);
+    font-family: 'Inter', sans-serif;
+    font-size: .84rem;
+    font-weight: 750;
+    line-height: 1.25;
   }
 
   .grading-description {
-    font: normal .75rem/1.5rem var(--pgn-typography-font-family-base);
-    color: var(--pgn-color-gray-700);
+    color: var(--wuti-color-muted, #6B7280);
+    font-family: 'Inter', sans-serif;
+    font-size: .82rem;
+    line-height: 1.45;
+    text-align: left;
+  }
+
+  .form-group-custom {
+    text-align: left;
+  }
+
+  .form-control {
+    font-size: .95rem;
+  }
+
+  .btn-primary {
+    background: var(--wuti-color-action, #FFBA08);
+    border-color: var(--wuti-color-action, #FFBA08);
+    color: var(--wuti-color-action-text, #111827);
+  }
+
+  .course-grading-assignment-delete-btn {
+    float: right;
+    margin-top: .75rem;
+  }
+
+  @media (max-width: 991px) {
+    padding-top: 1rem;
+
+    .help-sidebar {
+      position: static;
+      margin-top: 1rem;
+    }
   }
 }

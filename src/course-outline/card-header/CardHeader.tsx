@@ -245,16 +245,6 @@ const CardHeader = ({
               >
                 {intl.formatMessage(messages.menuConfigure)}
               </Dropdown.Item>
-              {getConfig().ENABLE_TAGGING_TAXONOMY_PAGES === 'true' && (
-                <Dropdown.Item
-                  data-testid={`${namePrefix}-card-header__menu-manage-tags-button`}
-                  disabled={isSaving}
-                  onClick={openManageTagsDrawer}
-                >
-                  {intl.formatMessage(messages.menuManageTags)}
-                </Dropdown.Item>
-              )}
-
               {isVertical && enableCopyPasteUnits && (
                 <Dropdown.Item onClick={onClickCopy}>
                   {intl.formatMessage(messages.menuCopy)}

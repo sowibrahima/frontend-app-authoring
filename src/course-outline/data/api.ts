@@ -4,6 +4,20 @@ import { XBlock } from '@src/data/types';
 import { CourseOutline } from './types';
 
 const getApiBaseUrl = () => getConfig().STUDIO_BASE_URL;
+const inFlightRequests = new Map<string, Promise<any>>();
+
+const coalesceRequest = async <T>(key: string, requestFn: () => Promise<T>): Promise<T> => {
+  const pendingRequest = inFlightRequests.get(key);
+  if (pendingRequest) {
+    return pendingRequest;
+  }
+
+  const request = requestFn().finally(() => {
+    inFlightRequests.delete(key);
+  });
+  inFlightRequests.set(key, request);
+  return request;
+};
 
 export const getCourseOutlineIndexApiUrl = (
   courseId: string,
@@ -49,10 +63,12 @@ export const createDiscussionsTopicsUrl = (courseId: string) => `${getApiBaseUrl
  * @returns {Promise<courseOutline>}
  */
 export async function getCourseOutlineIndex(courseId: string): Promise<CourseOutline> {
-  const { data } = await getAuthenticatedHttpClient()
-    .get(getCourseOutlineIndexApiUrl(courseId));
+  return coalesceRequest(`course-index:${courseId}`, async () => {
+    const { data } = await getAuthenticatedHttpClient()
+      .get(getCourseOutlineIndexApiUrl(courseId));
 
-  return camelCaseObject(data);
+    return camelCaseObject(data);
+  });
 }
 
 /**
@@ -86,10 +102,12 @@ export async function getCourseBestPractices({
     units: any;
     videos: any;
   }> {
-  const { data } = await getAuthenticatedHttpClient()
-    .get(getCourseBestPracticesApiUrl({ courseId, excludeGraded, all }));
+  return coalesceRequest(`quality:${courseId}:${excludeGraded}:${all}`, async () => {
+    const { data } = await getAuthenticatedHttpClient()
+      .get(getCourseBestPracticesApiUrl({ courseId, excludeGraded, all }));
 
-  return camelCaseObject(data);
+    return camelCaseObject(data);
+  });
 }
 
 interface CourseLaunchData {
@@ -115,12 +133,14 @@ export async function getCourseLaunch({
   validateOras,
   all,
 }: { courseId: string; gradedOnly: boolean; validateOras: boolean; all: boolean; }): Promise<CourseLaunchData> {
-  const { data } = await getAuthenticatedHttpClient()
-    .get(getCourseLaunchApiUrl({
-      courseId, gradedOnly, validateOras, all,
-    }));
+  return coalesceRequest(`validation:${courseId}:${gradedOnly}:${validateOras}:${all}`, async () => {
+    const { data } = await getAuthenticatedHttpClient()
+      .get(getCourseLaunchApiUrl({
+        courseId, gradedOnly, validateOras, all,
+      }));
 
-  return camelCaseObject(data);
+    return camelCaseObject(data);
+  });
 }
 
 /**

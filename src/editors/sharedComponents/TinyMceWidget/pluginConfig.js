@@ -10,6 +10,7 @@ const pluginConfig = ({ placeholder, editorType, enableImageUpload }) => {
   const editImageSettings = enableImageUpload ? buttons.editImageSettings : '';
   const codePlugin = editorType === 'text' ? plugins.code : '';
   const codeButton = editorType === 'text' ? buttons.code : '';
+  const aiGenerateButton = ['text', 'question'].includes(editorType) ? buttons.aiGenerate : '';
   const labelButton = editorType === 'question' ? buttons.customLabelButton : '';
   const quickToolbar = editorType === 'expandable' ? plugins.quickbars : '';
   const statusbar = editorType !== 'expandable';
@@ -57,7 +58,7 @@ const pluginConfig = ({ placeholder, editorType, enableImageUpload }) => {
         ],
         [imageUploadButton, buttons.link, buttons.unlink, buttons.blockQuote, buttons.codeBlock],
         [buttons.table, buttons.emoticons, buttons.charmap, buttons.hr],
-        [buttons.removeFormat, codeButton, buttons.a11ycheck, buttons.embediframe],
+        [aiGenerateButton, buttons.removeFormat, codeButton, buttons.a11ycheck, buttons.embediframe],
       ]) : false,
       imageToolbar: mapToolbars([
         // [buttons.rotate.left, buttons.rotate.right],

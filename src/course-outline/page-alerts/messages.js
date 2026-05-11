@@ -21,6 +21,11 @@ const messages = defineMessages({
     defaultMessage: 'Learn more',
     description: 'Learn more link in upgraded discussion notification alert',
   },
+  discussionNotificationDismiss: {
+    id: 'course-authoring.course-outline.page-alerts.discussionNotificationDismiss',
+    defaultMessage: 'Dismiss',
+    description: 'Dismiss button text in upgraded discussion notification alert',
+  },
   discussionNotificationFeedback: {
     id: 'course-authoring.course-outline.page-alerts.discussionNotificationFeedback',
     defaultMessage: 'Share feedback',

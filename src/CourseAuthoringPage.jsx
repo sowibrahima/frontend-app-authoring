@@ -65,7 +65,7 @@ const CourseAuthoringPage = ({ courseId, children }) => {
           />
         )
         )}
-      {children}
+      {(!inProgress || isEditor) && children}
       {!inProgress && !isEditor && <WutiFooter />}
     </div>
   );

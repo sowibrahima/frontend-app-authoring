@@ -3,6 +3,20 @@ import { camelCaseObject, getConfig } from '@edx/frontend-platform';
 import { getAuthenticatedHttpClient } from '@edx/frontend-platform/auth';
 
 const getApiBaseUrl = () => getConfig().STUDIO_BASE_URL;
+const inFlightRequests = new Map();
+
+const coalesceRequest = async (key, requestFn) => {
+  const pendingRequest = inFlightRequests.get(key);
+  if (pendingRequest) {
+    return pendingRequest;
+  }
+
+  const request = requestFn().finally(() => {
+    inFlightRequests.delete(key);
+  });
+  inFlightRequests.set(key, request);
+  return request;
+};
 
 export const getCourseBestPracticesApiUrl = ({
   courseId,
@@ -27,10 +41,12 @@ export async function getCourseBestPractices({
   excludeGraded,
   all,
 }) {
-  const { data } = await getAuthenticatedHttpClient()
-    .get(getCourseBestPracticesApiUrl({ courseId, excludeGraded, all }));
+  return coalesceRequest(`quality:${courseId}:${excludeGraded}:${all}`, async () => {
+    const { data } = await getAuthenticatedHttpClient()
+      .get(getCourseBestPracticesApiUrl({ courseId, excludeGraded, all }));
 
-  return camelCaseObject(data);
+    return camelCaseObject(data);
+  });
 }
 
 /** @typedef {object} courseLaunchData
@@ -55,10 +71,12 @@ export async function getCourseLaunch({
   validateOras,
   all,
 }) {
-  const { data } = await getAuthenticatedHttpClient()
-    .get(getCourseLaunchApiUrl({
-      courseId, gradedOnly, validateOras, all,
-    }));
+  return coalesceRequest(`validation:${courseId}:${gradedOnly}:${validateOras}:${all}`, async () => {
+    const { data } = await getAuthenticatedHttpClient()
+      .get(getCourseLaunchApiUrl({
+        courseId, gradedOnly, validateOras, all,
+      }));
 
-  return camelCaseObject(data);
+    return camelCaseObject(data);
+  });
 }

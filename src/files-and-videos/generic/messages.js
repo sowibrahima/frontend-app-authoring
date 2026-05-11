@@ -8,7 +8,7 @@ const messages = defineMessages({
   },
   apiStatusToastMessage: {
     id: 'course-authoring.files-and-upload.apiStatus.message',
-    defaultMessage: '{actionType} {selectedRowCount} {selectedRowCount, plural, one {{fileType}} other {{fileType}s}}',
+    defaultMessage: '{actionType} {selectedRowCount} {selectedRowCount, plural, one {{fileType, select, file {file} video {video} other {item}}} other {{fileType, select, file {files} video {videos} other {items}}}}',
     description: 'This message is showed in the toast when action is applied to files',
   },
   apiStatusAddingAction: {
@@ -127,21 +127,20 @@ const messages = defineMessages({
   },
   deleteConfirmationTitle: {
     id: 'course-authoring.files-and-uploads.deleteConfirmation.title',
-    defaultMessage: 'Delete {fileNumber, plural, one {{fileName}} other {{fileNumber} {fileType}s}}',
+    defaultMessage: 'Delete {fileNumber, plural, one {{fileName}} other {{fileNumber} {fileType, select, file {files} video {videos} other {items}}}}',
     description: 'Title for delete confirmation modal',
   },
   deleteConfirmationMessage: {
     id: 'course-authoring.files-and-uploads.deleteConfirmation.message',
     defaultMessage: `
-      Are you sure you want to delete {fileNumber, plural, one {{fileName}} other {{fileNumber} {fileType}s}}?
-      This action cannot be undone and may break your course if the {fileNumber, plural, one {{fileType} is} other {{fileType}s are}}
-      used in the course content, advanced settings, updates, or schedule and details.
+      Are you sure you want to delete {fileNumber, plural, one {{fileName}} other {{fileNumber} {fileType, select, file {files} video {videos} other {items}}}}?
+      This action cannot be undone and may break your course if the deleted content is used in the course content, advanced settings, updates, or schedule and details.
     `,
     description: 'Message presented to user listing the number of files they are attempting to delete in the delete confirmation modal',
   },
   deleteConfirmationUsageMessage: {
     id: 'course-authoring.files-and-uploads.deleteConfirmation.usage-message',
-    defaultMessage: 'The following {fileNumber, plural, one {{fileType} is} other {{fileType}s are}} used in course content. Consider updating the content before deleting.',
+    defaultMessage: 'The following deleted content is used in course content. Consider updating the content before deleting.',
     description: 'Message listing where the files the user is attempting to delete are used in the course',
   },
   deleteFileButtonLabel: {
@@ -158,6 +157,46 @@ const messages = defineMessages({
     id: 'course-authoring.files-and-uploads.sortButton.label',
     defaultMessage: 'Sort and filter',
     description: 'Label for button that opens the sort and filter modal',
+  },
+  searchInputLabel: {
+    id: 'course-authoring.files-and-uploads.searchInput.label',
+    defaultMessage: 'Search {fileType, select, file {file} video {video} other {item}} name',
+    description: 'Placeholder and accessible label for the file or video search input',
+  },
+  filtersAppliedLabel: {
+    id: 'course-authoring.files-and-uploads.filtersApplied.label',
+    defaultMessage: 'Filters applied',
+    description: 'Label shown before the list of active filters',
+  },
+  moreInfoColumnHeader: {
+    id: 'course-authoring.files-and-uploads.moreInfoColumn.header',
+    defaultMessage: 'File actions',
+    description: 'Accessible header for the file actions column',
+  },
+  selectionSummary: {
+    id: 'course-authoring.files-and-uploads.selection.summary',
+    defaultMessage: '{selectedCount, plural, one {# item selected} other {# items selected}}',
+    description: 'Compact selected rows summary for files and videos table',
+  },
+  selectionAllSummary: {
+    id: 'course-authoring.files-and-uploads.selection.all.summary',
+    defaultMessage: 'All {selectedCount, plural, one {# item selected} other {# items selected}}',
+    description: 'Compact selected rows summary when all rows are selected',
+  },
+  selectionSelectAll: {
+    id: 'course-authoring.files-and-uploads.selection.selectAll',
+    defaultMessage: 'Select all ({totalCount})',
+    description: 'Action to select all rows in files and videos table',
+  },
+  selectionClear: {
+    id: 'course-authoring.files-and-uploads.selection.clear',
+    defaultMessage: 'Clear',
+    description: 'Action to clear selected rows in files and videos table',
+  },
+  fileActionsMenuButtonLabel: {
+    id: 'course-authoring.files-and-uploads.fileActionsMenuButton.label',
+    defaultMessage: 'More actions',
+    description: 'Accessible label for the file actions dropdown button',
   },
   sortModalTitleLabel: {
     id: 'course-authoring.files-and-uploads.sortModal.title',

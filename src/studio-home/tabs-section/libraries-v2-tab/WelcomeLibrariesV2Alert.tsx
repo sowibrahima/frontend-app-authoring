@@ -27,18 +27,18 @@ export const WelcomeLibrariesV2Alert = () => {
 
   const hasPendingV1Migrations = data.libraries.some(library => !library.isMigrated);
   return (
-    <Alert variant="info">
+    <Alert variant="info" className="ws-libraries-v2-alert">
       {hasPendingV1Migrations ? (
         <>
           <Alert.Heading>
             <FormattedMessage {...messages.alertTitle} />
           </Alert.Heading>
-          <div className="row">
-            <div className="col-8">
+          <div className="ws-libraries-v2-alert__body">
+            <div className="ws-libraries-v2-alert__copy">
               <FormattedMessage {...messages.alertDescriptionV2} values={{ link: libraryDocsLink }} />
               <FormattedMessage {...messages.alertDescriptionV2MigrationPending} />
             </div>
-            <div className="col-4 d-flex justify-content-center align-items-start">
+            <div className="ws-libraries-v2-alert__action">
               <Button onClick={() => navigate('../libraries-v1/migrate')}>
                 <FormattedMessage {...messages.alertReviewButton} />
               </Button>

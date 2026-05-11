@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  Container, Button, Layout, StatefulButton, TransitionReplace,
+  Container, Button, StatefulButton, TransitionReplace,
 } from '@openedx/paragon';
 import { CheckCircle, Info, Warning } from '@openedx/paragon/icons';
 import { FormattedMessage, useIntl } from '@edx/frontend-platform/i18n';
@@ -20,7 +20,6 @@ import {
   getCourseAppSettings, getSavingStatus, getProctoringExamErrors, getSendRequestErrors, getLoadingStatus,
 } from './data/selectors';
 import SettingCard from './setting-card/SettingCard';
-import SettingsSidebar from './settings-sidebar/SettingsSidebar';
 import validateAdvancedSettingsData from './utils';
 import messages from './messages';
 import ModalError from './modal-error/ModalError';
@@ -63,7 +62,6 @@ const AdvancedSettings = ({ courseId }) => {
   };
   const {
     proctoringErrors,
-    mfeProctoredExamSettingsUrl,
   } = proctoringExamErrors;
 
   useEffect(() => {
@@ -159,78 +157,60 @@ const AdvancedSettings = ({ courseId }) => {
           </TransitionReplace>
         </div>
         <section className="setting-items mb-4">
-          <Layout
-            lg={[{ span: 9 }, { span: 3 }]}
-            md={[{ span: 9 }, { span: 3 }]}
-            sm={[{ span: 9 }, { span: 3 }]}
-            xs={[{ span: 9 }, { span: 3 }]}
-            xl={[{ span: 9 }, { span: 3 }]}
-          >
-            <Layout.Element>
-              <SubHeader
-                subtitle={intl.formatMessage(messages.headingSubtitle)}
-                title={intl.formatMessage(messages.headingTitle)}
-                contentTitle={intl.formatMessage(messages.policy)}
-              />
-              <article>
-                <div>
-                  <section className="setting-items-policies">
-                    <div className="small">
-                      <FormattedMessage
-                        id="course-authoring.advanced-settings.policies.description"
-                        defaultMessage="{notice} Do not modify these policies unless you are familiar with their purpose."
-                        values={{ notice: <strong>Warning:  </strong> }}
-                      />
-                    </div>
-                    <div className="setting-items-deprecated-setting">
-                      <Button
-                        variant={showDeprecated ? 'outline-brand' : 'tertiary'}
-                        onClick={() => setShowDeprecated(!showDeprecated)}
-                        size="sm"
-                      >
-                        <FormattedMessage
-                          id="course-authoring.advanced-settings.deprecated.button.text"
-                          defaultMessage="{visibility} deprecated settings"
-                          values={{
-                            visibility:
-                                    showDeprecated ? intl.formatMessage(messages.deprecatedButtonHideText)
-                                      : intl.formatMessage(messages.deprecatedButtonShowText),
-                          }}
-                        />
-                      </Button>
-                    </div>
-                    <ul className="setting-items-list p-0">
-                      {Object.keys(advancedSettingsData).map((settingName) => {
-                        const settingData = advancedSettingsData[settingName];
-                        if (settingData.deprecated && !showDeprecated) {
-                          return null;
-                        }
-                        return (
-                          <SettingCard
-                            key={settingName}
-                            settingData={settingData}
-                            name={settingName}
-                            showSaveSettingsPrompt={showSaveSettingsPrompt}
-                            saveSettingsPrompt={saveSettingsPrompt}
-                            setEdited={setEditedSettings}
-                            handleBlur={handleSettingBlur}
-                            isEditableState={isEditableState}
-                            setIsEditableState={setIsEditableState}
-                          />
-                        );
-                      })}
-                    </ul>
-                  </section>
-                </div>
-              </article>
-            </Layout.Element>
-            <Layout.Element>
-              <SettingsSidebar
-                courseId={courseId}
-                proctoredExamSettingsUrl={mfeProctoredExamSettingsUrl}
-              />
-            </Layout.Element>
-          </Layout>
+          <SubHeader
+            subtitle={intl.formatMessage(messages.headingSubtitle)}
+            title={intl.formatMessage(messages.headingTitle)}
+            contentTitle={intl.formatMessage(messages.policy)}
+          />
+          <article className="advanced-settings__content">
+            <section className="setting-items-policies">
+              <div className="small">
+                <FormattedMessage
+                  id="course-authoring.advanced-settings.policies.description"
+                  defaultMessage="{notice} Do not modify these policies unless you are familiar with their purpose."
+                  values={{ notice: <strong>Warning:  </strong> }}
+                />
+              </div>
+              <div className="setting-items-deprecated-setting">
+                <Button
+                  variant={showDeprecated ? 'outline-brand' : 'tertiary'}
+                  onClick={() => setShowDeprecated(!showDeprecated)}
+                  size="sm"
+                >
+                  <FormattedMessage
+                    id="course-authoring.advanced-settings.deprecated.button.text"
+                    defaultMessage="{visibility} deprecated settings"
+                    values={{
+                      visibility:
+                        showDeprecated ? intl.formatMessage(messages.deprecatedButtonHideText)
+                          : intl.formatMessage(messages.deprecatedButtonShowText),
+                    }}
+                  />
+                </Button>
+              </div>
+              <ul className="setting-items-list p-0">
+                {Object.keys(advancedSettingsData).map((settingName) => {
+                  const settingData = advancedSettingsData[settingName];
+                  if (settingData.deprecated && !showDeprecated) {
+                    return null;
+                  }
+                  return (
+                    <SettingCard
+                      key={settingName}
+                      settingData={settingData}
+                      name={settingName}
+                      showSaveSettingsPrompt={showSaveSettingsPrompt}
+                      saveSettingsPrompt={saveSettingsPrompt}
+                      setEdited={setEditedSettings}
+                      handleBlur={handleSettingBlur}
+                      isEditableState={isEditableState}
+                      setIsEditableState={setIsEditableState}
+                    />
+                  );
+                })}
+              </ul>
+            </section>
+          </article>
         </section>
       </Container>
       <div className="alert-toast">

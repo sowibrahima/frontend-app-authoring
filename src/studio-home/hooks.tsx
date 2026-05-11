@@ -49,14 +49,13 @@ const useStudioHome = () => {
   }
   const courseListQueryString = courseListQuery.size ? `?${courseListQuery.toString()}` : '';
   useEffect(() => {
-    dispatch(fetchStudioHomeData(courseListQueryString));
+    const requestParams = {
+      ...(!courseListQuery.has('page') ? { page: 1 } : {}),
+      ...(!courseListQuery.has('order') ? { order: 'display_name' } : {}),
+    };
+    dispatch(fetchStudioHomeData(courseListQueryString, false, requestParams));
     setShowNewCourseContainer(false);
   }, [courseListQueryString]);
-
-  useEffect(() => {
-    const firstPage = 1;
-    dispatch(fetchStudioHomeData(courseListQueryString, false, { page: firstPage, order: 'display_name' }));
-  }, []);
 
   useEffect(() => {
     if (courseCreatorSavingStatus === RequestStatus.SUCCESSFUL) {

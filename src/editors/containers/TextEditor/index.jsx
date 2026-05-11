@@ -3,10 +3,11 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
 import {
+  Button,
   Spinner,
   Toast,
 } from '@openedx/paragon';
-import { useIntl } from '@edx/frontend-platform/i18n';
+import { FormattedMessage, useIntl } from '@edx/frontend-platform/i18n';
 
 import { getConfig } from '@edx/frontend-platform';
 import { actions, selectors } from '../../data/redux';
@@ -34,6 +35,9 @@ const TextEditor = ({
   isLibrary,
 }) => {
   const intl = useIntl();
+  const [canUseAiGeneration, setCanUseAiGeneration] = React.useState(
+    () => typeof window !== 'undefined' && Boolean(window.WSAIAssistant?.openComponentGenerationModal),
+  );
   const { editorRef, refReady, setEditorRef } = prepareEditorRef();
   const initialContent = blockValue ? blockValue.data.data : '';
   const newContent = replaceStaticWithAsset({
@@ -46,7 +50,49 @@ const TextEditor = ({
     staticRootUrl = `${getConfig().STUDIO_BASE_URL }/library_assets/blocks/${ blockId }/`;
   }
 
+  React.useEffect(() => {
+    if (canUseAiGeneration || typeof window === 'undefined') {
+      return undefined;
+    }
+
+    const intervalId = window.setInterval(() => {
+      if (window.WSAIAssistant?.openComponentGenerationModal) {
+        setCanUseAiGeneration(true);
+        window.clearInterval(intervalId);
+      }
+    }, 250);
+
+    return () => window.clearInterval(intervalId);
+  }, [canUseAiGeneration]);
+
   if (!refReady) { return null; }
+
+  const insertGeneratedText = (generatedContent) => {
+    if (typeof generatedContent !== 'string' || !editorRef.current) {
+      return;
+    }
+
+    const editor = editorRef.current;
+    const existingText = editor.getContent?.({ format: 'text' })?.trim();
+
+    if (existingText) {
+      editor.insertContent(generatedContent);
+    } else {
+      editor.setContent(generatedContent);
+    }
+    editor.setDirty(true);
+    editor.undoManager?.add();
+    editor.focus();
+  };
+
+  const openTextGeneration = () => {
+    window.WSAIAssistant.openComponentGenerationModal({
+      courseId: learningContextId,
+      blockId,
+      componentType: 'text',
+      onInsert: insertGeneratedText,
+    });
+  };
 
   const selectEditor = () => {
     if (showRawEditor) {
@@ -83,6 +129,13 @@ const TextEditor = ({
       onClose={onClose}
       returnFunction={returnFunction}
     >
+      {canUseAiGeneration && !showRawEditor && blockFinished && (
+        <div className="d-flex justify-content-end mb-3">
+          <Button variant="primary" size="sm" onClick={openTextGeneration}>
+            <FormattedMessage {...messages.generateTextWithAi} />
+          </Button>
+        </div>
+      )}
       <div className="editor-body h-75 overflow-auto">
         <Toast show={blockFailed} onClose={hooks.nullMethod}>
           { intl.formatMessage(messages.couldNotLoadTextContext) }

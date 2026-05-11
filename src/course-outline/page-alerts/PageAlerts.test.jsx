@@ -94,7 +94,7 @@ describe('<PageAlerts />', () => {
     expect(handleDismissNotification).toBeCalled();
   });
 
-  it('renders discussion alerts', async () => {
+  it('does not render the upgraded discussions alert', async () => {
     renderComponent({
       ...pageAlertsData,
       discussionsSettings: {
@@ -103,15 +103,8 @@ describe('<PageAlerts />', () => {
       discussionsIncontextLearnmoreUrl: 'some-learn-more-url',
     });
 
-    expect(screen.queryByText(messages.discussionNotificationText.defaultMessage)).toBeInTheDocument();
-    const learnMoreBtn = screen.queryByText(messages.discussionNotificationLearnMore.defaultMessage);
-    expect(learnMoreBtn).toBeInTheDocument();
-    expect(learnMoreBtn).toHaveAttribute('href', 'some-learn-more-url');
-
-    const dismissBtn = screen.queryByText('Dismiss');
-    fireEvent.click(dismissBtn);
-    const discussionAlertDismissKey = `discussionAlertDismissed-${pageAlertsData.courseId}`;
-    expect(localStorage.getItem(discussionAlertDismissKey)).toBe('true');
+    expect(screen.queryByText(messages.discussionNotificationText.defaultMessage)).not.toBeInTheDocument();
+    expect(screen.queryByText(messages.discussionNotificationLearnMore.defaultMessage)).not.toBeInTheDocument();
   });
 
   it('renders deprecation warning alerts', async () => {

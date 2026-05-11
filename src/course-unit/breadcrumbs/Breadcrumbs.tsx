@@ -42,11 +42,11 @@ const Breadcrumbs = ({ courseId, parentUnitId }: { courseId: string, parentUnitI
   );
 
   return (
-    <nav className="d-flex align-center mb-2.5">
-      <ol className="p-0 m-0 d-flex align-center flex-wrap">
+    <nav className="course-unit-breadcrumbs d-flex align-items-center mb-3">
+      <ol className="p-0 m-0 d-flex align-items-center flex-wrap">
         {ancestorXblocks.map(({ children, title, isLast }, index) => (
           <li
-            className="d-flex mb-2.5"
+            className="d-flex align-items-center"
             // eslint-disable-next-line react/no-array-index-key
             key={`${title}-${index}`}
           >
@@ -55,7 +55,7 @@ const Breadcrumbs = ({ courseId, parentUnitId }: { courseId: string, parentUnitI
                 <Dropdown.Toggle
                   id="breadcrumbs-dropdown-section"
                   variant="link"
-                  className="p-0 text-primary small"
+                  className="course-unit-breadcrumbs__toggle p-0 text-primary small"
                 >
                   <span className="small text-gray-700">
                     {title}

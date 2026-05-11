@@ -22,6 +22,28 @@ jest.mock('@src/course-unit/data/apiHooks', () => ({
   }),
 }));
 
+jest.mock('@edx/frontend-component-header', () => ({}));
+
+jest.mock('@edx/frontend-component-header/dist/studio-header/StudioHeader', () => ({
+  __esModule: true,
+  default: () => <div data-testid="studio-header" />,
+}));
+
+jest.mock('@edx/frontend-component-header/dist/studio-header/HeaderBody', () => ({
+  __esModule: true,
+  default: () => <div data-testid="studio-header-body" />,
+}));
+
+jest.mock('@src/editors/EditorPage', () => ({
+  __esModule: true,
+  default: () => <div data-testid="xblock-editor-page" />,
+}));
+
+jest.mock('@src/editors/VideoSelectorPage', () => ({
+  __esModule: true,
+  default: () => <div data-testid="video-selector-page" />,
+}));
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: () => ({
@@ -155,11 +177,11 @@ describe('<SubsectionCard />', () => {
     const expandButton = await screen.findByTestId('subsection-card-header__expanded-btn');
     fireEvent.click(expandButton);
     expect(screen.queryByTestId('subsection-card__units')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'New unit' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /new activity page/i })).toBeInTheDocument();
 
     fireEvent.click(expandButton);
     expect(screen.queryByTestId('subsection-card__units')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'New unit' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /new activity page/i })).not.toBeInTheDocument();
   });
 
   it('updates current section, subsection and item', async () => {
@@ -218,7 +240,7 @@ describe('<SubsectionCard />', () => {
     await act(async () => fireEvent.click(menu));
     expect(within(element).queryByTestId('subsection-card-header__menu-duplicate-button')).not.toBeInTheDocument();
     expect(within(element).queryByTestId('subsection-card-header__menu-delete-button')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'New unit' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /new activity page/i })).not.toBeInTheDocument();
   });
 
   it('hides move, duplicate & delete options if parent was imported from library', async () => {
@@ -288,7 +310,7 @@ describe('<SubsectionCard />', () => {
     renderComponent(undefined, `/course/:courseId?show=${unit.id}`);
 
     const cardUnits = await screen.findByTestId('subsection-card__units');
-    const newUnitButton = await screen.findByRole('button', { name: 'New unit' });
+    const newUnitButton = await screen.findByRole('button', { name: /new activity page/i });
     expect(cardUnits).toBeInTheDocument();
     expect(newUnitButton).toBeInTheDocument();
   });
@@ -298,7 +320,7 @@ describe('<SubsectionCard />', () => {
     renderComponent(undefined, `/course/:courseId?show=${randomId}`);
 
     const cardUnits = screen.queryByTestId('subsection-card__units');
-    const newUnitButton = screen.queryByRole('button', { name: 'New unit' });
+    const newUnitButton = screen.queryByRole('button', { name: /new activity page/i });
     expect(cardUnits).toBeNull();
     expect(newUnitButton).toBeNull();
   });
@@ -310,7 +332,7 @@ describe('<SubsectionCard />', () => {
     fireEvent.click(expandButton);
 
     const useUnitFromLibraryButton = screen.getByRole('button', {
-      name: /use unit from library/i,
+      name: /use an activity from the library/i,
     });
     expect(useUnitFromLibraryButton).toBeInTheDocument();
     fireEvent.click(useUnitFromLibraryButton);
@@ -328,6 +350,70 @@ describe('<SubsectionCard />', () => {
       category: 'vertical',
       libraryContentKey: containerKey,
     });
+  });
+
+  it('opens the other activity choices without creating a blank unit', async () => {
+    const onNewUnitSubmit = jest.fn();
+    renderComponent({ onNewUnitSubmit });
+
+    const expandButton = await screen.findByTestId('subsection-card-header__expanded-btn');
+    fireEvent.click(expandButton);
+    fireEvent.click(screen.getByRole('button', { name: /new activity page/i }));
+    fireEvent.click(screen.getByRole('button', { name: /other/i }));
+
+    expect(onNewUnitSubmit).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: /html text/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /watch/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /quiz/i })).toBeInTheDocument();
+  });
+
+  it('opens the editor after creating a text activity from the outline picker', async () => {
+    const onNewUnitSubmit = jest.fn((...args) => {
+      const callback = args[3];
+      callback({
+        courseKey: 'course-v1:TestX+TST+2026',
+        locator: 'block-v1:TestX+TST+2026+type@html+block@abc',
+      });
+    });
+    renderComponent({ onNewUnitSubmit });
+
+    const expandButton = await screen.findByTestId('subsection-card-header__expanded-btn');
+    fireEvent.click(expandButton);
+    fireEvent.click(screen.getByRole('button', { name: /new activity page/i }));
+    fireEvent.click(screen.getByRole('button', { name: /read/i }));
+    fireEvent.click(screen.getByRole('button', { name: /html text/i }));
+
+    expect(onNewUnitSubmit).toHaveBeenCalledWith(
+      subsection.id,
+      section.id,
+      expect.objectContaining({ type: COMPONENT_TYPES.html }),
+      expect.any(Function),
+    );
+    expect(await screen.findByTestId('xblock-editor-page')).toBeInTheDocument();
+  });
+
+  it('opens the video selector after creating a video activity from the outline picker', async () => {
+    const onNewUnitSubmit = jest.fn((...args) => {
+      const callback = args[3];
+      callback({
+        courseKey: 'course-v1:TestX+TST+2026',
+        locator: 'block-v1:TestX+TST+2026+type@video+block@abc',
+      });
+    });
+    renderComponent({ onNewUnitSubmit });
+
+    const expandButton = await screen.findByTestId('subsection-card-header__expanded-btn');
+    fireEvent.click(expandButton);
+    fireEvent.click(screen.getByRole('button', { name: /new activity page/i }));
+    fireEvent.click(screen.getByRole('button', { name: /watch/i }));
+
+    expect(onNewUnitSubmit).toHaveBeenCalledWith(
+      subsection.id,
+      section.id,
+      expect.objectContaining({ type: COMPONENT_TYPES.video }),
+      expect.any(Function),
+    );
+    expect(await screen.findByTestId('video-selector-page')).toBeInTheDocument();
   });
 
   it('should sync subsection changes from upstream', async () => {

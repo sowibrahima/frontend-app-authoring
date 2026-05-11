@@ -7,6 +7,7 @@ import {
   Delete,
   Refresh,
 } from '@openedx/paragon/icons';
+import { defineMessages, useIntl } from '@edx/frontend-platform/i18n';
 
 import {
   CoursePlanComponent,
@@ -36,11 +37,179 @@ interface CoursePlanBuilderProps {
   onRegenerate?: () => void;
 }
 
-const COMPONENT_OPTIONS: Array<{ value: CoursePlanComponentType; label: string }> = [
-  { value: 'html', label: 'Texte' },
-  { value: 'video', label: 'Video' },
-  { value: 'problem', label: 'Quiz' },
-  { value: 'discussion', label: 'Discussion' },
+const messages = defineMessages({
+  defaultTitle: {
+    id: 'wuti.authoring.planBuilder.defaultTitle',
+    defaultMessage: 'Course plan',
+    description: 'Default title for the reusable course plan builder',
+  },
+  defaultDescription: {
+    id: 'wuti.authoring.planBuilder.defaultDescription',
+    defaultMessage: 'Adjust modules, lessons, units, and content before creating the course.',
+    description: 'Default description for the reusable course plan builder',
+  },
+  statsAria: {
+    id: 'wuti.authoring.planBuilder.statsAria',
+    defaultMessage: 'Plan summary',
+    description: 'Accessible label for course plan summary stats',
+  },
+  modulesStat: {
+    id: 'wuti.authoring.planBuilder.stats.modules',
+    defaultMessage: '{count, plural, one {# module} other {# modules}}',
+    description: 'Module count in the plan builder',
+  },
+  lessonsStat: {
+    id: 'wuti.authoring.planBuilder.stats.lessons',
+    defaultMessage: '{count, plural, one {# lesson} other {# lessons}}',
+    description: 'Lesson count in the plan builder',
+  },
+  unitsStat: {
+    id: 'wuti.authoring.planBuilder.stats.units',
+    defaultMessage: '{count, plural, one {# unit} other {# units}}',
+    description: 'Unit count in the plan builder',
+  },
+  moduleKicker: {
+    id: 'wuti.authoring.planBuilder.moduleKicker',
+    defaultMessage: 'Module {index}',
+    description: 'Kicker shown above a module in the plan builder',
+  },
+  lessonKicker: {
+    id: 'wuti.authoring.planBuilder.lessonKicker',
+    defaultMessage: 'Lesson {index}',
+    description: 'Kicker shown above a lesson in the plan builder',
+  },
+  moveModuleUp: {
+    id: 'wuti.authoring.planBuilder.moveModuleUp',
+    defaultMessage: 'Move module up',
+    description: 'Accessible label for moving a module up',
+  },
+  moveModuleDown: {
+    id: 'wuti.authoring.planBuilder.moveModuleDown',
+    defaultMessage: 'Move module down',
+    description: 'Accessible label for moving a module down',
+  },
+  deleteModule: {
+    id: 'wuti.authoring.planBuilder.deleteModule',
+    defaultMessage: 'Delete module',
+    description: 'Accessible label for deleting a module',
+  },
+  moveLessonUp: {
+    id: 'wuti.authoring.planBuilder.moveLessonUp',
+    defaultMessage: 'Move lesson up',
+    description: 'Accessible label for moving a lesson up',
+  },
+  moveLessonDown: {
+    id: 'wuti.authoring.planBuilder.moveLessonDown',
+    defaultMessage: 'Move lesson down',
+    description: 'Accessible label for moving a lesson down',
+  },
+  deleteLesson: {
+    id: 'wuti.authoring.planBuilder.deleteLesson',
+    defaultMessage: 'Delete lesson',
+    description: 'Accessible label for deleting a lesson',
+  },
+  moveUnitUp: {
+    id: 'wuti.authoring.planBuilder.moveUnitUp',
+    defaultMessage: 'Move unit up',
+    description: 'Accessible label for moving a unit up',
+  },
+  moveUnitDown: {
+    id: 'wuti.authoring.planBuilder.moveUnitDown',
+    defaultMessage: 'Move unit down',
+    description: 'Accessible label for moving a unit down',
+  },
+  deleteUnit: {
+    id: 'wuti.authoring.planBuilder.deleteUnit',
+    defaultMessage: 'Delete unit',
+    description: 'Accessible label for deleting a unit',
+  },
+  deleteContent: {
+    id: 'wuti.authoring.planBuilder.deleteContent',
+    defaultMessage: 'Delete content',
+    description: 'Accessible label for deleting content',
+  },
+  addContent: {
+    id: 'wuti.authoring.planBuilder.addContent',
+    defaultMessage: 'Add content',
+    description: 'Button label to add content in the plan builder',
+  },
+  addUnit: {
+    id: 'wuti.authoring.planBuilder.addUnit',
+    defaultMessage: 'Add unit',
+    description: 'Button label to add a unit in the plan builder',
+  },
+  addLesson: {
+    id: 'wuti.authoring.planBuilder.addLesson',
+    defaultMessage: 'Add lesson',
+    description: 'Button label to add a lesson in the plan builder',
+  },
+  addModule: {
+    id: 'wuti.authoring.planBuilder.addModule',
+    defaultMessage: 'Add module',
+    description: 'Button label to add a module in the plan builder',
+  },
+  regeneratePlan: {
+    id: 'wuti.authoring.planBuilder.regeneratePlan',
+    defaultMessage: 'Regenerate plan',
+    description: 'Button label to regenerate the plan',
+  },
+  emptyTitle: {
+    id: 'wuti.authoring.planBuilder.emptyTitle',
+    defaultMessage: 'The course will start with an empty plan.',
+    description: 'Empty state title for the plan builder',
+  },
+  emptyCopy: {
+    id: 'wuti.authoring.planBuilder.emptyCopy',
+    defaultMessage: 'Add a first module now, or continue to build the course in the outline.',
+    description: 'Empty state copy for the plan builder',
+  },
+  defaultModuleName: {
+    id: 'wuti.authoring.planBuilder.defaultModuleName',
+    defaultMessage: 'Module {index}',
+    description: 'Default name for a new module',
+  },
+  defaultLessonName: {
+    id: 'wuti.authoring.planBuilder.defaultLessonName',
+    defaultMessage: 'Lesson {index}',
+    description: 'Default name for a new lesson',
+  },
+  defaultUnitName: {
+    id: 'wuti.authoring.planBuilder.defaultUnitName',
+    defaultMessage: 'Unit {index}',
+    description: 'Default name for a new unit',
+  },
+  defaultContentName: {
+    id: 'wuti.authoring.planBuilder.defaultContentName',
+    defaultMessage: 'Content',
+    description: 'Default name for new content',
+  },
+  componentHtml: {
+    id: 'wuti.authoring.planBuilder.component.html',
+    defaultMessage: 'Text',
+    description: 'HTML component label in the plan builder',
+  },
+  componentVideo: {
+    id: 'wuti.authoring.planBuilder.component.video',
+    defaultMessage: 'Video',
+    description: 'Video component label in the plan builder',
+  },
+  componentProblem: {
+    id: 'wuti.authoring.planBuilder.component.problem',
+    defaultMessage: 'Quiz',
+    description: 'Problem component label in the plan builder',
+  },
+  componentDiscussion: {
+    id: 'wuti.authoring.planBuilder.component.discussion',
+    defaultMessage: 'Discussion',
+    description: 'Discussion component label in the plan builder',
+  },
+});
+
+const COMPONENT_OPTIONS: Array<{ value: CoursePlanComponentType; message: any }> = [
+  { value: 'html', message: messages.componentHtml },
+  { value: 'video', message: messages.componentVideo },
+  { value: 'problem', message: messages.componentProblem },
+  { value: 'discussion', message: messages.componentDiscussion },
 ];
 
 function moveItem<T>(items: T[], fromIndex: number, toIndex: number): T[] {
@@ -57,14 +226,18 @@ function moveItem<T>(items: T[], fromIndex: number, toIndex: number): T[] {
 const CoursePlanBuilder = ({
   structure,
   onChange,
-  title = 'Plan du cours',
-  description = 'Ajustez les modules, les lecons, les unites et les contenus avant de creer le cours.',
+  title,
+  description,
   sourceLabel,
   allowRegenerate = false,
   onRegenerate,
 }: CoursePlanBuilderProps) => {
+  const intl = useIntl();
+  const formatMessage = intl.formatMessage;
   const hydratedStructure = hydratePlanStructure(structure);
   const counts = countPlanItems(hydratedStructure);
+  const renderedTitle = title || formatMessage(messages.defaultTitle);
+  const renderedDescription = description || formatMessage(messages.defaultDescription);
 
   const updateStructure = (nextSections: CoursePlanSection[]) => {
     onChange({
@@ -120,14 +293,14 @@ const CoursePlanBuilder = ({
       <div className="ws-plan-builder__header">
         <div>
           {sourceLabel && <p className="ws-plan-builder__eyebrow">{sourceLabel}</p>}
-          <h2 className="ws-plan-builder__title">{title}</h2>
-          <p className="ws-plan-builder__description">{description}</p>
+          <h2 className="ws-plan-builder__title">{renderedTitle}</h2>
+          <p className="ws-plan-builder__description">{renderedDescription}</p>
         </div>
 
-        <div className="ws-plan-builder__stats" aria-label="Resume du plan">
-          <span>{counts.sections} modules</span>
-          <span>{counts.subsections} lecons</span>
-          <span>{counts.units} unites</span>
+        <div className="ws-plan-builder__stats" aria-label={formatMessage(messages.statsAria)}>
+          <span>{formatMessage(messages.modulesStat, { count: counts.sections })}</span>
+          <span>{formatMessage(messages.lessonsStat, { count: counts.subsections })}</span>
+          <span>{formatMessage(messages.unitsStat, { count: counts.units })}</span>
         </div>
       </div>
 
@@ -136,14 +309,16 @@ const CoursePlanBuilder = ({
           {hydratedStructure.sections.map((section, sectionIndex) => (
             <article key={section.id || sectionIndex} className="ws-plan-builder__section">
               <div className="ws-plan-builder__item-head">
-                <span className="ws-plan-builder__kicker">Module {sectionIndex + 1}</span>
+                <span className="ws-plan-builder__kicker">
+                  {formatMessage(messages.moduleKicker, { index: sectionIndex + 1 })}
+                </span>
                 <div className="ws-plan-builder__actions">
                   <button
                     type="button"
                     className="ws-plan-builder__icon-btn"
                     onClick={() => updateStructure(moveItem(hydratedStructure.sections, sectionIndex, sectionIndex - 1))}
                     disabled={sectionIndex === 0}
-                    aria-label="Monter le module"
+                    aria-label={formatMessage(messages.moveModuleUp)}
                   >
                     <Icon src={ArrowUpward} />
                   </button>
@@ -152,7 +327,7 @@ const CoursePlanBuilder = ({
                     className="ws-plan-builder__icon-btn"
                     onClick={() => updateStructure(moveItem(hydratedStructure.sections, sectionIndex, sectionIndex + 1))}
                     disabled={sectionIndex === hydratedStructure.sections.length - 1}
-                    aria-label="Descendre le module"
+                    aria-label={formatMessage(messages.moveModuleDown)}
                   >
                     <Icon src={ArrowDownward} />
                   </button>
@@ -160,7 +335,7 @@ const CoursePlanBuilder = ({
                     type="button"
                     className="ws-plan-builder__icon-btn ws-plan-builder__icon-btn--danger"
                     onClick={() => updateStructure(hydratedStructure.sections.filter((_, index) => index !== sectionIndex))}
-                    aria-label="Supprimer le module"
+                    aria-label={formatMessage(messages.deleteModule)}
                   >
                     <Icon src={Delete} />
                   </button>
@@ -180,7 +355,9 @@ const CoursePlanBuilder = ({
                 {section.subsections.map((subsection, subsectionIndex) => (
                   <div key={subsection.id || subsectionIndex} className="ws-plan-builder__subsection">
                     <div className="ws-plan-builder__item-head">
-                      <span className="ws-plan-builder__kicker">Lecon {subsectionIndex + 1}</span>
+                      <span className="ws-plan-builder__kicker">
+                        {formatMessage(messages.lessonKicker, { index: subsectionIndex + 1 })}
+                      </span>
                       <div className="ws-plan-builder__actions">
                         <button
                           type="button"
@@ -190,7 +367,7 @@ const CoursePlanBuilder = ({
                             moveItem(section.subsections, subsectionIndex, subsectionIndex - 1),
                           )}
                           disabled={subsectionIndex === 0}
-                          aria-label="Monter la lecon"
+                          aria-label={formatMessage(messages.moveLessonUp)}
                         >
                           <Icon src={ArrowUpward} />
                         </button>
@@ -202,7 +379,7 @@ const CoursePlanBuilder = ({
                             moveItem(section.subsections, subsectionIndex, subsectionIndex + 1),
                           )}
                           disabled={subsectionIndex === section.subsections.length - 1}
-                          aria-label="Descendre la lecon"
+                          aria-label={formatMessage(messages.moveLessonDown)}
                         >
                           <Icon src={ArrowDownward} />
                         </button>
@@ -213,7 +390,7 @@ const CoursePlanBuilder = ({
                             sectionIndex,
                             section.subsections.filter((_, index) => index !== subsectionIndex),
                           )}
-                          aria-label="Supprimer la lecon"
+                          aria-label={formatMessage(messages.deleteLesson)}
                         >
                           <Icon src={Delete} />
                         </button>
@@ -259,7 +436,7 @@ const CoursePlanBuilder = ({
                                   moveItem(subsection.units, unitIndex, unitIndex - 1),
                                 )}
                                 disabled={unitIndex === 0}
-                                aria-label="Monter l'unite"
+                                aria-label={formatMessage(messages.moveUnitUp)}
                               >
                                 <Icon src={ArrowUpward} />
                               </button>
@@ -272,7 +449,7 @@ const CoursePlanBuilder = ({
                                   moveItem(subsection.units, unitIndex, unitIndex + 1),
                                 )}
                                 disabled={unitIndex === subsection.units.length - 1}
-                                aria-label="Descendre l'unite"
+                                aria-label={formatMessage(messages.moveUnitDown)}
                               >
                                 <Icon src={ArrowDownward} />
                               </button>
@@ -284,7 +461,7 @@ const CoursePlanBuilder = ({
                                   subsectionIndex,
                                   subsection.units.filter((_, index) => index !== unitIndex),
                                 )}
-                                aria-label="Supprimer l'unite"
+                                aria-label={formatMessage(messages.deleteUnit)}
                               >
                                 <Icon src={Delete} />
                               </button>
@@ -319,7 +496,9 @@ const CoursePlanBuilder = ({
                                   }}
                                 >
                                   {COMPONENT_OPTIONS.map((option) => (
-                                    <option key={option.value} value={option.value}>{option.label}</option>
+                                    <option key={option.value} value={option.value}>
+                                      {formatMessage(option.message)}
+                                    </option>
                                   ))}
                                 </select>
                                 <button
@@ -331,7 +510,7 @@ const CoursePlanBuilder = ({
                                     unitIndex,
                                     unit.components.filter((_, index) => index !== componentIndex),
                                   )}
-                                  aria-label="Supprimer le contenu"
+                                  aria-label={formatMessage(messages.deleteContent)}
                                 >
                                   <Icon src={Delete} />
                                 </button>
@@ -344,11 +523,11 @@ const CoursePlanBuilder = ({
                                 sectionIndex,
                                 subsectionIndex,
                                 unitIndex,
-                                [...unit.components, createPlanComponent()],
+                                [...unit.components, createPlanComponent(formatMessage(messages.defaultContentName))],
                               )}
                             >
                               <Icon src={Add} />
-                              Ajouter un contenu
+                              {formatMessage(messages.addContent)}
                             </button>
                           </div>
                         </div>
@@ -361,11 +540,11 @@ const CoursePlanBuilder = ({
                       onClick={() => updateUnits(
                         sectionIndex,
                         subsectionIndex,
-                        [...subsection.units, createPlanUnit(`Unite ${subsection.units.length + 1}`)],
+                        [...subsection.units, createPlanUnit(formatMessage(messages.defaultUnitName, { index: subsection.units.length + 1 }))],
                       )}
                     >
                       <Icon src={Add} />
-                      Ajouter une unite
+                      {formatMessage(messages.addUnit)}
                     </button>
                   </div>
                 ))}
@@ -376,20 +555,20 @@ const CoursePlanBuilder = ({
                 className="ws-plan-builder__link"
                 onClick={() => updateSubsections(
                   sectionIndex,
-                  [...section.subsections, createPlanSubsection(`Lecon ${section.subsections.length + 1}`)],
+                  [...section.subsections, createPlanSubsection(formatMessage(messages.defaultLessonName, { index: section.subsections.length + 1 }))],
                 )}
               >
                 <Icon src={Add} />
-                Ajouter une lecon
+                {formatMessage(messages.addLesson)}
               </button>
             </article>
           ))}
         </div>
       ) : (
         <div className="ws-plan-builder__empty">
-          <p className="ws-plan-builder__empty-title">Le cours demarrera avec un plan vide.</p>
+          <p className="ws-plan-builder__empty-title">{formatMessage(messages.emptyTitle)}</p>
           <p className="ws-plan-builder__empty-copy">
-            Ajoutez un premier module maintenant, ou continuez pour construire le cours dans l'outline.
+            {formatMessage(messages.emptyCopy)}
           </p>
         </div>
       )}
@@ -398,10 +577,15 @@ const CoursePlanBuilder = ({
         <button
           type="button"
           className="ws-plan-builder__secondary"
-          onClick={() => updateStructure([...hydratedStructure.sections, createPlanSection(`Module ${hydratedStructure.sections.length + 1}`)])}
+          onClick={() => updateStructure([
+            ...hydratedStructure.sections,
+            createPlanSection(formatMessage(messages.defaultModuleName, {
+              index: hydratedStructure.sections.length + 1,
+            })),
+          ])}
         >
           <Icon src={Add} />
-          Ajouter un module
+          {formatMessage(messages.addModule)}
         </button>
 
         {allowRegenerate && onRegenerate && (
@@ -411,7 +595,7 @@ const CoursePlanBuilder = ({
             onClick={onRegenerate}
           >
             <Icon src={Refresh} />
-            Regenerer le plan
+            {formatMessage(messages.regeneratePlan)}
           </button>
         )}
       </div>

@@ -4,7 +4,7 @@ import {
 import { useDispatch } from 'react-redux';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import {
-  Bubble, Button, StandardModal, useToggle,
+  StandardModal, useToggle,
 } from '@openedx/paragon';
 import { useParams, useSearchParams } from 'react-router-dom';
 import classNames from 'classnames';
@@ -59,7 +59,6 @@ const SectionCard = ({
   children,
   index,
   canMoveItem,
-  onOpenHighlightsModal,
   onOpenPublishModal,
   onOpenConfigureModal,
   onEditSectionSubmit,
@@ -129,7 +128,6 @@ const SectionCard = ({
     hasChanges,
     published,
     visibilityState,
-    highlights,
     actions: sectionActions,
     isHeaderVisible = true,
     upstreamInfo,
@@ -212,10 +210,6 @@ const SectionCard = ({
     }
 
     closeForm();
-  };
-
-  const handleOpenHighlightsModal = () => {
-    onOpenHighlightsModal(section);
   };
 
   const handleNewSubsectionSubmit = () => {
@@ -315,19 +309,6 @@ const SectionCard = ({
               />
             )}
             <div className="section-card__content" data-testid="section-card__content">
-              <div className="outline-section__status mb-1">
-                <Button
-                  className="p-0 bg-transparent"
-                  data-destid="section-card-highlights-button"
-                  variant="tertiary"
-                  onClick={handleOpenHighlightsModal}
-                >
-                  <Bubble className="mr-1">
-                    {highlights.length}
-                  </Bubble>
-                  <p className="m-0 text-black">{messages.sectionHighlightsBadge.defaultMessage}</p>
-                </Button>
-              </div>
               <XBlockStatus
                 isSelfPaced={isSelfPaced}
                 isCustomRelativeDatesActive={isCustomRelativeDatesActive}

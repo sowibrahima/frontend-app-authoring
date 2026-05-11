@@ -1,6 +1,10 @@
 @import "./export-footer/ExportFooter";
 
 .export {
+  .export__content {
+    max-width: 64rem;
+  }
+
   .help-sidebar {
     margin-top: 7.188rem;
   }

@@ -3,8 +3,11 @@ import React, {
 } from 'react';
 import { useDispatch } from 'react-redux';
 import { useParams, useSearchParams } from 'react-router-dom';
+import { getConfig } from '@edx/frontend-platform';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import { StandardModal, useToggle } from '@openedx/paragon';
+import {
+  ActionRow, Button, Icon, StandardModal, useToggle,
+} from '@openedx/paragon';
 import { useQueryClient } from '@tanstack/react-query';
 import classNames from 'classnames';
 import { isEmpty } from 'lodash';
@@ -21,15 +24,44 @@ import { fetchCourseSectionQuery } from '@src/course-outline/data/thunk';
 import XBlockStatus from '@src/course-outline/xblock-status/XBlockStatus';
 import { getItemStatus, getItemStatusBorder, scrollToElement } from '@src/course-outline/utils';
 import { ComponentPicker, SelectedComponent } from '@src/library-authoring';
-import { COMPONENT_TYPES } from '@src/generic/block-type-utils/constants';
+import { COMPONENT_TYPE_ICON_MAP, COMPONENT_TYPES } from '@src/generic/block-type-utils/constants';
 import { ContainerType } from '@src/generic/key-utils';
 import { UpstreamInfoIcon } from '@src/generic/upstream-info-icon';
 import { ContentType } from '@src/library-authoring/routes';
 import OutlineAddChildButtons from '@src/course-outline/OutlineAddChildButtons';
 import { PreviewLibraryXBlockChanges } from '@src/course-unit/preview-changes';
+import addComponentMessages from '@src/course-unit/add-component/messages';
 import type { XBlock } from '@src/data/types';
 import { invalidateLinksQuery } from '@src/course-libraries/data/apiHooks';
+import { getLiveSessionsCapability } from '@src/course-unit/add-component/liveSessionsApi';
 import messages from './messages';
+
+type UnitComponentData = {
+  type: string,
+  category?: string,
+  displayName?: string,
+  boilerplate?: string,
+};
+
+type CreatedComponentData = {
+  courseKey: string,
+  locator: string,
+  unitLocator?: string,
+};
+
+const LIVE_SESSION_XBLOCK_TYPE = 'live_session';
+
+const getEditorPage = (): React.ComponentType<any> => {
+  // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
+  const module = require('@src/editors/EditorPage');
+  return module.default;
+};
+
+const getVideoSelectorPage = (): React.ComponentType<any> => {
+  // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
+  const module = require('@src/editors/VideoSelectorPage');
+  return module.default;
+};
 
 interface SubsectionCardProps {
   section: XBlock,
@@ -44,7 +76,12 @@ interface SubsectionCardProps {
   onOpenDeleteModal: () => void,
   onOpenUnlinkModal: () => void,
   onDuplicateSubmit: () => void,
-  onNewUnitSubmit: (subsectionId: string) => void,
+  onNewUnitSubmit: (
+    subsectionId: string,
+    sectionId?: string,
+    component?: UnitComponentData,
+    callback?: (args: CreatedComponentData) => void,
+  ) => void,
   onAddUnitFromLibrary: (options: {
     type: string,
     category?: string,
@@ -61,6 +98,22 @@ interface SubsectionCardProps {
   onPasteClick: (parentLocator: string, sectionId: string) => void,
   resetScrollState: () => void,
 }
+
+type ActivityPickerItem = {
+  key: string,
+  title: string,
+  description: string,
+  icon: React.ComponentType,
+  onClick?: () => void,
+  disabled?: boolean,
+};
+
+type AdvancedActivityPickerItem = {
+  key: string,
+  title: string,
+  description: string,
+  component: UnitComponentData,
+};
 
 const SubsectionCard = ({
   section,
@@ -100,6 +153,28 @@ const SubsectionCard = ({
     openAddLibraryUnitModal,
     closeAddLibraryUnitModal,
   ] = useToggle(false);
+  const [
+    isActivityPickerOpen,
+    openActivityPicker,
+    closeActivityPicker,
+  ] = useToggle(false);
+  const [
+    isVideoSelectorModalOpen,
+    showVideoSelectorModal,
+    closeVideoSelectorModal,
+  ] = useToggle(false);
+  const [
+    isXBlockEditorModalOpen,
+    showXBlockEditorModal,
+    closeXBlockEditorModal,
+  ] = useToggle(false);
+  const [activityPickerStep, setActivityPickerStep] = useState<'root' | 'read' | 'exercise' | 'other'>('root');
+  const [selectedAdvancedActivityKey, setSelectedAdvancedActivityKey] = useState<string | null>(null);
+  const [isLiveSessionAvailabilityLoaded, setIsLiveSessionAvailabilityLoaded] = useState(false);
+  const [isLiveSessionAvailable, setIsLiveSessionAvailable] = useState(false);
+  const [editorCourseId, setEditorCourseId] = useState<string | null>(null);
+  const [editorBlockType, setEditorBlockType] = useState<string | null>(null);
+  const [editorBlockId, setEditorBlockId] = useState<string | null>(null);
   const { courseId } = useParams();
   const queryClient = useQueryClient();
 
@@ -196,8 +271,339 @@ const SubsectionCard = ({
     onOrderChange(section, moveDownDetails);
   };
 
-  const handleNewButtonClick = () => onNewUnitSubmit(id);
+  const handleNewButtonClick = () => {
+    setActivityPickerStep('root');
+    setSelectedAdvancedActivityKey(null);
+    openActivityPicker();
+  };
   const handlePasteButtonClick = () => onPasteClick(id, section.id);
+
+  const closeActivityPickerFlow = () => {
+    setActivityPickerStep('root');
+    setSelectedAdvancedActivityKey(null);
+    closeActivityPicker();
+  };
+
+  const returnToActivityPickerRoot = () => {
+    setActivityPickerStep('root');
+    setSelectedAdvancedActivityKey(null);
+  };
+
+  const closeXBlockModals = useCallback(() => {
+    closeXBlockEditorModal();
+    closeVideoSelectorModal();
+  }, [closeXBlockEditorModal, closeVideoSelectorModal]);
+
+  const refreshSectionAfterXBlockEdit = useCallback(() => {
+    closeXBlockModals();
+    dispatch(fetchCourseSectionQuery([section.id], { subsectionId: id }));
+  }, [closeXBlockModals, dispatch, section.id, id]);
+
+  useEffect(() => {
+    if (!isActivityPickerOpen || !courseId) {
+      return undefined;
+    }
+
+    let isMounted = true;
+    setIsLiveSessionAvailabilityLoaded(false);
+
+    getLiveSessionsCapability(courseId)
+      .then((capability) => {
+        if (isMounted) {
+          setIsLiveSessionAvailable(Boolean(capability.enabled));
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setIsLiveSessionAvailable(false);
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsLiveSessionAvailabilityLoaded(true);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [courseId, isActivityPickerOpen]);
+
+  const openEditorForCreatedComponent = useCallback((component: UnitComponentData, result: CreatedComponentData) => {
+    if (!result?.courseKey || !result?.locator) {
+      return;
+    }
+
+    setEditorCourseId(result.courseKey);
+    setEditorBlockType(component.type);
+    setEditorBlockId(result.locator);
+
+    if (component.type === COMPONENT_TYPES.video) {
+      showVideoSelectorModal();
+      return;
+    }
+
+    if (
+      component.type === COMPONENT_TYPES.html
+      || component.type === COMPONENT_TYPES.problem
+      || component.type === COMPONENT_TYPES.openassessment
+    ) {
+      showXBlockEditorModal();
+    }
+  }, [showVideoSelectorModal, showXBlockEditorModal]);
+
+  const handleCreateActivity = (component: UnitComponentData) => {
+    onNewUnitSubmit(id, section.id, component, (result) => openEditorForCreatedComponent(component, result));
+    closeActivityPickerFlow();
+  };
+
+  const liveSessionDescriptionMessage = () => {
+    if (!isLiveSessionAvailabilityLoaded) {
+      return addComponentMessages.lessonBuilderLiveCheckingDescription;
+    }
+
+    if (isLiveSessionAvailable) {
+      return addComponentMessages.lessonBuilderLiveDescription;
+    }
+
+    return addComponentMessages.lessonBuilderLiveUnavailableDescription;
+  };
+
+  const activityGroups: ActivityPickerItem[] = [
+    {
+      key: 'read',
+      title: intl.formatMessage(addComponentMessages.lessonBuilderReadTitle),
+      description: intl.formatMessage(addComponentMessages.lessonBuilderReadDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.html],
+      onClick: () => setActivityPickerStep('read'),
+    },
+    {
+      key: 'watch',
+      title: intl.formatMessage(addComponentMessages.lessonBuilderWatchTitle),
+      description: intl.formatMessage(addComponentMessages.lessonBuilderWatchDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.video],
+      onClick: () => handleCreateActivity({
+        type: COMPONENT_TYPES.video,
+        displayName: intl.formatMessage(addComponentMessages.lessonBuilderWatchTitle),
+      }),
+    },
+    {
+      key: 'listen',
+      title: intl.formatMessage(addComponentMessages.lessonBuilderListenTitle),
+      description: intl.formatMessage(addComponentMessages.lessonBuilderListenDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.video],
+      disabled: true,
+    },
+    {
+      key: 'exercise',
+      title: intl.formatMessage(addComponentMessages.lessonBuilderExerciseTitle),
+      description: intl.formatMessage(addComponentMessages.lessonBuilderExerciseDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.problem],
+      onClick: () => setActivityPickerStep('exercise'),
+    },
+    {
+      key: 'live',
+      title: intl.formatMessage(addComponentMessages.lessonBuilderLiveTitle),
+      description: intl.formatMessage(liveSessionDescriptionMessage()),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.video],
+      onClick: () => handleCreateActivity({
+        type: COMPONENT_TYPES.advanced,
+        category: LIVE_SESSION_XBLOCK_TYPE,
+        displayName: intl.formatMessage(addComponentMessages.lessonBuilderLiveTitle),
+      }),
+      disabled: !isLiveSessionAvailable,
+    },
+    {
+      key: 'other',
+      title: intl.formatMessage(addComponentMessages.lessonBuilderOtherTitle),
+      description: intl.formatMessage(addComponentMessages.lessonBuilderOtherDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.advanced],
+      onClick: () => setActivityPickerStep('other'),
+    },
+  ];
+
+  const readChoices: ActivityPickerItem[] = [
+    {
+      key: 'html',
+      title: intl.formatMessage(addComponentMessages.lessonBuilderHtmlTitle),
+      description: intl.formatMessage(addComponentMessages.lessonBuilderHtmlDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.html],
+      onClick: () => handleCreateActivity({
+        type: COMPONENT_TYPES.html,
+        boilerplate: COMPONENT_TYPES.html,
+        displayName: intl.formatMessage(addComponentMessages.lessonBuilderHtmlTitle),
+      }),
+    },
+    {
+      key: 'pdf',
+      title: intl.formatMessage(addComponentMessages.lessonBuilderPdfTitle),
+      description: intl.formatMessage(addComponentMessages.lessonBuilderPdfDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.html],
+      disabled: true,
+    },
+  ];
+
+  const exerciseChoices: ActivityPickerItem[] = [
+    {
+      key: 'quiz',
+      title: intl.formatMessage(addComponentMessages.lessonBuilderQuizTitle),
+      description: intl.formatMessage(addComponentMessages.lessonBuilderQuizDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.problem],
+      onClick: () => handleCreateActivity({
+        type: COMPONENT_TYPES.problem,
+        displayName: intl.formatMessage(addComponentMessages.lessonBuilderQuizTitle),
+      }),
+    },
+    {
+      key: 'drag-drop',
+      title: intl.formatMessage(addComponentMessages.lessonBuilderDragDropTitle),
+      description: intl.formatMessage(addComponentMessages.lessonBuilderDragDropDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.dragAndDrop],
+      onClick: () => handleCreateActivity({
+        type: COMPONENT_TYPES.dragAndDrop,
+        displayName: intl.formatMessage(addComponentMessages.lessonBuilderDragDropTitle),
+      }),
+    },
+    {
+      key: 'open-response',
+      title: intl.formatMessage(addComponentMessages.lessonBuilderOpenResponseTitle),
+      description: intl.formatMessage(addComponentMessages.lessonBuilderOpenResponseDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.openassessment],
+      onClick: () => handleCreateActivity({
+        type: COMPONENT_TYPES.openassessment,
+        category: COMPONENT_TYPES.openassessment,
+        boilerplate: 'peer-assessment',
+        displayName: intl.formatMessage(addComponentMessages.lessonBuilderOpenResponseTitle),
+      }),
+    },
+    {
+      key: 'collect',
+      title: intl.formatMessage(addComponentMessages.lessonBuilderCollectTitle),
+      description: intl.formatMessage(addComponentMessages.lessonBuilderCollectDescription),
+      icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.openassessment],
+      onClick: () => handleCreateActivity({
+        type: COMPONENT_TYPES.openassessment,
+        category: COMPONENT_TYPES.openassessment,
+        boilerplate: 'staff-assessment',
+        displayName: intl.formatMessage(addComponentMessages.lessonBuilderCollectTitle),
+      }),
+    },
+  ];
+
+  const otherChoices: AdvancedActivityPickerItem[] = [
+    {
+      key: 'scorm',
+      title: intl.formatMessage(addComponentMessages.lessonBuilderScormTitle),
+      description: intl.formatMessage(addComponentMessages.lessonBuilderScormDescription),
+      component: {
+        type: COMPONENT_TYPES.advanced,
+        category: 'scorm',
+        displayName: intl.formatMessage(addComponentMessages.lessonBuilderScormTitle),
+      },
+    },
+    {
+      key: 'h5p',
+      title: intl.formatMessage(addComponentMessages.lessonBuilderH5pTitle),
+      description: intl.formatMessage(addComponentMessages.lessonBuilderH5pDescription),
+      component: {
+        type: COMPONENT_TYPES.advanced,
+        category: 'h5p',
+        displayName: intl.formatMessage(addComponentMessages.lessonBuilderH5pTitle),
+      },
+    },
+    {
+      key: 'lti-consumer',
+      title: intl.formatMessage(addComponentMessages.lessonBuilderLtiTitle),
+      description: intl.formatMessage(addComponentMessages.lessonBuilderLtiDescription),
+      component: {
+        type: COMPONENT_TYPES.advanced,
+        category: 'lti_consumer',
+        displayName: intl.formatMessage(addComponentMessages.lessonBuilderLtiTitle),
+      },
+    },
+    {
+      key: 'iframe',
+      title: intl.formatMessage(addComponentMessages.lessonBuilderIframeTitle),
+      description: intl.formatMessage(addComponentMessages.lessonBuilderIframeDescription),
+      component: {
+        type: COMPONENT_TYPES.advanced,
+        category: 'iframe',
+        displayName: intl.formatMessage(addComponentMessages.lessonBuilderIframeTitle),
+      },
+    },
+    {
+      key: 'poll',
+      title: intl.formatMessage(addComponentMessages.lessonBuilderPollTitle),
+      description: intl.formatMessage(addComponentMessages.lessonBuilderPollDescription),
+      component: {
+        type: COMPONENT_TYPES.advanced,
+        category: 'poll',
+        displayName: intl.formatMessage(addComponentMessages.lessonBuilderPollTitle),
+      },
+    },
+    {
+      key: 'survey',
+      title: intl.formatMessage(addComponentMessages.lessonBuilderSurveyTitle),
+      description: intl.formatMessage(addComponentMessages.lessonBuilderSurveyDescription),
+      component: {
+        type: COMPONENT_TYPES.advanced,
+        category: 'survey',
+        displayName: intl.formatMessage(addComponentMessages.lessonBuilderSurveyTitle),
+      },
+    },
+  ];
+
+  const selectedAdvancedActivity = otherChoices.find(
+    (item) => item.key === selectedAdvancedActivityKey,
+  );
+
+  const renderActivityButtons = (items: ActivityPickerItem[]) => (
+    <div className="ws-activity-picker__grid">
+      {items.map((item) => (
+        <button
+          key={item.key}
+          type="button"
+          className="ws-activity-picker__card"
+          onClick={item.onClick}
+          disabled={item.disabled}
+        >
+          <span className="ws-activity-picker__icon" aria-hidden="true">
+            <Icon src={item.icon} />
+          </span>
+          <span className="ws-activity-picker__title">{item.title}</span>
+          <span className="ws-activity-picker__description">{item.description}</span>
+        </button>
+      ))}
+    </div>
+  );
+
+  const renderAdvancedActivityList = () => (
+    <div className="ws-activity-picker__advanced-list" role="group">
+      {otherChoices.map((item) => {
+        const isSelected = selectedAdvancedActivityKey === item.key;
+
+        return (
+          <label
+            key={item.key}
+            className={classNames('ws-activity-picker__advanced-item', {
+              'is-selected': isSelected,
+            })}
+          >
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={() => setSelectedAdvancedActivityKey(isSelected ? null : item.key)}
+            />
+            <span className="ws-activity-picker__advanced-checkbox" aria-hidden="true" />
+            <span className="ws-activity-picker__advanced-content">
+              <span className="ws-activity-picker__advanced-title">{item.title}</span>
+              <span className="ws-activity-picker__advanced-description">{item.description}</span>
+            </span>
+          </label>
+        );
+      })}
+    </div>
+  );
 
   const titleComponent = (
     <TitleButton
@@ -262,6 +668,9 @@ const SubsectionCard = ({
     });
     closeAddLibraryUnitModal();
   }, [id, onAddUnitFromLibrary, closeAddLibraryUnitModal]);
+
+  const VideoSelectorPage = isVideoSelectorModalOpen ? getVideoSelectorPage() : null;
+  const EditorPage = isXBlockEditorModalOpen ? getEditorPage() : null;
 
   return (
     <>
@@ -342,7 +751,6 @@ const SubsectionCard = ({
                   />
                   {enableCopyPasteUnits && showPasteUnit && sharedClipboardData && (
                     <PasteComponent
-                      className="mt-4 border-gray-500 rounded-0"
                       text={intl.formatMessage(messages.pasteButton)}
                       clipboardData={sharedClipboardData}
                       onClick={handlePasteButtonClick}
@@ -369,6 +777,80 @@ const SubsectionCard = ({
           visibleTabs={[ContentType.units]}
         />
       </StandardModal>
+      <StandardModal
+        title={intl.formatMessage(messages.activityPickerTitle)}
+        isOpen={isActivityPickerOpen}
+        onClose={closeActivityPickerFlow}
+        isOverflowVisible={false}
+        size="lg"
+      >
+        <div className="ws-activity-picker">
+          <p className="ws-activity-picker__intro">
+            {intl.formatMessage(messages.activityPickerIntro)}
+          </p>
+          {activityPickerStep !== 'root' && (
+            <Button
+              variant="tertiary"
+              className="ws-activity-picker__back"
+              onClick={returnToActivityPickerRoot}
+            >
+              {intl.formatMessage(messages.activityBack)}
+            </Button>
+          )}
+          {activityPickerStep === 'root' && renderActivityButtons(activityGroups)}
+          {activityPickerStep === 'read' && renderActivityButtons(readChoices)}
+          {activityPickerStep === 'exercise' && renderActivityButtons(exerciseChoices)}
+          {activityPickerStep === 'other' && renderAdvancedActivityList()}
+        </div>
+        {activityPickerStep === 'other' && (
+          <ActionRow className="ws-activity-picker__footer">
+            <ActionRow.Spacer />
+            <Button variant="tertiary" onClick={closeActivityPickerFlow}>
+              {intl.formatMessage(addComponentMessages.modalContainerCancelBtnText)}
+            </Button>
+            <Button
+              variant="primary"
+              disabled={!selectedAdvancedActivity}
+              onClick={() => selectedAdvancedActivity && handleCreateActivity(selectedAdvancedActivity.component)}
+            >
+              {intl.formatMessage(messages.activityPickerAddSelected)}
+            </Button>
+          </ActionRow>
+        )}
+      </StandardModal>
+      <StandardModal
+        title={intl.formatMessage(addComponentMessages.videoPickerModalTitle)}
+        isOpen={isVideoSelectorModalOpen}
+        onClose={closeVideoSelectorModal}
+        isOverflowVisible={false}
+        size="xl"
+      >
+        <div className="selector-page">
+          {VideoSelectorPage && (
+            <VideoSelectorPage
+              blockId={editorBlockId}
+              courseId={editorCourseId}
+              studioEndpointUrl={getConfig().STUDIO_BASE_URL}
+              lmsEndpointUrl={getConfig().LMS_BASE_URL}
+              onCancel={closeVideoSelectorModal}
+              returnFunction={/* istanbul ignore next */ () => refreshSectionAfterXBlockEdit}
+            />
+          )}
+        </div>
+      </StandardModal>
+      {EditorPage && editorCourseId && editorBlockType && editorBlockId && (
+        <div className="editor-page">
+          <EditorPage
+            courseId={editorCourseId}
+            blockType={editorBlockType}
+            blockId={editorBlockId}
+            studioEndpointUrl={getConfig().STUDIO_BASE_URL}
+            lmsEndpointUrl={getConfig().LMS_BASE_URL}
+            onClose={refreshSectionAfterXBlockEdit}
+            returnFunction={/* istanbul ignore next */ () => refreshSectionAfterXBlockEdit}
+          />
+        </div>
+      )}
       {blockSyncData && (
         <PreviewLibraryXBlockChanges
           blockData={blockSyncData}

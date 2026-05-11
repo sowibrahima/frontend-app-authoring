@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useIntl } from '@edx/frontend-platform/i18n';
 
-import { Button } from '@openedx/paragon';
+import { Button, Form } from '@openedx/paragon';
 import { CheckCircle, Warning } from '@openedx/paragon/icons';
 
 import AlertMessage from '../../generic/alert-message';
@@ -22,6 +22,7 @@ const AssignmentSection = ({
   setGradingData,
   courseAssignmentLists,
   setShowSuccessAlert,
+  hideDeleteButton,
 }) => {
   const intl = useIntl();
   const [errorList, setErrorList] = useState({});
@@ -39,7 +40,7 @@ const AssignmentSection = ({
 
     let inputValue = value;
     if (inputType === 'number') {
-      inputValue = parseInt(value, 10);
+      inputValue = value === '' ? '' : parseInt(value, 10);
     }
 
     setShowSavePrompt(true);
@@ -48,7 +49,11 @@ const AssignmentSection = ({
       ...prevState,
       graders: graders.map(grader => {
         if (grader.id === assignmentId) {
-          return { ...grader, [name]: inputValue };
+          return {
+            ...grader,
+            [name]: inputValue,
+            ...(name === type ? { shortLabel: inputValue } : {}),
+          };
         }
         return grader;
       }),
@@ -69,6 +74,18 @@ const AssignmentSection = ({
     setShowSuccessAlert(false);
   };
 
+  const handleIgnoreLowestScoresToggle = (e, gradeField) => {
+    const nextDropCount = e.target.checked ? Math.max(1, Number(gradeField.dropCount) || 1) : 0;
+
+    handleAssignmentChange({
+      target: {
+        name: dropCount,
+        value: String(nextDropCount),
+        type: 'number',
+      },
+    }, gradeField.id);
+  };
+
   return (
     <div className="assignment-items">
       {graders?.map((gradeField) => {
@@ -83,15 +100,6 @@ const AssignmentSection = ({
               <AssignmentTypeName
                 value={gradeField.type}
                 errorEffort={errorList[`${type}-${gradeField.id}`]}
-                onChange={(e) => handleAssignmentChange(e, gradeField.id)}
-              />
-              <AssignmentItem
-                className="course-grading-assignment-abbreviation"
-                title={intl.formatMessage(messages.abbreviationTitle)}
-                descriptions={intl.formatMessage(messages.abbreviationDescription)}
-                type="text"
-                name="shortLabel"
-                value={gradeField.shortLabel}
                 onChange={(e) => handleAssignmentChange(e, gradeField.id)}
               />
               <AssignmentItem
@@ -120,22 +128,38 @@ const AssignmentSection = ({
                 onChange={(e) => handleAssignmentChange(e, gradeField.id)}
                 errorEffort={errorList[`${minCount}-${gradeField.id}`]}
               />
-              <AssignmentItem
-                className="course-grading-assignment-number-droppable"
-                title={intl.formatMessage(messages.numberOfDroppableTitle)}
-                descriptions={intl.formatMessage(messages.numberOfDroppableDescription)}
-                type="number"
-                min={MIN_NUMBER_VALUE}
-                errorMsg={intl.formatMessage(messages.numberOfDroppableErrorMessage)}
-                name={dropCount}
-                gradeField={gradeField}
-                value={gradeField.dropCount}
-                onChange={(e) => handleAssignmentChange(e, gradeField.id)}
-                secondErrorMsg={intl.formatMessage(messages.numberOfDroppableSecondErrorMessage, {
-                  type: gradeField.type,
-                })}
-                errorEffort={errorList[`${dropCount}-${gradeField.id}`]}
-              />
+              <li className="course-grading-assignment-drop-toggle">
+                <Form.Switch
+                  floatLabelLeft
+                  className="course-grading-assignment-drop-toggle-control"
+                  checked={Number(gradeField.dropCount) > 0 || Boolean(errorList[`${dropCount}-${gradeField.id}`])}
+                  onChange={(e) => handleIgnoreLowestScoresToggle(e, gradeField)}
+                  data-testid="assignment-ignore-lowest-toggle"
+                >
+                  {intl.formatMessage(messages.ignoreLowestScoresTitle)}
+                </Form.Switch>
+                <p className="grading-description mb-0">
+                  {intl.formatMessage(messages.ignoreLowestScoresDescription)}
+                </p>
+              </li>
+              {(Number(gradeField.dropCount) > 0 || Boolean(errorList[`${dropCount}-${gradeField.id}`])) && (
+                <AssignmentItem
+                  className="course-grading-assignment-number-droppable"
+                  title={intl.formatMessage(messages.numberOfDroppableTitle)}
+                  descriptions={intl.formatMessage(messages.numberOfDroppableDescription)}
+                  type="number"
+                  min={1}
+                  errorMsg={intl.formatMessage(messages.numberOfDroppableErrorMessage)}
+                  name={dropCount}
+                  gradeField={gradeField}
+                  value={gradeField.dropCount}
+                  onChange={(e) => handleAssignmentChange(e, gradeField.id)}
+                  secondErrorMsg={intl.formatMessage(messages.numberOfDroppableSecondErrorMessage, {
+                    type: gradeField.type,
+                  })}
+                  errorEffort={errorList[`${dropCount}-${gradeField.id}`]}
+                />
+              )}
             </ol>
             {showDefinedCaseAlert && (
               <AlertMessage
@@ -181,14 +205,16 @@ const AssignmentSection = ({
                 aria-hidden="true"
               />
             )}
-            <Button
-              className="course-grading-assignment-delete-btn"
-              variant="outline-primary"
-              size="sm"
-              onClick={() => handleRemoveAssignment(gradeField.id)}
-            >
-              {intl.formatMessage(messages.assignmentDeleteButton)}
-            </Button>
+            {!hideDeleteButton && (
+              <Button
+                className="course-grading-assignment-delete-btn"
+                variant="outline-primary"
+                size="sm"
+                onClick={() => handleRemoveAssignment(gradeField.id)}
+              >
+                {intl.formatMessage(messages.assignmentDeleteButton)}
+              </Button>
+            )}
           </div>
         );
       })}
@@ -199,6 +225,7 @@ const AssignmentSection = ({
 AssignmentSection.defaultProps = {
   courseAssignmentLists: undefined,
   graders: undefined,
+  hideDeleteButton: false,
 };
 
 AssignmentSection.propTypes = {
@@ -206,6 +233,7 @@ AssignmentSection.propTypes = {
   setGradingData: PropTypes.func.isRequired,
   setShowSavePrompt: PropTypes.func.isRequired,
   setShowSuccessAlert: PropTypes.func.isRequired,
+  hideDeleteButton: PropTypes.bool,
   courseAssignmentLists: PropTypes.shape(defaultAssignmentsPropTypes),
   graders: PropTypes.arrayOf(
     PropTypes.shape(defaultAssignmentsPropTypes),

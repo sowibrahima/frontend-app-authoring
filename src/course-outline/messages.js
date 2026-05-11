@@ -3,11 +3,11 @@ import { defineMessages } from '@edx/frontend-platform/i18n';
 const messages = defineMessages({
   headingTitle: {
     id: 'course-authoring.course-outline.headingTitle',
-    defaultMessage: 'Plan du cours',
+    defaultMessage: 'Course outline',
   },
   headingSubtitle: {
     id: 'course-authoring.course-outline.subTitle',
-    defaultMessage: 'Contenu',
+    defaultMessage: 'Content',
   },
   alertSuccessTitle: {
     id: 'course-authoring.course-outline.reindex.alert.success.title',
@@ -27,13 +27,58 @@ const messages = defineMessages({
   },
   newSectionButton: {
     id: 'course-authoring.course-outline.section-list.button.new-section',
-    defaultMessage: 'Nouveau module',
+    defaultMessage: 'New module',
     description: 'Text of button to create new section in course outline',
   },
   useSectionFromLibraryButton: {
     id: 'course-authoring.course-outline.button.use-section-from-library',
-    defaultMessage: 'Utiliser un module de la bibliothèque',
+    defaultMessage: 'Use a module from the library',
     description: 'Text of the button to add a section from a library in a course.',
+  },
+  defaultModuleName: {
+    id: 'course-authoring.course-outline.default-name.module',
+    defaultMessage: 'Module',
+    description: 'Default display name for a newly created module.',
+  },
+  defaultLessonName: {
+    id: 'course-authoring.course-outline.default-name.lesson',
+    defaultMessage: 'Lesson',
+    description: 'Default display name for a newly created lesson.',
+  },
+  defaultActivityName: {
+    id: 'course-authoring.course-outline.default-name.activity',
+    defaultMessage: 'Activity',
+    description: 'Default display name for a newly created activity.',
+  },
+  createItemNameModalTitle: {
+    id: 'course-authoring.course-outline.create-name-modal.title',
+    defaultMessage: 'Name this {itemType}',
+    description: 'Title for the modal that asks for a new outline item name.',
+  },
+  createItemNameModalLabel: {
+    id: 'course-authoring.course-outline.create-name-modal.label',
+    defaultMessage: '{itemType} name',
+    description: 'Label for the input used to name a new outline item.',
+  },
+  createItemNameModalPlaceholder: {
+    id: 'course-authoring.course-outline.create-name-modal.placeholder',
+    defaultMessage: 'Enter a name',
+    description: 'Placeholder for the input used to name a new outline item.',
+  },
+  createItemNameModalRequired: {
+    id: 'course-authoring.course-outline.create-name-modal.required',
+    defaultMessage: '{itemType} name is required',
+    description: 'Validation message when a new outline item name is missing.',
+  },
+  createItemNameModalCancel: {
+    id: 'course-authoring.course-outline.create-name-modal.cancel',
+    defaultMessage: 'Cancel',
+    description: 'Cancel button text for the new outline item name modal.',
+  },
+  createItemNameModalCreate: {
+    id: 'course-authoring.course-outline.create-name-modal.create',
+    defaultMessage: 'Create',
+    description: 'Submit button text for the new outline item name modal.',
   },
   exportTagsCreatingToastMessage: {
     id: 'course-authoring.course-outline.export-tags.toast.creating.message',
@@ -52,27 +97,27 @@ const messages = defineMessages({
   },
   newUnitButton: {
     id: 'course-authoring.course-outline.button.new-unit',
-    defaultMessage: 'Nouvelle page d activite',
+    defaultMessage: 'New activity page',
     description: 'Message of the button to create a new unit in a subsection.',
   },
   useUnitFromLibraryButton: {
     id: 'course-authoring.course-outline.button.use-unit-from-library',
-    defaultMessage: 'Utiliser une activite de la bibliothèque',
+    defaultMessage: 'Use an activity from the library',
     description: 'Message of the button to add a new unit from a library in a subsection.',
   },
   newSubsectionButton: {
     id: 'course-authoring.course-outline.button.new-subsection',
-    defaultMessage: 'Nouvelle lecon',
+    defaultMessage: 'New lesson',
     description: 'Text of button to create new subsection in a section',
   },
   useSubsectionFromLibraryButton: {
     id: 'course-authoring.course-outline.button.use-subsection-from-library',
-    defaultMessage: 'Utiliser une lecon de la bibliothèque',
+    defaultMessage: 'Use a lesson from the library',
     description: 'Message of the button to add a new subsection from a library in a subsection.',
   },
   sectionPickerModalTitle: {
     id: 'course-authoring.course-outline.button.section-modal.title',
-    defaultMessage: 'Selectionner un module',
+    defaultMessage: 'Select a module',
     description: 'Section modal picker title text in outline',
   },
 });

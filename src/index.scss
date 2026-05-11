@@ -3,6 +3,7 @@
 @import "~@edx/frontend-component-header/dist/index";
 @import "assets/scss/wutiskill-tokens";
 @import "assets/scss/variables";
+@import "assets/scss/bootstrap-compat";
 @import "assets/scss/form";
 @import "assets/scss/utilities";
 @import "assets/scss/animations";
@@ -34,6 +35,7 @@
 @import "legacy-libraries-migration/";
 @import "container-comparison/";
 @import "footer/WutiFooter";
+@import "faq/StudioFaqPage";
 
 // To apply the glow effect to the selected Section/Subsection, in the Course Outline
 div.row:has(> div > div.highlight) {
@@ -55,6 +57,22 @@ div.xblock-highlight {
   100% {
     box-shadow: unset;
   }
+}
+
+button,
+.btn,
+.btn:hover,
+.btn:focus,
+.btn:focus-visible,
+.btn:active,
+.btn.active,
+a.btn,
+a.btn:hover,
+a.btn:focus,
+a.btn:active {
+  box-shadow: none !important;
+  filter: none !important;
+  text-shadow: none !important;
 }
 
 body {

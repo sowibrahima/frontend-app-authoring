@@ -1,24 +1,40 @@
 .ws-studio-home-page {
   background: #FAFAF7;
   min-height: calc(100dvh - 4.25rem);
-  padding: 2rem 0 2.25rem;
+  padding: 1.35rem 0 2.25rem;
 }
 
 .ws-studio-home-container {
-  padding-left: 1.25rem;
-  padding-right: 1.25rem;
+  width: min(88rem, calc(100% - 2.5rem));
+  max-width: 88rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 0;
+  padding-right: 0;
+
+  @media (max-width: 640px) {
+    width: min(100%, calc(100% - 1.5rem));
+  }
 }
 
 .ws-studio-home {
   width: 100%;
+
+  .tab-content > .tab-pane {
+    display: none;
+  }
+
+  .tab-content > .active {
+    display: block;
+  }
 }
 
 .ws-studio-home__hero {
-  margin-bottom: 1.4rem;
+  margin-bottom: 1.15rem;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  gap: 1.5rem;
+  gap: 1.25rem;
 
   @media (max-width: 980px) {
     flex-direction: column;
@@ -54,21 +70,12 @@
 }
 
 .ws-studio-home__title {
-  margin: 0.68rem 0 0;
+  margin: 0.65rem 0 0;
   color: #111827;
-  font-size: clamp(2.1rem, 3.6vw, 3.8rem);
+  font-size: clamp(2.1rem, 3.4vw, 3.45rem);
   line-height: 1.05;
   letter-spacing: -0.03em;
   font-weight: 800;
-}
-
-.ws-studio-home__subtitle {
-  margin: 0.86rem 0 0;
-  color: #6B7280;
-  max-width: 50ch;
-  font-size: 1.1rem;
-  line-height: 1.55;
-  font-weight: 500;
 }
 
 .ws-studio-home__hero-actions {
@@ -197,6 +204,10 @@
   border: 0;
   margin-bottom: 1rem;
 
+  .pgn__tab_more {
+    display: none;
+  }
+
   .nav-tabs {
     border-bottom: 1px solid #E5E7EB;
     gap: 1.2rem;
@@ -282,26 +293,258 @@
   background: #F9FAFB;
 }
 
+.ws-libraries-v2-alert {
+  margin: 0.95rem 0 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--wuti-color-brand) 10%, var(--wuti-color-border));
+  border-radius: 1.25rem;
+  background: color-mix(in srgb, var(--wuti-color-surface) 92%, var(--wuti-color-action));
+  color: var(--wuti-color-text);
+  padding: 1rem 1.1rem;
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--wuti-color-text) 5%, transparent);
+
+  .alert-heading {
+    margin: 0 0 0.45rem;
+    color: var(--wuti-color-text);
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+  a {
+    color: var(--wuti-color-brand);
+    font-weight: 700;
+  }
+}
+
+.ws-libraries-v2-alert__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: start;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ws-libraries-v2-alert__copy {
+  color: var(--wuti-color-muted);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.ws-libraries-v2-alert__action {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ws-libraries-v2-toolbar {
+  margin: 0.85rem 0 1.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  @media (max-width: 980px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.ws-libraries-v2-toolbar__controls,
+.ws-libraries-v2-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.ws-libraries-v2-search {
+  position: relative;
+  width: min(24rem, 100vw);
+  min-width: 16rem;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .pgn__searchfield,
+  .pgn__searchfield-form,
+  .pgn__form-control-decorator-group,
+  .ws-libraries-v2-search-field {
+    position: relative;
+    width: 100%;
+  }
+
+  .form-control {
+    width: 100%;
+    height: 2.75rem;
+    border: 1px solid var(--wuti-color-border);
+    border-radius: 999px;
+    background: var(--wuti-color-surface);
+    color: var(--wuti-color-text);
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 0 3rem 0 1.15rem;
+    box-shadow: 0 14px 28px color-mix(in srgb, var(--wuti-color-text) 5%, transparent);
+  }
+
+  .form-control:focus {
+    border-color: color-mix(in srgb, var(--wuti-color-brand) 25%, var(--wuti-color-border));
+    box-shadow: 0 16px 32px color-mix(in srgb, var(--wuti-color-text) 7%, transparent), 0 0 0 3px color-mix(in srgb, var(--wuti-color-action) 24%, transparent);
+    outline: 0;
+  }
+
+  .pgn__searchfield__iconbutton-submit.btn-icon {
+    position: absolute;
+    top: 50%;
+    right: 0.38rem;
+    z-index: 1;
+    width: 2rem;
+    height: 2rem;
+    min-width: 2rem;
+    border: 0;
+    border-radius: 50%;
+    background: var(--wuti-color-action);
+    color: var(--wuti-color-action-text);
+    transform: translateY(-50%);
+  }
+
+  .pgn__searchfield__iconbutton-submit svg {
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+}
+
+.ws-libraries-v2 .dropdown {
+  position: relative;
+}
+
+.ws-libraries-v2 .dropdown-toggle-menu-items {
+  min-height: 2.75rem;
+  border: 1px solid var(--wuti-color-border);
+  border-radius: 999px;
+  background: var(--wuti-color-surface);
+  color: var(--wuti-color-text);
+  padding: 0 1rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ws-libraries-v2 .dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  z-index: 3;
+  min-width: 12rem;
+  border: 1px solid var(--wuti-color-border);
+  border-radius: 0.8rem;
+  background: var(--wuti-color-surface);
+  padding: 0.35rem;
+  box-shadow: 0 18px 38px color-mix(in srgb, var(--wuti-color-text) 12%, transparent);
+}
+
+.ws-libraries-v2 .dropdown-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 0.55rem;
+  color: var(--wuti-color-text);
+  padding: 0.55rem 0.65rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.ws-libraries-v2 .dropdown-item:hover {
+  background: var(--wuti-color-hover);
+}
+
+.ws-libraries-v2-count {
+  margin: 0;
+  color: var(--wuti-color-muted);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.ws-libraries-v2-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+
+  .w-100,
+  .pgn__form-radio-set {
+    width: 100%;
+  }
+
+  .pgn__form-radio-set {
+    display: contents;
+  }
+}
+
+.ws-libraries-v2-empty-state {
+  grid-column: 1 / -1;
+  border: 1px solid var(--wuti-color-border);
+  border-radius: 1rem;
+  background: var(--wuti-color-surface);
+  padding: 1.15rem;
+  color: var(--wuti-color-muted);
+  box-shadow: 0 12px 26px color-mix(in srgb, var(--wuti-color-text) 5%, transparent);
+
+  .alert-heading {
+    margin: 0 0 0.35rem;
+    color: var(--wuti-color-text);
+    font-size: 1.05rem;
+    font-weight: 800;
+  }
+
+  p {
+    margin: 0 0 0.9rem;
+  }
+
+  .btn {
+    min-height: 2.55rem;
+    border: 0;
+    border-radius: 999px;
+    background: var(--wuti-color-action);
+    color: var(--wuti-color-action-text);
+    padding: 0 1rem;
+    font-size: 0.92rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: var(--wuti-shadow-action);
+  }
+}
+
 .ws-course-card-shell {
   width: 100%;
+  height: 100%;
 }
 
 .ws-course-card {
   display: flex;
   flex-direction: column;
-  min-height: 16.2rem;
-  border: 1px solid #E7E9EF;
+  height: 17rem;
+  min-height: 17rem;
+  border: 1px solid #DCE2EA;
   border-radius: 1.5rem;
   background: #FFFFFF;
   padding: 1rem 1rem 0.95rem;
-  box-shadow: 0 1px 0 rgba(17, 24, 39, 0.03);
+  box-shadow: 0 16px 34px rgba(17, 24, 39, 0.07), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
   transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
 }
 
 .ws-course-card:hover {
-  border-color: #D9DEE8;
-  box-shadow: 0 12px 24px rgba(17, 24, 39, 0.07);
-  transform: translateY(-1px);
+  border-color: #CBD4DF;
+  box-shadow: 0 22px 42px rgba(17, 24, 39, 0.1), 0 1px 0 rgba(255, 255, 255, 0.95) inset;
+  transform: translateY(-2px);
 }
 
 .ws-course-card__header {
@@ -353,8 +596,7 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
-  min-height: calc(2rem * 1.08 * 2);
-  max-height: calc(2rem * 1.08 * 2);
+  height: calc(2rem * 1.08 * 2);
 }
 
 .ws-course-card__title:hover {
@@ -370,6 +612,7 @@
 }
 
 .ws-course-card__meta-item {
+  min-width: 0;
   padding-left: 0.68rem;
   border-left: 2px solid #EEF1F5;
   display: flex;
@@ -393,6 +636,8 @@
   font-size: 0.94rem;
   line-height: 1.2;
   font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ws-course-card__footer {

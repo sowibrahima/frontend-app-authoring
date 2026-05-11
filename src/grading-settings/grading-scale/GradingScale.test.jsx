@@ -124,6 +124,34 @@ describe('<GradingScale />', () => {
     });
   });
 
+  it('uses a default pass/fail scale when grade cutoffs are not ready', async () => {
+    const { getAllByTestId } = render(
+      <IntlProvider locale="en" messages={{}}>
+        <GradingScale
+          intl={injectIntl}
+          gradeCutoffs={{}}
+          gradeLetters={[]}
+          sortedGrades={[]}
+          resetDataRef={{ current: false }}
+          showSavePrompt={jest.fn()}
+          setShowSuccessAlert={jest.fn()}
+          setGradingData={jest.fn()}
+          setOverrideInternetConnectionAlert={jest.fn()}
+          setEligibleGrade={jest.fn()}
+        />
+      </IntlProvider>,
+    );
+
+    await waitFor(() => {
+      const segmentInputs = getAllByTestId('grading-scale-segment-input');
+      expect(segmentInputs[0]).toHaveValue('Fail');
+      expect(segmentInputs[1]).toHaveValue('Pass');
+    });
+
+    fireEvent.click(getAllByTestId('grading-scale-btn-add-segment')[0]);
+    expect(getAllByTestId('grading-scale-segment-input')).toHaveLength(4);
+  });
+
   it('should render GradingScale component with more than 5 grades', async () => {
     const { getAllByTestId } = render(
       <IntlProvider locale="en" messages={{}}>

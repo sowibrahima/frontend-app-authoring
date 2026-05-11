@@ -15,13 +15,13 @@ import creditMessages from './credit-section/messages';
 import pacingMessages from './pacing-section/messages';
 import basicMessages from './basic-section/messages';
 import scheduleMessages from './schedule-section/messages';
-import genericMessages from '../generic/help-sidebar/messages';
 import messages from './messages';
 import ScheduleAndDetails from '.';
 
 let axiosMock;
 let store;
 const courseId = '123';
+const getCourseDetailsMinimalApiUrl = () => `${getCourseDetailsApiUrl(courseId)}?response=minimal`;
 
 // Mock the tinymce lib
 jest.mock('@tinymce/tinymce-react', () => {
@@ -59,21 +59,23 @@ describe('<ScheduleAndDetails />', () => {
       .onGet(getCourseSettingsApiUrl(courseId))
       .reply(200, courseSettingsMock);
     axiosMock
-      .onPut(getCourseDetailsApiUrl(courseId))
+      .onPut(getCourseDetailsMinimalApiUrl())
       .reply(200);
   });
 
   it('should render without errors', async () => {
-    const { getByText, getByRole, getAllByText } = render(<ScheduleAndDetails courseId={courseId} />);
+    const { getByText, queryByRole, getAllByText } = render(<ScheduleAndDetails courseId={courseId} />);
     await waitFor(() => {
       const scheduleAndDetailElements = getAllByText(messages.headingTitle.defaultMessage);
       const scheduleAndDetailTitle = scheduleAndDetailElements[0];
+      const pacingTitle = getByText(pacingMessages.pacingTitle.defaultMessage);
+      const basicTitle = getByText(basicMessages.basicTitle.defaultMessage);
       expect(
-        getByText(pacingMessages.pacingTitle.defaultMessage),
+        pacingTitle,
       ).toBeInTheDocument();
       expect(scheduleAndDetailTitle).toBeInTheDocument();
       expect(
-        getByText(basicMessages.basicTitle.defaultMessage),
+        basicTitle,
       ).toBeInTheDocument();
       expect(
         getByText(creditMessages.creditTitle.defaultMessage),
@@ -82,10 +84,9 @@ describe('<ScheduleAndDetails />', () => {
         getByText(scheduleMessages.scheduleTitle.defaultMessage),
       ).toBeInTheDocument();
       expect(
-        getByRole('navigation', {
-          name: genericMessages.sidebarTitleOther.defaultMessage,
-        }),
-      ).toBeInTheDocument();
+        pacingTitle.compareDocumentPosition(basicTitle) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+      expect(queryByRole('navigation', { name: /Other course settings/i })).not.toBeInTheDocument();
     });
   });
 
@@ -123,6 +124,29 @@ describe('<ScheduleAndDetails />', () => {
     ).toBeInTheDocument();
   });
 
+  it('should send one update request when saving changed values', async () => {
+    const { getAllByPlaceholderText, getByText } = render(
+      <ScheduleAndDetails courseId={courseId} />,
+    );
+    let inputs;
+    await waitFor(() => {
+      inputs = getAllByPlaceholderText(DATE_FORMAT.toLocaleUpperCase());
+    });
+
+    // @ts-ignore
+    fireEvent.change(inputs[0], { target: { value: '06/16/2023' } });
+    fireEvent.click(getByText(messages.buttonSaveText.defaultMessage));
+
+    await waitFor(() => {
+      expect(axiosMock.history.put).toHaveLength(1);
+    });
+
+    const payload = JSON.parse(axiosMock.history.put[0].data);
+    expect(payload).toHaveProperty('start_date');
+    expect(payload).not.toHaveProperty('overview');
+    expect(payload).not.toHaveProperty('intro_video');
+  });
+
   it('should display a success message when course details saves', async () => {
     const { getByText } = render(<ScheduleAndDetails courseId={courseId} />);
     await executeThunk(updateCourseDetailsQuery(courseId, 'DaTa'), store.dispatch);
@@ -151,7 +175,7 @@ describe('<ScheduleAndDetails />', () => {
 
   it('should display an error when PUT CourseDetails fails', async () => {
     axiosMock
-      .onPut(getCourseDetailsApiUrl(courseId))
+      .onPut(getCourseDetailsMinimalApiUrl())
       .reply(404, 'error');
     const { getByText } = render(<ScheduleAndDetails courseId={courseId} />);
     await act(async () => {

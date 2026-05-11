@@ -3,6 +3,7 @@ import React, {
 } from 'react';
 import SharedHeader from '@edx/frontend-component-header';
 import { getConfig } from '@edx/frontend-platform';
+import { defineMessages, useIntl } from '@edx/frontend-platform/i18n';
 import { Icon } from '@openedx/paragon';
 import {
   MenuBook,
@@ -12,7 +13,6 @@ import {
   FolderOpen,
   People,
   Groups,
-  Layers,
   Email,
   ImportExport,
   Settings,
@@ -22,7 +22,7 @@ import { useLocation } from 'react-router-dom';
 
 import { useWaffleFlags } from '../data/apiHooks';
 import { getStudioHomeData } from '../studio-home/data/selectors';
-import { createCorrectInternalRoute, getPagePath } from '../utils';
+import { createCorrectInternalRoute } from '../utils';
 import './WutiskillStudioHeader.scss';
 
 interface StudioTab {
@@ -41,6 +41,74 @@ interface WutiskillStudioHeaderProps {
   title?: string;
 }
 
+const messages = defineMessages({
+  plan: {
+    id: 'wuti.authoring.studioHeader.tabs.plan',
+    defaultMessage: 'Plan',
+    description: 'Course plan tab label in Studio header',
+  },
+  schedule: {
+    id: 'wuti.authoring.studioHeader.tabs.schedule',
+    defaultMessage: 'Schedule and details',
+    description: 'Schedule tab label in Studio header',
+  },
+  grading: {
+    id: 'wuti.authoring.studioHeader.tabs.grading',
+    defaultMessage: 'Grading',
+    description: 'Grading tab label in Studio header',
+  },
+  certificates: {
+    id: 'wuti.authoring.studioHeader.tabs.certificates',
+    defaultMessage: 'Certificates',
+    description: 'Certificates tab label in Studio header',
+  },
+  files: {
+    id: 'wuti.authoring.studioHeader.tabs.files',
+    defaultMessage: 'Files',
+    description: 'Files tab label in Studio header',
+  },
+  courseTeam: {
+    id: 'wuti.authoring.studioHeader.tabs.courseTeam',
+    defaultMessage: 'Course team',
+    description: 'Course team tab label in Studio header',
+  },
+  groups: {
+    id: 'wuti.authoring.studioHeader.tabs.groups',
+    defaultMessage: 'Groups',
+    description: 'Groups tab label in Studio header',
+  },
+  pages: {
+    id: 'wuti.authoring.studioHeader.tabs.pages',
+    defaultMessage: 'Pages and resources',
+    description: 'Pages tab label in Studio header',
+  },
+  email: {
+    id: 'wuti.authoring.studioHeader.tabs.email',
+    defaultMessage: 'Notifications',
+    description: 'Notifications tab label in Studio header',
+  },
+  importExport: {
+    id: 'wuti.authoring.studioHeader.tabs.importExport',
+    defaultMessage: 'Import / Export',
+    description: 'Import/export tab label in Studio header',
+  },
+  settings: {
+    id: 'wuti.authoring.studioHeader.tabs.settings',
+    defaultMessage: 'Settings',
+    description: 'Settings tab label in Studio header',
+  },
+  courseFallback: {
+    id: 'wuti.authoring.studioHeader.courseFallback',
+    defaultMessage: 'Course',
+    description: 'Fallback course label in Studio header',
+  },
+  courseNavigation: {
+    id: 'wuti.authoring.studioHeader.courseNavigation',
+    defaultMessage: 'Course navigation',
+    description: 'Accessible label for Studio course navigation',
+  },
+});
+
 const getTabHref = ({
   courseId,
   studioBaseUrl,
@@ -56,6 +124,27 @@ const getTabHref = ({
 }) => (useMfeRoute
   ? createCorrectInternalRoute(`/course/${courseId}${mfePath}`)
   : `${studioBaseUrl}${studioPath}/${courseId}`);
+
+const updateScrollIndicatorState = (
+  setTabsScrollIndicator: React.Dispatch<React.SetStateAction<{
+    isVisible: boolean;
+    thumbWidth: number;
+    thumbOffset: number;
+  }>>,
+  nextState: {
+    isVisible: boolean;
+    thumbWidth: number;
+    thumbOffset: number;
+  },
+) => {
+  setTabsScrollIndicator((previousState) => {
+    const hasSameValues = previousState.isVisible === nextState.isVisible
+      && Math.abs(previousState.thumbWidth - nextState.thumbWidth) < 0.5
+      && Math.abs(previousState.thumbOffset - nextState.thumbOffset) < 0.5;
+
+    return hasSameValues ? previousState : nextState;
+  });
+};
 
 function getActiveTabId(pathname: string, courseBasePath: string, tabs: StudioTab[]): string {
   const courseBaseIndex = pathname.indexOf(courseBasePath);
@@ -85,6 +174,7 @@ const WutiskillStudioHeader = ({
   org = '',
   title = '',
 }: WutiskillStudioHeaderProps) => {
+  const intl = useIntl();
   const location = useLocation();
   const tabsRef = useRef<HTMLElement | null>(null);
   const waffleFlags = useWaffleFlags();
@@ -100,7 +190,7 @@ const WutiskillStudioHeader = ({
     const items: StudioTab[] = [
       {
         id: 'plan',
-        label: 'Plan',
+        label: intl.formatMessage(messages.plan),
         icon: MenuBook,
         href: waffleFlags.useNewCourseOutlinePage
           ? createCorrectInternalRoute(`/course/${contextId}`)
@@ -109,7 +199,7 @@ const WutiskillStudioHeader = ({
       },
       {
         id: 'horaires',
-        label: 'Horaire et details',
+        label: intl.formatMessage(messages.schedule),
         icon: Schedule,
         href: getTabHref({
           courseId: contextId,
@@ -122,7 +212,7 @@ const WutiskillStudioHeader = ({
       },
       {
         id: 'evaluation',
-        label: 'Evaluation',
+        label: intl.formatMessage(messages.grading),
         icon: Grading,
         href: getTabHref({
           courseId: contextId,
@@ -136,7 +226,7 @@ const WutiskillStudioHeader = ({
       ...((getConfig().ENABLE_CERTIFICATE_PAGE === 'true' || waffleFlags.useNewCertificatesPage)
         ? [{
           id: 'certificats',
-          label: 'Certificats',
+          label: intl.formatMessage(messages.certificates),
           icon: EmojiEvents,
           href: waffleFlags.useNewCertificatesPage
             ? createCorrectInternalRoute(`/course/${contextId}/certificates`)
@@ -146,7 +236,7 @@ const WutiskillStudioHeader = ({
         : []),
       {
         id: 'fichiers',
-        label: 'Fichiers',
+        label: intl.formatMessage(messages.files),
         icon: FolderOpen,
         href: getTabHref({
           courseId: contextId,
@@ -159,7 +249,7 @@ const WutiskillStudioHeader = ({
       },
       {
         id: 'equipe',
-        label: 'Equipe du cours',
+        label: intl.formatMessage(messages.courseTeam),
         icon: People,
         href: getTabHref({
           courseId: contextId,
@@ -172,7 +262,7 @@ const WutiskillStudioHeader = ({
       },
       {
         id: 'groupes',
-        label: 'Groupes',
+        label: intl.formatMessage(messages.groups),
         icon: Groups,
         href: getTabHref({
           courseId: contextId,
@@ -184,15 +274,8 @@ const WutiskillStudioHeader = ({
         matchPaths: ['group_configurations'],
       },
       {
-        id: 'pages',
-        label: 'Pages et ressources',
-        icon: Layers,
-        href: createCorrectInternalRoute(getPagePath(contextId, 'true', 'tabs')),
-        matchPaths: ['pages-and-resources', 'custom-pages', 'textbooks'],
-      },
-      {
         id: 'mailing',
-        label: 'E-mail',
+        label: intl.formatMessage(messages.email),
         icon: Email,
         href: waffleFlags.useNewUpdatesPage
           ? createCorrectInternalRoute(`/course/${contextId}/course_info`)
@@ -201,7 +284,7 @@ const WutiskillStudioHeader = ({
       },
       {
         id: 'import_export',
-        label: 'Import / Export',
+        label: intl.formatMessage(messages.importExport),
         icon: ImportExport,
         href: waffleFlags.useNewImportPage
           ? createCorrectInternalRoute(`/course/${contextId}/import`)
@@ -211,7 +294,7 @@ const WutiskillStudioHeader = ({
       ...(canAccessAdvancedSettings
         ? [{
           id: 'avance',
-          label: 'Parametre',
+          label: intl.formatMessage(messages.settings),
           icon: Settings,
           href: getTabHref({
             courseId: contextId,
@@ -226,7 +309,7 @@ const WutiskillStudioHeader = ({
     ];
 
     return items;
-  }, [canAccessAdvancedSettings, contextId, studioBaseUrl, waffleFlags]);
+  }, [canAccessAdvancedSettings, contextId, intl, studioBaseUrl, waffleFlags]);
 
   const courseBasePath = `/course/${contextId}`;
   const activeTabId = useMemo(
@@ -246,7 +329,7 @@ const WutiskillStudioHeader = ({
 
     const hasOverflow = tabsNode.scrollWidth - tabsNode.clientWidth > 1;
     if (!hasOverflow) {
-      setTabsScrollIndicator({
+      updateScrollIndicatorState(setTabsScrollIndicator, {
         isVisible: false,
         thumbWidth: 0,
         thumbOffset: 0,
@@ -262,7 +345,7 @@ const WutiskillStudioHeader = ({
       ? (tabsNode.scrollLeft / maxScrollLeft) * maxThumbOffset
       : 0;
 
-    setTabsScrollIndicator({
+    updateScrollIndicatorState(setTabsScrollIndicator, {
       isVisible: true,
       thumbWidth,
       thumbOffset,
@@ -306,7 +389,7 @@ const WutiskillStudioHeader = ({
         desktopBrandSupplement={(
           <a href={planHref} className="ws-studio-shell__brand-link">
             <span className="ws-studio-shell__brand-meta">
-              {courseContext || 'Cours'}
+              {courseContext || intl.formatMessage(messages.courseFallback)}
             </span>
             <span className="ws-studio-shell__brand-title">
               {title || contextId}
@@ -318,7 +401,11 @@ const WutiskillStudioHeader = ({
       <div className="ws-studio-shell__subnav">
         <div className="ws-studio-shell__inner">
           <div className="ws-studio-shell__tabs-frame">
-            <nav ref={tabsRef} className="ws-studio-shell__tabs" aria-label="Navigation du cours">
+            <nav
+              ref={tabsRef}
+              className="ws-studio-shell__tabs"
+              aria-label={intl.formatMessage(messages.courseNavigation)}
+            >
               {tabs.map((tab) => {
                 const isActive = activeTabId === tab.id;
 

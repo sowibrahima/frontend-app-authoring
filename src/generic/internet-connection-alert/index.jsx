@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Warning as WarningIcon } from '@openedx/paragon/icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
@@ -12,6 +12,7 @@ const InternetConnectionAlert = ({
   const intl = useIntl();
   const [showAlert, setShowAlert] = useState(false);
   const [isOnline, setIsOnline] = useState(window.navigator.onLine);
+  const processedPendingQuery = useRef(false);
 
   useEffect(() => {
     const handleOnlineStatus = () => setIsOnline(window.navigator.onLine);
@@ -26,11 +27,12 @@ const InternetConnectionAlert = ({
         window.removeEventListener(event, handleOnlineStatus);
       });
     };
-  }, [isOnline]);
+  }, []);
 
   useEffect(() => {
     if (isQueryPending) {
-      if (onQueryProcessing) {
+      if (isOnline && onQueryProcessing && !processedPendingQuery.current) {
+        processedPendingQuery.current = true;
         onQueryProcessing();
       }
 
@@ -39,12 +41,16 @@ const InternetConnectionAlert = ({
       if (!isOnline) {
         onInternetConnectionFailed();
       }
-    } else if (isFailed) {
-      setShowAlert(!isOnline);
-    } else if (isOnline) {
-      setShowAlert(false);
+    } else {
+      processedPendingQuery.current = false;
+
+      if (isFailed) {
+        setShowAlert(!isOnline);
+      } else if (isOnline) {
+        setShowAlert(false);
+      }
     }
-  }, [isOnline, isQueryPending, isFailed]);
+  }, [isOnline, isQueryPending, isFailed, onQueryProcessing, onInternetConnectionFailed]);
 
   return (
     <AlertMessage

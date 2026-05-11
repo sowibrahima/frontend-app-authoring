@@ -184,19 +184,7 @@ describe('<CardHeader />', () => {
     expect(onClickPublishMock).toHaveBeenCalled();
   });
 
-  it('only shows Manage tags menu if the waffle flag is enabled', async () => {
-    setConfig({
-      ...getConfig(),
-      ENABLE_TAGGING_TAXONOMY_PAGES: 'false',
-    });
-    renderComponent();
-    const menuButton = await screen.findByTestId('subsection-card-header__menu-button');
-    fireEvent.click(menuButton);
-
-    expect(screen.queryByText(messages.menuManageTags.defaultMessage)).not.toBeInTheDocument();
-  });
-
-  it('shows ContentTagsDrawer when the menu is clicked', async () => {
+  it('does not show Manage tags in the card menu', async () => {
     setConfig({
       ...getConfig(),
       ENABLE_TAGGING_TAXONOMY_PAGES: 'true',
@@ -205,11 +193,7 @@ describe('<CardHeader />', () => {
     const menuButton = await screen.findByTestId('subsection-card-header__menu-button');
     fireEvent.click(menuButton);
 
-    const manageTagsMenuItem = await screen.findByText(messages.menuManageTags.defaultMessage);
-    fireEvent.click(manageTagsMenuItem);
-
-    // Check if the drawer is open
-    expect(screen.getAllByText('Manage tags').length).toBe(2);
+    expect(screen.queryByText(messages.menuManageTags.defaultMessage)).not.toBeInTheDocument();
   });
 
   it('calls onClickEdit when the button is clicked', async () => {
@@ -242,7 +226,6 @@ describe('<CardHeader />', () => {
     const menuButton = screen.getByTestId('subsection-card-header__menu-button');
     await act(async () => fireEvent.click(menuButton));
     expect(await screen.findByTestId('subsection-card-header__menu-configure-button')).not.toHaveAttribute('aria-disabled');
-    expect(await screen.findByTestId('subsection-card-header__menu-manage-tags-button')).not.toHaveAttribute('aria-disabled');
   });
 
   it('check editing is disabled when saving is in progress', async () => {
@@ -254,7 +237,6 @@ describe('<CardHeader />', () => {
     const menuButton = await screen.findByTestId('subsection-card-header__menu-button');
     await act(async () => fireEvent.click(menuButton));
     expect(await screen.findByTestId('subsection-card-header__menu-configure-button')).toHaveAttribute('aria-disabled', 'true');
-    expect(await screen.findByTestId('subsection-card-header__menu-manage-tags-button')).toHaveAttribute('aria-disabled', 'true');
   });
 
   it('calls onClickDelete when item is clicked', async () => {

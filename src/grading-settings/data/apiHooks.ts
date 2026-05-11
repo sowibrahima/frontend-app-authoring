@@ -17,10 +17,15 @@ export const useCourseSettings = (courseId: string) => (
 
 export const useGradingSettingUpdater = (courseId: string) => {
   const queryClient = useQueryClient();
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: (settings) => sendGradingSettings(courseId, settings),
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['gradingSettings', courseId] });
     },
   });
+
+  return {
+    ...mutation,
+    isLoading: mutation.isPending,
+  };
 };

@@ -9,15 +9,18 @@ import {
 import MockAdapter from 'axios-mock-adapter';
 
 import initializeStore from '../store';
+import { withMinimalResponse } from '../data/apiUtils';
 import gradingSettings from './__mocks__/gradingSettings';
 import { getCourseSettingsApiUrl, getGradingSettingsApiUrl } from './data/api';
 import * as apiHooks from './data/apiHooks';
 import GradingSettings from './GradingSettings';
+import sidebarMessages from './grading-sidebar/messages';
 import messages from './messages';
 
 const courseId = '123';
 let axiosMock;
 let store;
+const getGradingSettingsMinimalApiUrl = () => withMinimalResponse(getGradingSettingsApiUrl(courseId));
 
 const queryClient = new QueryClient();
 
@@ -45,7 +48,7 @@ describe('<GradingSettings />', () => {
       .onGet(getGradingSettingsApiUrl(courseId))
       .reply(200, gradingSettings);
     axiosMock
-      .onPost(getGradingSettingsApiUrl(courseId))
+      .onPost(getGradingSettingsMinimalApiUrl())
       .reply(200, {});
     axiosMock.onGet(getCourseSettingsApiUrl(courseId))
       .reply(200, {});
@@ -73,6 +76,12 @@ describe('<GradingSettings />', () => {
     expect(gradingTitle).toBeInTheDocument();
     expect(screen.getByText(messages.policy.defaultMessage)).toBeInTheDocument();
     expect(screen.getByText(messages.policiesDescription.defaultMessage)).toBeInTheDocument();
+  });
+
+  it('does not render the right help column', async () => {
+    await screen.findByText(messages.headingTitle.defaultMessage);
+
+    expect(screen.queryByText(sidebarMessages.gradingSidebarTitle.defaultMessage)).not.toBeInTheDocument();
   });
 
   it('should update segment input value and show save alert', async () => {

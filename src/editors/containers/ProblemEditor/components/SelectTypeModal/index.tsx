@@ -13,6 +13,7 @@ import Preview from './content/Preview';
 import AdvanceTypeSelect from './content/AdvanceTypeSelect';
 import SelectTypeWrapper from './SelectTypeWrapper';
 import * as hooks from './hooks';
+import './index.scss';
 
 interface Props {
   onClose: (() => void) | null;
@@ -26,9 +27,9 @@ const SelectTypeModal: React.FC<Props> = ({
 
   return (
     <SelectTypeWrapper onClose={onClose} selected={selected}>
-      <Row className="justify-content-center">
+      <Row className="problem-type-modal__body-row">
         {(!isAdvancedProblemType(selected)) ? (
-          <Stack direction="horizontal" gap={4} className="flex-wrap mb-6">
+          <Stack direction="horizontal" gap={4} className="problem-type-modal__content">
             <ProblemTypeSelect selected={selected} setSelected={setSelected} />
             <Preview problemType={selected} />
           </Stack>

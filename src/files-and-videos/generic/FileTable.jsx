@@ -1,13 +1,16 @@
-import { useCallback, useEffect, useState } from 'react';
+import {
+  useCallback, useContext, useEffect, useState,
+} from 'react';
 import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import isEmpty from 'lodash/isEmpty';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import {
   CardView,
+  DataTableContext,
   DataTable,
   Dropzone,
-  TextFilter,
+  Form,
   useToggle,
 } from '@openedx/paragon';
 
@@ -27,6 +30,60 @@ import {
 } from './table-components';
 import ApiStatusToast from './ApiStatusToast';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
+
+const FileSelectionStatus = ({ className }) => {
+  const intl = useIntl();
+  const {
+    filteredRows,
+    itemCount,
+    manualFilters,
+    page,
+    rows,
+    state,
+    toggleAllRowsSelected,
+  } = useContext(DataTableContext);
+  const { selectedRowIds } = state;
+  const selectedCount = Object.keys(selectedRowIds || {}).length;
+  const displayedRows = page || rows || [];
+  const shownCount = displayedRows.filter(row => row.isSelected).length;
+  const totalCount = manualFilters ? itemCount : (filteredRows?.length || itemCount);
+  const allRowsSelected = selectedCount === itemCount;
+
+  return (
+    <div className={`${className || ''} files-selection-status`} data-testid="selection-status-component">
+      <span className="files-selection-status__summary" data-testid="selection-status">
+        {intl.formatMessage(
+          allRowsSelected ? messages.selectionAllSummary : messages.selectionSummary,
+          { selectedCount, shownCount },
+        )}
+      </span>
+      {!allRowsSelected && (
+        <button
+          type="button"
+          className="files-selection-status__link"
+          onClick={() => toggleAllRowsSelected(true)}
+        >
+          {intl.formatMessage(messages.selectionSelectAll, { totalCount })}
+        </button>
+      )}
+      <button
+        type="button"
+        className="files-selection-status__link"
+        onClick={() => toggleAllRowsSelected(false)}
+      >
+        {intl.formatMessage(messages.selectionClear)}
+      </button>
+    </div>
+  );
+};
+
+FileSelectionStatus.defaultProps = {
+  className: undefined,
+};
+
+FileSelectionStatus.propTypes = {
+  className: PropTypes.string,
+};
 
 const FileTable = ({
   files,
@@ -78,6 +135,32 @@ const FileTable = ({
   } = data;
   const defaultCurrentView = (fileType === 'video' && localStorage.getItem('videosCurrentView')) || (fileType === 'file' && localStorage.getItem('filesCurrentView')) || defaultView;
   const [currentView, setCurrentView] = useState(defaultCurrentView);
+  // eslint-disable-next-line react/no-unstable-nested-components
+  const FileTextFilter = ({ column }) => {
+    const inputText = intl.formatMessage(messages.searchInputLabel, { fileType });
+
+    return (
+      <Form.Group controlId={`file-search-${column.id}`}>
+        <Form.Label className="sr-only">{inputText}</Form.Label>
+        <Form.Control
+          value={column.filterValue || ''}
+          type="text"
+          onChange={e => {
+            column.setFilter(e.target.value || undefined);
+          }}
+          placeholder={inputText}
+        />
+      </Form.Group>
+    );
+  };
+
+  FileTextFilter.propTypes = {
+    column: PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      setFilter: PropTypes.func.isRequired,
+      filterValue: PropTypes.string,
+    }).isRequired,
+  };
 
   useEffect(() => {
     if (!isEmpty(selectedRows) && Object.keys(selectedRows[0]).length > 0) {
@@ -172,7 +255,7 @@ const FileTable = ({
 
   const moreInfoColumn = {
     id: 'moreInfo',
-    Header: '',
+    Header: <span className="sr-only">{intl.formatMessage(messages.moreInfoColumnHeader)}</span>,
     Cell: ({ row }) => MoreInfoColumn({
       row,
       handleLock: handleLockFile,
@@ -196,7 +279,7 @@ const FileTable = ({
         isSortable
         isSelectable
         isPaginated
-        defaultColumnValues={{ Filter: TextFilter }}
+        defaultColumnValues={{ Filter: FileTextFilter }}
         dataViewToggleOptions={{
           isDataViewToggleEnabled: true,
           onDataViewToggle: (val) => {
@@ -219,6 +302,7 @@ const FileTable = ({
         itemCount={files.length}
         pageCount={pageCount}
         data={files}
+        SelectionStatusComponent={FileSelectionStatus}
         FilterStatusComponent={FilterStatus}
         RowStatusComponent={RowStatus}
       >
@@ -320,7 +404,7 @@ FileTable.propTypes = {
   handleErrorReset: PropTypes.func.isRequired,
   handleFileOrder: PropTypes.func.isRequired,
   tableColumns: PropTypes.arrayOf(PropTypes.shape({
-    Header: PropTypes.string,
+    Header: PropTypes.node,
     accessor: PropTypes.string,
   })).isRequired,
   maxFileSize: PropTypes.number.isRequired,

@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
 import {
-  Container, Button, Layout, StatefulButton,
+  Container, Button, StatefulButton,
 } from '@openedx/paragon';
 import {
   CheckCircle as CheckCircleIcon,
@@ -40,7 +40,6 @@ import LearningOutcomesSection from './learning-outcomes-section';
 import InstructorsSection from './instructors-section';
 import RequirementsSection from './requirements-section';
 import LicenseSection from './license-section';
-import ScheduleSidebar from './schedule-sidebar';
 import messages from './messages';
 import { useLoadValuesPrompt, useSaveValuesPrompt } from './hooks';
 
@@ -73,7 +72,6 @@ const ScheduleAndDetails = ({ courseId }) => {
     shortDescriptionEditable,
     enableExtendedCourseDetails,
     isPrerequisiteCoursesEnabled,
-    mfeProctoredExamSettingsUrl,
     possiblePreRequisiteCourses,
     canShowCertificateAvailableDateField,
   } = courseSettings;
@@ -98,7 +96,6 @@ const ScheduleAndDetails = ({ courseId }) => {
     handleResetValues,
     handleValuesChange,
     handleUpdateValues,
-    handleQueryProcessing,
     handleInternetConnectionFailed,
   } = useSaveValuesPrompt(
     courseId,
@@ -229,119 +226,105 @@ const ScheduleAndDetails = ({ courseId }) => {
           </header>
         </div>
         <section className="setting-items mb-4">
-          <Layout
-            lg={[{ span: 9 }, { span: 3 }]}
-            md={[{ span: 9 }, { span: 3 }]}
-            sm={[{ span: 9 }, { span: 3 }]}
-            xs={[{ span: 9 }, { span: 3 }]}
-            xl={[{ span: 9 }, { span: 3 }]}
-          >
-            <Layout.Element>
-              <article>
-                <div>
-                  <BasicSection
-                    org={org}
-                    courseNumber={courseNumber}
-                    run={run}
-                    lmsLinkForAboutPage={lmsLinkForAboutPage}
-                    marketingEnabled={marketingEnabled}
-                    courseDisplayName={courseDisplayName}
-                    platformName={platformName}
-                  />
-                  {showCreditSection && (
-                    <CreditSection
-                      creditRequirements={courseSettings?.creditRequirements}
-                    />
-                  )}
-                  <PacingSection
-                    selfPaced={selfPaced}
-                    startDate={startDate}
-                    onChange={handleValuesChange}
-                  />
-                  <ScheduleSection
-                    endDate={endDate}
-                    startDate={startDate}
-                    errorFields={errorFields}
-                    platformName={platformName}
-                    enrollmentEnd={enrollmentEnd}
-                    enrollmentStart={enrollmentStart}
-                    upgradeDeadline={upgradeDeadline}
-                    enrollmentEndEditable={enrollmentEndEditable}
-                    certificateAvailableDate={certificateAvailableDate}
-                    certificatesDisplayBehavior={certificatesDisplayBehavior}
-                    canShowCertificateAvailableDateField={canShowCertificateAvailableDateField}
-                    onChange={handleValuesChange}
-                  />
-                  {aboutPageEditable && (
-                    <DetailsSection
-                      language={language}
-                      languageOptions={languageOptions}
-                      onChange={handleValuesChange}
-                    />
-                  )}
-                  <IntroducingSection
-                    title={title}
-                    overview={initialOverview}
-                    duration={duration}
-                    subtitle={subtitle}
-                    introVideo={introVideo}
-                    description={description}
-                    aboutSidebarHtml={initialAboutSidebarHtml}
-                    shortDescription={shortDescription}
-                    aboutPageEditable={aboutPageEditable}
-                    sidebarHtmlEnabled={sidebarHtmlEnabled}
-                    lmsLinkForAboutPage={lmsLinkForAboutPage}
-                    courseImageAssetPath={courseImageAssetPath}
-                    bannerImageAssetPath={bannerImageAssetPath}
-                    shortDescriptionEditable={shortDescriptionEditable}
-                    enableExtendedCourseDetails={enableExtendedCourseDetails}
-                    videoThumbnailImageAssetPath={videoThumbnailImageAssetPath}
-                    onChange={handleValuesChange}
-                  />
-                  {enableExtendedCourseDetails && (
-                    <>
-                      <LearningOutcomesSection
-                        learningInfo={learningInfo}
-                        onChange={handleValuesChange}
-                      />
-                      <InstructorsSection
-                        instructors={instructorInfo?.instructors}
-                        onChange={handleValuesChange}
-                      />
-                    </>
-                  )}
-                  {showRequirementsSection && (
-                    <RequirementsSection
-                      effort={effort}
-                      errorFields={errorFields}
-                      aboutPageEditable={aboutPageEditable}
-                      entranceExamEnabled={entranceExamEnabled}
-                      preRequisiteCourses={preRequisiteCourses}
-                      isEntranceExamsEnabled={isEntranceExamsEnabled}
-                      possiblePreRequisiteCourses={possiblePreRequisiteCourses}
-                      entranceExamMinimumScorePct={entranceExamMinimumScorePct}
-                      isPrerequisiteCoursesEnabled={
-                        isPrerequisiteCoursesEnabled
-                      }
-                      onChange={handleValuesChange}
-                    />
-                  )}
-                  {licensingEnabled && (
-                    <LicenseSection
-                      license={license}
-                      onChange={handleValuesChange}
-                    />
-                  )}
-                </div>
-              </article>
-            </Layout.Element>
-            <Layout.Element>
-              <ScheduleSidebar
-                courseId={courseId}
-                proctoredExamSettingsUrl={mfeProctoredExamSettingsUrl}
+          <div className="schedule-and-details__layout">
+            <article className="schedule-and-details__main">
+              <PacingSection
+                selfPaced={selfPaced}
+                startDate={startDate}
+                onChange={handleValuesChange}
               />
-            </Layout.Element>
-          </Layout>
+              <ScheduleSection
+                endDate={endDate}
+                startDate={startDate}
+                errorFields={errorFields}
+                platformName={platformName}
+                enrollmentEnd={enrollmentEnd}
+                enrollmentStart={enrollmentStart}
+                upgradeDeadline={upgradeDeadline}
+                enrollmentEndEditable={enrollmentEndEditable}
+                certificateAvailableDate={certificateAvailableDate}
+                certificatesDisplayBehavior={certificatesDisplayBehavior}
+                canShowCertificateAvailableDateField={canShowCertificateAvailableDateField}
+                onChange={handleValuesChange}
+              />
+              {showCreditSection && (
+                <CreditSection
+                  creditRequirements={courseSettings?.creditRequirements}
+                />
+              )}
+              {aboutPageEditable && (
+                <DetailsSection
+                  language={language}
+                  languageOptions={languageOptions}
+                  onChange={handleValuesChange}
+                />
+              )}
+              <IntroducingSection
+                title={title}
+                overview={initialOverview}
+                duration={duration}
+                subtitle={subtitle}
+                introVideo={introVideo}
+                description={description}
+                aboutSidebarHtml={initialAboutSidebarHtml}
+                shortDescription={shortDescription}
+                aboutPageEditable={aboutPageEditable}
+                sidebarHtmlEnabled={sidebarHtmlEnabled}
+                lmsLinkForAboutPage={lmsLinkForAboutPage}
+                courseImageAssetPath={courseImageAssetPath}
+                bannerImageAssetPath={bannerImageAssetPath}
+                shortDescriptionEditable={shortDescriptionEditable}
+                enableExtendedCourseDetails={enableExtendedCourseDetails}
+                videoThumbnailImageAssetPath={videoThumbnailImageAssetPath}
+                onChange={handleValuesChange}
+              />
+              {enableExtendedCourseDetails && (
+                <>
+                  <LearningOutcomesSection
+                    learningInfo={learningInfo}
+                    onChange={handleValuesChange}
+                  />
+                  <InstructorsSection
+                    instructors={instructorInfo?.instructors}
+                    onChange={handleValuesChange}
+                  />
+                </>
+              )}
+              {showRequirementsSection && (
+                <RequirementsSection
+                  effort={effort}
+                  errorFields={errorFields}
+                  aboutPageEditable={aboutPageEditable}
+                  entranceExamEnabled={entranceExamEnabled}
+                  preRequisiteCourses={preRequisiteCourses}
+                  isEntranceExamsEnabled={isEntranceExamsEnabled}
+                  possiblePreRequisiteCourses={possiblePreRequisiteCourses}
+                  entranceExamMinimumScorePct={entranceExamMinimumScorePct}
+                  isPrerequisiteCoursesEnabled={
+                    isPrerequisiteCoursesEnabled
+                  }
+                  onChange={handleValuesChange}
+                />
+              )}
+              {licensingEnabled && (
+                <LicenseSection
+                  license={license}
+                  onChange={handleValuesChange}
+                />
+              )}
+            </article>
+            <aside className="schedule-and-details__summary">
+              <BasicSection
+                org={org}
+                courseNumber={courseNumber}
+                run={run}
+                lmsLinkForAboutPage={lmsLinkForAboutPage}
+                marketingEnabled={marketingEnabled}
+                courseDisplayName={courseDisplayName}
+                platformName={platformName}
+              />
+            </aside>
+          </div>
         </section>
       </Container>
       <div className="alert-toast">
@@ -349,7 +332,6 @@ const ScheduleAndDetails = ({ courseId }) => {
           <InternetConnectionAlert
             isFailed={savingStatus === RequestStatus.FAILED}
             isQueryPending={isQueryPending}
-            onQueryProcessing={handleQueryProcessing}
             onInternetConnectionFailed={handleInternetConnectionFailed}
           />
         )}

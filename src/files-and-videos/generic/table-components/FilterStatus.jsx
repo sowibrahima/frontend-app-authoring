@@ -6,6 +6,7 @@ import {
 } from '@openedx/paragon';
 import { Close } from '@openedx/paragon/icons';
 import { getFilters, removeFilter } from './utils';
+import messages from '../messages';
 
 const FilterStatus = ({
   className, variant, size, clearFiltersText, buttonClassName,
@@ -25,7 +26,7 @@ const FilterStatus = ({
     <div className={className}>
       <RowStatusComponent />
       <Row className="m-0 align-items-center">
-        <span className="mr-2">Filters applied</span>
+        <span className="mr-2">{intl.formatMessage(messages.filtersAppliedLabel)}</span>
         {filters.map(({ name, value }) => (
           <Chip
             key={value}

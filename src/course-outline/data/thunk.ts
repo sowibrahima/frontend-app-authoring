@@ -56,6 +56,10 @@ import {
   updateCourseLaunchQueryStatus,
 } from './slice';
 
+const outlineIndexRequests = new Map<string, Promise<void>>();
+const launchChecklistRequests = new Map<string, Promise<void>>();
+const bestPracticeRequests = new Map<string, Promise<boolean>>();
+
 /**
  * Action to fetch course outline.
  *
@@ -64,41 +68,53 @@ import {
  */
 export function fetchCourseOutlineIndexQuery(courseId: string): (dispatch: any) => Promise<void> {
   return async (dispatch) => {
+    const pendingRequest = outlineIndexRequests.get(courseId);
+    if (pendingRequest) {
+      return pendingRequest;
+    }
+
     dispatch(updateOutlineIndexLoadingStatus({ status: RequestStatus.IN_PROGRESS }));
 
-    try {
-      const outlineIndex = await getCourseOutlineIndex(courseId);
-      const {
-        courseReleaseDate,
-        courseStructure: {
+    const request = (async () => {
+      try {
+        const outlineIndex = await getCourseOutlineIndex(courseId);
+        const {
+          courseReleaseDate,
+          courseStructure: {
+            highlightsEnabledForMessaging,
+            videoSharingEnabled,
+            videoSharingOptions,
+            actions,
+          },
+        } = outlineIndex;
+        dispatch(fetchOutlineIndexSuccess(outlineIndex));
+        dispatch(updateStatusBar({
+          courseReleaseDate,
           highlightsEnabledForMessaging,
-          videoSharingEnabled,
           videoSharingOptions,
-          actions,
-        },
-      } = outlineIndex;
-      dispatch(fetchOutlineIndexSuccess(outlineIndex));
-      dispatch(updateStatusBar({
-        courseReleaseDate,
-        highlightsEnabledForMessaging,
-        videoSharingOptions,
-        videoSharingEnabled,
-      }));
-      dispatch(updateCourseActions(actions));
+          videoSharingEnabled,
+        }));
+        dispatch(updateCourseActions(actions));
 
-      dispatch(updateOutlineIndexLoadingStatus({ status: RequestStatus.SUCCESSFUL }));
-    } catch (error: any) {
-      if (error.response && error.response.status === 403) {
-        dispatch(updateOutlineIndexLoadingStatus({
-          status: RequestStatus.DENIED,
-        }));
-      } else {
-        dispatch(updateOutlineIndexLoadingStatus({
-          status: RequestStatus.FAILED,
-          errors: getErrorDetails(error, false),
-        }));
+        dispatch(updateOutlineIndexLoadingStatus({ status: RequestStatus.SUCCESSFUL }));
+      } catch (error: any) {
+        if (error.response && error.response.status === 403) {
+          dispatch(updateOutlineIndexLoadingStatus({
+            status: RequestStatus.DENIED,
+          }));
+        } else {
+          dispatch(updateOutlineIndexLoadingStatus({
+            status: RequestStatus.FAILED,
+            errors: getErrorDetails(error, false),
+          }));
+        }
+      } finally {
+        outlineIndexRequests.delete(courseId);
       }
-    }
+    })();
+
+    outlineIndexRequests.set(courseId, request);
+    return request;
   };
 }
 
@@ -119,21 +135,34 @@ export function fetchCourseLaunchQuery({
   all = true,
 }) {
   return async (dispatch) => {
-    dispatch(updateCourseLaunchQueryStatus({ status: RequestStatus.IN_PROGRESS }));
-    try {
-      const data = await getCourseLaunch({
-        courseId, gradedOnly, validateOras, all,
-      });
-      dispatch(fetchStatusBarSelfPacedSuccess({ isSelfPaced: data.isSelfPaced }));
-      dispatch(fetchStatusBarChecklistSuccess(getCourseLaunchChecklist(data)));
-
-      dispatch(updateCourseLaunchQueryStatus({ status: RequestStatus.SUCCESSFUL }));
-    } catch (error) {
-      dispatch(updateCourseLaunchQueryStatus({
-        status: RequestStatus.FAILED,
-        errors: getErrorDetails(error),
-      }));
+    const requestKey = `${courseId}:${gradedOnly}:${validateOras}:${all}`;
+    const pendingRequest = launchChecklistRequests.get(requestKey);
+    if (pendingRequest) {
+      return pendingRequest;
     }
+
+    dispatch(updateCourseLaunchQueryStatus({ status: RequestStatus.IN_PROGRESS }));
+    const request = (async () => {
+      try {
+        const data = await getCourseLaunch({
+          courseId, gradedOnly, validateOras, all,
+        });
+        dispatch(fetchStatusBarSelfPacedSuccess({ isSelfPaced: data.isSelfPaced }));
+        dispatch(fetchStatusBarChecklistSuccess(getCourseLaunchChecklist(data)));
+
+        dispatch(updateCourseLaunchQueryStatus({ status: RequestStatus.SUCCESSFUL }));
+      } catch (error) {
+        dispatch(updateCourseLaunchQueryStatus({
+          status: RequestStatus.FAILED,
+          errors: getErrorDetails(error),
+        }));
+      } finally {
+        launchChecklistRequests.delete(requestKey);
+      }
+    })();
+
+    launchChecklistRequests.set(requestKey, request);
+    return request;
   };
 }
 
@@ -143,14 +172,27 @@ export function fetchCourseBestPracticesQuery({
   all = true,
 }) {
   return async (dispatch) => {
-    try {
-      const data = await getCourseBestPractices({ courseId, excludeGraded, all });
-      dispatch(fetchStatusBarChecklistSuccess(getCourseBestPracticesChecklist(data)));
-
-      return true;
-    } catch (error) {
-      return false;
+    const requestKey = `${courseId}:${excludeGraded}:${all}`;
+    const pendingRequest = bestPracticeRequests.get(requestKey);
+    if (pendingRequest) {
+      return pendingRequest;
     }
+
+    const request = (async () => {
+      try {
+        const data = await getCourseBestPractices({ courseId, excludeGraded, all });
+        dispatch(fetchStatusBarChecklistSuccess(getCourseBestPracticesChecklist(data)));
+
+        return true;
+      } catch (error) {
+        return false;
+      } finally {
+        bestPracticeRequests.delete(requestKey);
+      }
+    })();
+
+    bestPracticeRequests.set(requestKey, request);
+    return request;
   };
 }
 
@@ -548,12 +590,12 @@ function addNewCourseItemQuery(
   };
 }
 
-export function addNewSectionQuery(parentLocator: string) {
+export function addNewSectionQuery(parentLocator: string, displayName = COURSE_BLOCK_NAMES.chapter.name) {
   return async (dispatch) => {
     dispatch(addNewCourseItemQuery(
       parentLocator,
       COURSE_BLOCK_NAMES.chapter.id,
-      COURSE_BLOCK_NAMES.chapter.name,
+      displayName,
       async (result) => {
         const data = await getCourseItem(result.locator);
         // Page should scroll to newly created section.
@@ -564,12 +606,12 @@ export function addNewSectionQuery(parentLocator: string) {
   };
 }
 
-export function addNewSubsectionQuery(parentLocator: string) {
+export function addNewSubsectionQuery(parentLocator: string, displayName = COURSE_BLOCK_NAMES.sequential.name) {
   return async (dispatch) => {
     dispatch(addNewCourseItemQuery(
       parentLocator,
       COURSE_BLOCK_NAMES.sequential.id,
-      COURSE_BLOCK_NAMES.sequential.name,
+      displayName,
       async (result) => {
         const data = await getCourseItem(result.locator);
         // Page should scroll to newly created subsection.
@@ -580,13 +622,59 @@ export function addNewSubsectionQuery(parentLocator: string) {
   };
 }
 
-export function addNewUnitQuery(parentLocator: string, callback: { (locator: any): void }) {
+export function addNewUnitQuery(
+  parentLocator: string,
+  callback: { (locator: any): void },
+  displayName = COURSE_BLOCK_NAMES.vertical.name,
+) {
   return async (dispatch) => {
     dispatch(addNewCourseItemQuery(
       parentLocator,
       COURSE_BLOCK_NAMES.vertical.id,
-      COURSE_BLOCK_NAMES.vertical.name,
+      displayName,
       async (result) => callback(result.locator),
+    ));
+  };
+}
+
+export function addNewUnitWithComponentQuery(
+  parentLocator: string,
+  sectionId: string,
+  component: {
+    type: string;
+    category?: string;
+    displayName?: string;
+    boilerplate?: string;
+    stagedContent?: string;
+    libraryContentKey?: string;
+  },
+  callback?: (args: any) => void,
+  displayName = COURSE_BLOCK_NAMES.vertical.name,
+) {
+  return async (dispatch) => {
+    dispatch(addNewCourseItemQuery(
+      parentLocator,
+      COURSE_BLOCK_NAMES.vertical.id,
+      displayName,
+      async (result) => {
+        const unitLocator = result.locator;
+
+        if (component?.type) {
+          const createdComponent = await createCourseXblock({
+            ...component,
+            parentLocator: unitLocator,
+          }) as any;
+          callback?.({
+            ...createdComponent,
+            unitLocator,
+          });
+        }
+
+        await dispatch(fetchCourseSectionQuery([sectionId], {
+          subsectionId: parentLocator,
+          unitId: unitLocator,
+        }));
+      },
     ));
   };
 }

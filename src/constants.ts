@@ -56,9 +56,9 @@ export const DECODED_ROUTES = {
 export const UPLOAD_FILE_MAX_SIZE = 20 * 1024 * 1024; // 100mb
 
 export const COURSE_BLOCK_NAMES = ({
-  chapter: { id: 'chapter', name: 'Section' },
-  sequential: { id: 'sequential', name: 'Subsection' },
-  vertical: { id: 'vertical', name: 'Unit' },
+  chapter: { id: 'chapter', name: 'Module' },
+  sequential: { id: 'sequential', name: 'Lesson' },
+  vertical: { id: 'vertical', name: 'Activity' },
   libraryContent: { id: 'library_content', name: 'Library content' },
   splitTest: { id: 'split_test', name: 'Split Test' },
   component: { id: 'component', name: 'Component' },

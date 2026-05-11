@@ -17,11 +17,15 @@ const HeaderButtons = () => {
     handleActivationStatus,
   } = useHeaderButtons();
 
+  const shouldShowModeSelector = courseModes.length > 1;
+
   return (
     <>
-      <DropdownButton id="dropdown-basic-button" title={dropdowmItem} onSelect={(item) => setDropdowmItem(item)}>
-        {courseModes.map((mode) => <Dropdown.Item key={mode} eventKey={mode}>{mode}</Dropdown.Item>)}
-      </DropdownButton>
+      {shouldShowModeSelector && (
+        <DropdownButton id="dropdown-basic-button" title={dropdowmItem} onSelect={(item) => setDropdowmItem(item)}>
+          {courseModes.map((mode) => <Dropdown.Item key={mode} eventKey={mode}>{mode}</Dropdown.Item>)}
+        </DropdownButton>
+      )}
       <Button
         variant="outline-primary"
         as={Hyperlink}

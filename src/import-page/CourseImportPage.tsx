@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import {
-  Container, Layout,
+  Container,
 } from '@openedx/paragon';
 import Cookies from 'universal-cookie';
 import { Helmet } from 'react-helmet';
@@ -19,7 +19,6 @@ import {
 import ImportStepper from './import-stepper/ImportStepper';
 import { getImportTriggered, getLoadingStatus, getSavingStatus } from './data/selectors';
 import { LAST_IMPORT_COOKIE_NAME } from './data/constants';
-import ImportSidebar from './import-sidebar/ImportSidebar';
 import FileSection from './file-section/FileSection';
 import messages from './messages';
 
@@ -66,30 +65,17 @@ const CourseImportPage = ({ courseId }: { courseId: string }) => {
       </Helmet>
       <Container size="xl" className="mt-4 px-4 import">
         <section className="setting-items mb-4">
-          <Layout
-            lg={[{ span: 9 }, { span: 3 }]}
-            md={[{ span: 9 }, { span: 3 }]}
-            sm={[{ span: 9 }, { span: 3 }]}
-            xs={[{ span: 9 }, { span: 3 }]}
-            xl={[{ span: 9 }, { span: 3 }]}
-          >
-            <Layout.Element>
-              <article>
-                <SubHeader
-                  title={intl.formatMessage(messages.headingTitle)}
-                  subtitle={intl.formatMessage(messages.headingSubtitle)}
-                />
-                <p className="small">{intl.formatMessage(messages.description1)}</p>
-                <p className="small">{intl.formatMessage(messages.description2)}</p>
-                <p className="small">{intl.formatMessage(messages.description3)}</p>
-                <FileSection courseId={courseId} />
-                {importTriggered && <ImportStepper courseId={courseId} />}
-              </article>
-            </Layout.Element>
-            <Layout.Element>
-              <ImportSidebar courseId={courseId} />
-            </Layout.Element>
-          </Layout>
+          <article className="import__content">
+            <SubHeader
+              title={intl.formatMessage(messages.headingTitle)}
+              subtitle={intl.formatMessage(messages.headingSubtitle)}
+            />
+            <p className="small">{intl.formatMessage(messages.description1)}</p>
+            <p className="small">{intl.formatMessage(messages.description2)}</p>
+            <p className="small">{intl.formatMessage(messages.description3)}</p>
+            <FileSection courseId={courseId} />
+            {importTriggered && <ImportStepper courseId={courseId} />}
+          </article>
         </section>
       </Container>
       <div className="alert-toast">

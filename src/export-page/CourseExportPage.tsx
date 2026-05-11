@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import {
-  Container, Layout, Button, Card,
+  Container, Button, Card,
 } from '@openedx/paragon';
 import { ArrowCircleDown as ArrowCircleDownIcon } from '@openedx/paragon/icons';
 import Cookies from 'universal-cookie';
@@ -15,7 +15,6 @@ import SubHeader from '../generic/sub-header/SubHeader';
 import { RequestStatus } from '../data/constants';
 import { useModel } from '../generic/model-store';
 import messages from './messages';
-import ExportSidebar from './export-sidebar/ExportSidebar';
 import {
   getCurrentStage, getError, getExportTriggered, getLoadingStatus, getSavingStatus,
 } from './data/selectors';
@@ -71,48 +70,35 @@ const CourseExportPage = ({ courseId }: { courseId: string }) => {
       </Helmet>
       <Container size="xl" className="mt-4 px-4 export">
         <section className="setting-items mb-4">
-          <Layout
-            lg={[{ span: 9 }, { span: 3 }]}
-            md={[{ span: 9 }, { span: 3 }]}
-            sm={[{ span: 9 }, { span: 3 }]}
-            xs={[{ span: 9 }, { span: 3 }]}
-            xl={[{ span: 9 }, { span: 3 }]}
-          >
-            <Layout.Element>
-              <article>
-                <SubHeader
-                  title={intl.formatMessage(messages.headingTitle)}
-                  subtitle={intl.formatMessage(messages.headingSubtitle)}
-                />
-                <p className="small">{intl.formatMessage(messages.description1, { studioShortName: getConfig().STUDIO_SHORT_NAME })}</p>
-                <p className="small">{intl.formatMessage(messages.description2)}</p>
-                <Card>
-                  <Card.Header
-                    className="h3 px-3 text-black mb-4"
-                    title={intl.formatMessage(messages.titleUnderButton)}
-                  />
-                  {isShowExportButton && (
-                    <Card.Section className="px-3 py-1">
-                      <Button
-                        size="lg"
-                        block
-                        className="mb-4"
-                        onClick={() => dispatch(startExportingCourse(courseId))}
-                        iconBefore={ArrowCircleDownIcon}
-                      >
-                        {intl.formatMessage(messages.buttonTitle)}
-                      </Button>
-                    </Card.Section>
-                  )}
-                </Card>
-                {exportTriggered && <ExportStepper courseId={courseId} />}
-                <ExportFooter />
-              </article>
-            </Layout.Element>
-            <Layout.Element>
-              <ExportSidebar courseId={courseId} />
-            </Layout.Element>
-          </Layout>
+          <article className="export__content">
+            <SubHeader
+              title={intl.formatMessage(messages.headingTitle)}
+              subtitle={intl.formatMessage(messages.headingSubtitle)}
+            />
+            <p className="small">{intl.formatMessage(messages.description1, { studioShortName: getConfig().STUDIO_SHORT_NAME })}</p>
+            <p className="small">{intl.formatMessage(messages.description2)}</p>
+            <Card>
+              <Card.Header
+                className="h3 px-3 text-black mb-4"
+                title={intl.formatMessage(messages.titleUnderButton)}
+              />
+              {isShowExportButton && (
+                <Card.Section className="px-3 py-1">
+                  <Button
+                    size="lg"
+                    block
+                    className="mb-4"
+                    onClick={() => dispatch(startExportingCourse(courseId))}
+                    iconBefore={ArrowCircleDownIcon}
+                  >
+                    {intl.formatMessage(messages.buttonTitle)}
+                  </Button>
+                </Card.Section>
+              )}
+            </Card>
+            {exportTriggered && <ExportStepper courseId={courseId} />}
+            <ExportFooter />
+          </article>
         </section>
         <ExportModalError courseId={courseId} />
       </Container>

@@ -89,6 +89,13 @@
   &:active {
     transform: translateY(0) scale(0.985);
   }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: .5;
+    transform: none;
+    box-shadow: none;
+  }
 }
 
 .ws-lesson-builder__card-icon {
@@ -140,6 +147,27 @@
   color: #111827;
   font-weight: 800;
   letter-spacing: -0.02em;
+}
+
+.ws-add-activity-compact {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0;
+}
+
+.ws-add-activity-compact .btn-primary {
+  border-color: var(--wuti-color-action, #FFBA08);
+  background: var(--wuti-color-action, #FFBA08);
+  color: var(--wuti-color-action-text, #111827);
+  box-shadow: var(--wuti-shadow-action, 0 12px 26px rgba(255, 186, 8, .22));
+}
+
+.ws-activity-picker .ws-lesson-builder__grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ws-activity-picker .new-component-type {
+  gap: .75rem;
 }
 
 @media (max-width: 991px) {

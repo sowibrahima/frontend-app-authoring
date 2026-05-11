@@ -70,7 +70,7 @@ const CardList: React.FC<CardListProps> = ({
   // Empty alert
   if (isFiltered && !isLoading) {
     return (
-      <Alert className="mt-4">
+      <Alert className="ws-libraries-v2-empty-state">
         <Alert.Heading>
           <FormattedMessage {...messages.librariesV2TabLibraryNotFoundAlertTitle} />
         </Alert.Heading>
@@ -162,15 +162,15 @@ const LibrariesV2List: React.FC<Props> = ({
         )}
       />
     ) : (
-      <div className="courses-tab-container">
-        <div className="d-flex flex-row justify-content-between my-4">
-          <Stack direction="horizontal">
+      <div className="courses-tab-container ws-libraries-v2">
+        <div className="ws-libraries-v2-toolbar">
+          <Stack direction="horizontal" className="ws-libraries-v2-toolbar__controls">
             {showCreateLibrary && (
               <Button
                 variant="outline-primary"
                 onClick={openCreateLibrary}
                 iconBefore={Add}
-                className="mr-3"
+                className="ws-libraries-v2-create-btn"
               >
                 <FormattedMessage {...messages.createLibraryButton} />
               </Button>
@@ -185,7 +185,7 @@ const LibrariesV2List: React.FC<Props> = ({
           </Stack>
           {!isPending && !isError
           && (
-            <p>
+            <p className="ws-libraries-v2-count">
               {intl.formatMessage(messages.coursesPaginationInfo, {
                 length: data!.results.length,
                 total: data!.count,
@@ -194,32 +194,34 @@ const LibrariesV2List: React.FC<Props> = ({
           )}
         </div>
 
-        {inSelectMode ? (
-          <Form.RadioSet
-            name="select-libraries-v2-list"
-            value={selectedLibraryId}
-            onChange={(e) => handleOnChangeRadioSet(e.target.value)}
-          >
+        <div className="ws-libraries-v2-grid">
+          {inSelectMode ? (
+            <Form.RadioSet
+              name="select-libraries-v2-list"
+              value={selectedLibraryId}
+              onChange={(e) => handleOnChangeRadioSet(e.target.value)}
+            >
+              <CardList
+                hasV2Libraries={hasV2Libraries}
+                selectMode={inSelectMode ? 'single' : undefined}
+                selectedLibraryId={selectedLibraryId}
+                isFiltered={isFiltered}
+                isLoading={isPending}
+                data={data!}
+                handleClearFilters={handleClearFilters}
+                scrollIntoView={scrollIntoCard}
+              />
+            </Form.RadioSet>
+          ) : (
             <CardList
               hasV2Libraries={hasV2Libraries}
-              selectMode={inSelectMode ? 'single' : undefined}
-              selectedLibraryId={selectedLibraryId}
               isFiltered={isFiltered}
               isLoading={isPending}
               data={data!}
               handleClearFilters={handleClearFilters}
-              scrollIntoView={scrollIntoCard}
             />
-          </Form.RadioSet>
-        ) : (
-          <CardList
-            hasV2Libraries={hasV2Libraries}
-            isFiltered={isFiltered}
-            isLoading={isPending}
-            data={data!}
-            handleClearFilters={handleClearFilters}
-          />
-        )}
+          )}
+        </div>
 
         {
           hasV2Libraries && (data!.numPages || 0) > 1

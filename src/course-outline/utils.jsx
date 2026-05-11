@@ -85,42 +85,18 @@ const getItemStatusBadgeContent = (status, messages, intl) => {
 };
 
 /**
- * Get section border color
- * @param {string} status - value from on getItemStatus util
- * @returns {
- *   borderLeft: string,
- * }
+ * Status is shown by badges/text only. Outline cards should not render a
+ * colored left rail because it competes with the nested card layout.
  */
 const getItemStatusBorder = (status) => {
   switch (status) {
     case ITEM_BADGE_STATUS.live:
-      return {
-        borderLeft: '5px solid #00688D',
-      };
     case ITEM_BADGE_STATUS.publishedNotLive:
-      return {
-        borderLeft: '5px solid #0D7D4D',
-      };
     case ITEM_BADGE_STATUS.gated:
-      return {
-        borderLeft: '5px solid #000000',
-      };
     case ITEM_BADGE_STATUS.staffOnly:
-      return {
-        borderLeft: '5px solid #000000',
-      };
     case ITEM_BADGE_STATUS.unpublishedChanges:
-      return {
-        borderLeft: '5px solid #F0CC00',
-      };
     case ITEM_BADGE_STATUS.draft:
-      return {
-        borderLeft: '5px solid #F0CC00',
-      };
     case ITEM_BADGE_STATUS.unscheduled:
-      return {
-        borderLeft: '5px solid #ccc',
-      };
     default:
       return {};
   }

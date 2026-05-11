@@ -26,7 +26,7 @@ const ProblemTypeSelect: React.FC<Props> = ({
   const settings = { type: 'radio' };
 
   return (
-    <Container style={{ width: '494px', height: '400px' }}>
+    <Container className="problem-type-modal__type-list">
       <SelectableBox.Set
         name="problem-type"
         columns={1}
@@ -38,7 +38,7 @@ const ProblemTypeSelect: React.FC<Props> = ({
           key !== 'advanced'
             ? (
               <SelectableBox
-                className="border border-light-400 text-primary-500 shadow-none"
+                className="problem-type-modal__type-option"
                 id={key}
                 key={key}
                 value={key}
@@ -50,7 +50,7 @@ const ProblemTypeSelect: React.FC<Props> = ({
             : null
         ))}
       </SelectableBox.Set>
-      <Button variant="link" className="pl-0 mt-2" onClick={handleClick}>
+      <Button variant="link" className="problem-type-modal__advanced-link" onClick={handleClick}>
         <FormattedMessage {...messages.advanceProblemButtonLabel} />
       </Button>
     </Container>

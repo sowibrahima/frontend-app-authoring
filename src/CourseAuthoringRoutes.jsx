@@ -4,12 +4,9 @@ import {
 } from 'react-router-dom';
 import { getConfig } from '@edx/frontend-platform';
 import { PageWrap } from '@edx/frontend-platform/react';
-import { Textbooks } from './textbooks';
 import CourseAuthoringPage from './CourseAuthoringPage';
-import { PagesAndResources } from './pages-and-resources';
 import EditorContainer from './editors/EditorContainer';
 import VideoSelectorContainer from './selectors/VideoSelectorContainer';
-import CustomPages from './custom-pages';
 import { FilesPage, VideosPage } from './files-and-videos';
 import { AdvancedSettings } from './advanced-settings';
 import { CourseOutline } from './course-outline';
@@ -72,15 +69,15 @@ const CourseAuthoringRoutes = () => {
         />
         <Route
           path="pages-and-resources/*"
-          element={<PageWrap><PagesAndResources courseId={courseId} /></PageWrap>}
+          element={<Navigate replace to={`/course/${courseId}`} />}
         />
         <Route
           path="proctored-exam-settings"
-          element={<Navigate replace to={`/course/${courseId}/pages-and-resources`} />}
+          element={<Navigate replace to={`/course/${courseId}`} />}
         />
         <Route
           path="custom-pages/*"
-          element={<PageWrap><CustomPages courseId={courseId} /></PageWrap>}
+          element={<Navigate replace to={`/course/${courseId}`} />}
         />
         <Route
           path="/subsection/:subsectionId"
@@ -143,7 +140,7 @@ const CourseAuthoringRoutes = () => {
         />
         <Route
           path="textbooks"
-          element={<PageWrap><Textbooks courseId={courseId} /></PageWrap>}
+          element={<Navigate replace to={`/course/${courseId}`} />}
         />
       </Routes>
     </CourseAuthoringPage>

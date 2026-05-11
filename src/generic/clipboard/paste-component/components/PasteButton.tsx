@@ -9,10 +9,9 @@ interface PasteButtonProps {
 
 const PasteButton = ({ onClick, text, className }: PasteButtonProps) => (
   <Button
-    className={className}
+    className={`paste-component__button ${className || ''}`.trim()}
     iconBefore={ContentCopyIcon}
     variant="outline-primary"
-    block
     onClick={onClick}
   >
     {text}

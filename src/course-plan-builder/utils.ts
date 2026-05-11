@@ -13,20 +13,20 @@ const makeId = (prefix: string) => `${prefix}-${Math.random().toString(36).slice
 export const DEFAULT_COMPONENT_TYPE: CoursePlanComponentType = 'html';
 
 export const createPlanComponent = (
-  displayName = 'Contenu',
+  displayName = 'Content',
   componentType: CoursePlanComponentType = DEFAULT_COMPONENT_TYPE,
 ): CoursePlanComponent => {
   const baseContent: Record<CoursePlanComponentType, Record<string, unknown>> = {
-    html: { html: '<p>Contenu a personnaliser.</p>' },
-    video: { description: 'Video a ajouter.' },
+    html: { html: '<p>Content to customize.</p>' },
+    video: { description: 'Video to add.' },
     problem: {
       problem_type: 'multiple_choice',
-      question: 'Question a personnaliser.',
+      question: 'Question to customize.',
       options: ['Option A', 'Option B'],
       correct_index: 0,
       explanation: '',
     },
-    discussion: { topic: 'Sujet de discussion a personnaliser.' },
+    discussion: { topic: 'Discussion topic to customize.' },
   };
 
   return {
@@ -37,13 +37,13 @@ export const createPlanComponent = (
   };
 };
 
-export const createPlanUnit = (displayName = 'Nouvelle unite'): CoursePlanUnit => ({
+export const createPlanUnit = (displayName = 'New unit'): CoursePlanUnit => ({
   id: makeId('unit'),
   display_name: displayName,
   components: [createPlanComponent()],
 });
 
-export const createPlanSubsection = (displayName = 'Nouvelle lecon'): CoursePlanSubsection => ({
+export const createPlanSubsection = (displayName = 'New lesson'): CoursePlanSubsection => ({
   id: makeId('subsection'),
   display_name: displayName,
   graded: false,
@@ -51,7 +51,7 @@ export const createPlanSubsection = (displayName = 'Nouvelle lecon'): CoursePlan
   units: [createPlanUnit()],
 });
 
-export const createPlanSection = (displayName = 'Nouveau module'): CoursePlanSection => ({
+export const createPlanSection = (displayName = 'New module'): CoursePlanSection => ({
   id: makeId('section'),
   display_name: displayName,
   subsections: [createPlanSubsection()],
@@ -70,21 +70,21 @@ const hydrateComponent = (component: CoursePlanComponent): CoursePlanComponent =
   ...component,
   id: component.id || makeId('component'),
   component_type: component.component_type || DEFAULT_COMPONENT_TYPE,
-  display_name: component.display_name || 'Contenu',
+  display_name: component.display_name || 'Content',
   content: component.content || {},
 });
 
 const hydrateUnit = (unit: CoursePlanUnit): CoursePlanUnit => ({
   ...unit,
   id: unit.id || makeId('unit'),
-  display_name: unit.display_name || 'Nouvelle unite',
+  display_name: unit.display_name || 'New unit',
   components: (unit.components || []).map(hydrateComponent),
 });
 
 const hydrateSubsection = (subsection: CoursePlanSubsection): CoursePlanSubsection => ({
   ...subsection,
   id: subsection.id || makeId('subsection'),
-  display_name: subsection.display_name || 'Nouvelle lecon',
+  display_name: subsection.display_name || 'New lesson',
   graded: Boolean(subsection.graded),
   grade_format: subsection.grade_format || '',
   units: (subsection.units || []).map(hydrateUnit),
@@ -93,7 +93,7 @@ const hydrateSubsection = (subsection: CoursePlanSubsection): CoursePlanSubsecti
 const hydrateSection = (section: CoursePlanSection): CoursePlanSection => ({
   ...section,
   id: section.id || makeId('section'),
-  display_name: section.display_name || 'Nouveau module',
+  display_name: section.display_name || 'New module',
   subsections: (section.subsections || []).map(hydrateSubsection),
 });
 

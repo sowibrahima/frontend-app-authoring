@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '@openedx/paragon';
 import { ArrowBack, Add, Check, Delete } from '@openedx/paragon/icons';
+import { defineMessages, useIntl } from '@edx/frontend-platform/i18n';
 
 import WutiskillStudioHomeHeader from '../header/WutiskillStudioHomeHeader';
 import { CoursePlanBuilder, CoursePlanStructure, CoursePlanTemplate } from '../course-plan-builder';
@@ -16,7 +17,177 @@ import {
 } from './data/api';
 import './CoursePlanTemplatesPage.scss';
 
+const messages = defineMessages({
+  loadError: {
+    id: 'wuti.authoring.templates.loadError',
+    defaultMessage: 'Unable to load templates.',
+    description: 'Fallback error when loading course plan templates fails',
+  },
+  selectError: {
+    id: 'wuti.authoring.templates.selectError',
+    defaultMessage: 'Unable to load this template.',
+    description: 'Fallback error when loading one course plan template fails',
+  },
+  saveError: {
+    id: 'wuti.authoring.templates.saveError',
+    defaultMessage: 'Unable to save template.',
+    description: 'Fallback error when saving a course plan template fails',
+  },
+  archiveError: {
+    id: 'wuti.authoring.templates.archiveError',
+    defaultMessage: 'Unable to archive template.',
+    description: 'Fallback error when archiving a course plan template fails',
+  },
+  nameRequired: {
+    id: 'wuti.authoring.templates.nameRequired',
+    defaultMessage: 'Template name is required.',
+    description: 'Validation error for missing template name',
+  },
+  newTemplateName: {
+    id: 'wuti.authoring.templates.newTemplateName',
+    defaultMessage: 'New template',
+    description: 'Default name for a new course plan template',
+  },
+  backToDashboard: {
+    id: 'wuti.authoring.templates.backToDashboard',
+    defaultMessage: 'Back to dashboard',
+    description: 'Back link to Studio dashboard',
+  },
+  eyebrow: {
+    id: 'wuti.authoring.templates.eyebrow',
+    defaultMessage: 'Plan templates',
+    description: 'Eyebrow for the course plan templates page',
+  },
+  pageTitle: {
+    id: 'wuti.authoring.templates.pageTitle',
+    defaultMessage: 'Manage course templates',
+    description: 'Page title for course plan templates management',
+  },
+  pageSubtitle: {
+    id: 'wuti.authoring.templates.pageSubtitle',
+    defaultMessage: 'Create global or organization-specific templates, then reuse them in the creation wizard.',
+    description: 'Page subtitle for course plan templates management',
+  },
+  newTemplate: {
+    id: 'wuti.authoring.templates.newTemplate',
+    defaultMessage: 'New template',
+    description: 'Button label to create a new template',
+  },
+  organization: {
+    id: 'wuti.authoring.templates.organization',
+    defaultMessage: 'Organization',
+    description: 'Organization label',
+  },
+  all: {
+    id: 'wuti.authoring.templates.all',
+    defaultMessage: 'All',
+    description: 'All organizations filter option',
+  },
+  loading: {
+    id: 'wuti.authoring.templates.loading',
+    defaultMessage: 'Loading templates...',
+    description: 'Loading state for templates',
+  },
+  templateName: {
+    id: 'wuti.authoring.templates.templateName',
+    defaultMessage: 'Template name',
+    description: 'Template name field label',
+  },
+  templateNamePlaceholder: {
+    id: 'wuti.authoring.templates.templateNamePlaceholder',
+    defaultMessage: 'e.g. Practical bootcamp',
+    description: 'Template name placeholder',
+  },
+  status: {
+    id: 'wuti.authoring.templates.status',
+    defaultMessage: 'Status',
+    description: 'Template status field label',
+  },
+  statusDraft: {
+    id: 'wuti.authoring.templates.status.draft',
+    defaultMessage: 'Draft',
+    description: 'Draft template status',
+  },
+  statusPublished: {
+    id: 'wuti.authoring.templates.status.published',
+    defaultMessage: 'Published',
+    description: 'Published template status',
+  },
+  statusArchived: {
+    id: 'wuti.authoring.templates.status.archived',
+    defaultMessage: 'Archived',
+    description: 'Archived template status',
+  },
+  scope: {
+    id: 'wuti.authoring.templates.scope',
+    defaultMessage: 'Scope',
+    description: 'Template visibility scope field label',
+  },
+  global: {
+    id: 'wuti.authoring.templates.global',
+    defaultMessage: 'Global',
+    description: 'Global template visibility label',
+  },
+  organizationScope: {
+    id: 'wuti.authoring.templates.organizationScope',
+    defaultMessage: 'Organization',
+    description: 'Organization template visibility label',
+  },
+  select: {
+    id: 'wuti.authoring.templates.select',
+    defaultMessage: 'Select',
+    description: 'Generic select option',
+  },
+  description: {
+    id: 'wuti.authoring.templates.description',
+    defaultMessage: 'Description',
+    description: 'Template description field label',
+  },
+  descriptionPlaceholder: {
+    id: 'wuti.authoring.templates.descriptionPlaceholder',
+    defaultMessage: 'Explain when to use this template.',
+    description: 'Template description placeholder',
+  },
+  globalTemplateSource: {
+    id: 'wuti.authoring.templates.globalTemplateSource',
+    defaultMessage: 'Global template',
+    description: 'Source label for global template plan builder',
+  },
+  orgTemplateSource: {
+    id: 'wuti.authoring.templates.orgTemplateSource',
+    defaultMessage: 'Organization template',
+    description: 'Source label for org template plan builder',
+  },
+  templatePlanTitle: {
+    id: 'wuti.authoring.templates.templatePlanTitle',
+    defaultMessage: 'Template plan',
+    description: 'Fallback title for the template plan builder',
+  },
+  templatePlanDescription: {
+    id: 'wuti.authoring.templates.templatePlanDescription',
+    defaultMessage: 'This plan will be offered as a starting point in the creation wizard.',
+    description: 'Template plan builder description',
+  },
+  archive: {
+    id: 'wuti.authoring.templates.archive',
+    defaultMessage: 'Archive',
+    description: 'Button label to archive a template',
+  },
+  saving: {
+    id: 'wuti.authoring.templates.saving',
+    defaultMessage: 'Saving...',
+    description: 'Saving state for template save button',
+  },
+  save: {
+    id: 'wuti.authoring.templates.save',
+    defaultMessage: 'Save',
+    description: 'Button label to save a template',
+  },
+});
+
 const CoursePlanTemplatesPage = () => {
+  const intl = useIntl();
+  const formatMessage = intl.formatMessage;
   const navigate = useNavigate();
   const [templates, setTemplates] = useState<CoursePlanTemplate[]>([]);
   const [organizations, setOrganizations] = useState<string[]>([]);
@@ -32,6 +203,11 @@ const CoursePlanTemplatesPage = () => {
   const [error, setError] = useState('');
 
   const orgOptions = useMemo(() => Array.from(new Set(organizations.filter(Boolean))).sort(), [organizations]);
+  const statusLabels = {
+    draft: messages.statusDraft,
+    published: messages.statusPublished,
+    archived: messages.statusArchived,
+  };
 
   const loadTemplates = async () => {
     setIsLoading(true);
@@ -47,7 +223,7 @@ const CoursePlanTemplatesPage = () => {
         setSelectedOrg(orgs[0]);
       }
     } catch (loadError: any) {
-      setError(loadError?.message || 'Impossible de charger les modèles.');
+      setError(loadError?.message || formatMessage(messages.loadError));
     } finally {
       setIsLoading(false);
     }
@@ -70,12 +246,12 @@ const CoursePlanTemplatesPage = () => {
       setSelectedOrg(template.org || selectedOrg);
       setStructure(hydratePlanStructure(template.structure, template.name, template.language));
     } catch (selectError: any) {
-      setError(selectError?.message || 'Impossible de charger ce modèle.');
+      setError(selectError?.message || formatMessage(messages.selectError));
     }
   };
 
   const createNewTemplate = () => {
-    const draftName = 'Nouveau modèle';
+    const draftName = formatMessage(messages.newTemplateName);
     setSelectedTemplate(null);
     setName(draftName);
     setDescription('');
@@ -86,7 +262,7 @@ const CoursePlanTemplatesPage = () => {
 
   const saveTemplate = async () => {
     if (!name.trim()) {
-      setError('Le nom du modèle est requis.');
+      setError(formatMessage(messages.nameRequired));
       return;
     }
 
@@ -114,7 +290,7 @@ const CoursePlanTemplatesPage = () => {
       await loadTemplates();
       await selectTemplate(saved.id);
     } catch (saveError: any) {
-      setError(saveError?.message || 'Impossible d’enregistrer le modèle.');
+      setError(saveError?.message || formatMessage(messages.saveError));
     } finally {
       setIsSaving(false);
     }
@@ -132,7 +308,7 @@ const CoursePlanTemplatesPage = () => {
       setSelectedTemplate(null);
       await loadTemplates();
     } catch (archiveError: any) {
-      setError(archiveError?.message || 'Impossible d’archiver le modèle.');
+      setError(archiveError?.message || formatMessage(messages.archiveError));
     } finally {
       setIsSaving(false);
     }
@@ -148,15 +324,15 @@ const CoursePlanTemplatesPage = () => {
           onClick={() => navigate('/home')}
         >
           <Icon src={ArrowBack} />
-          Retour au tableau de bord
+          {formatMessage(messages.backToDashboard)}
         </button>
 
         <div className="ws-template-page__header">
           <div>
-            <p className="ws-template-page__eyebrow">Modèles de plan</p>
-            <h1 className="ws-template-page__title">Gérer les modèles de cours</h1>
+            <p className="ws-template-page__eyebrow">{formatMessage(messages.eyebrow)}</p>
+            <h1 className="ws-template-page__title">{formatMessage(messages.pageTitle)}</h1>
             <p className="ws-template-page__subtitle">
-              Créez des modèles globaux ou spécifiques à une organisation, puis réutilisez-les dans l’assistant de création.
+              {formatMessage(messages.pageSubtitle)}
             </p>
           </div>
           <button
@@ -165,7 +341,7 @@ const CoursePlanTemplatesPage = () => {
             onClick={createNewTemplate}
           >
             <Icon src={Add} />
-            Nouveau modèle
+            {formatMessage(messages.newTemplate)}
           </button>
         </div>
 
@@ -174,13 +350,13 @@ const CoursePlanTemplatesPage = () => {
         <div className="ws-template-page__layout">
           <aside className="ws-template-page__sidebar">
             <div className="ws-template-page__filter">
-              <label htmlFor="template-org-filter">Organisation</label>
+              <label htmlFor="template-org-filter">{formatMessage(messages.organization)}</label>
               <select
                 id="template-org-filter"
                 value={selectedOrg}
                 onChange={(event) => setSelectedOrg(event.target.value)}
               >
-                <option value="">Toutes</option>
+                <option value="">{formatMessage(messages.all)}</option>
                 {orgOptions.map((org) => (
                   <option key={org} value={org}>{org}</option>
                 ))}
@@ -188,7 +364,7 @@ const CoursePlanTemplatesPage = () => {
             </div>
 
             {isLoading ? (
-              <div className="ws-template-page__empty">Chargement des modèles...</div>
+              <div className="ws-template-page__empty">{formatMessage(messages.loading)}</div>
             ) : (
               <div className="ws-template-page__list">
                 {templates
@@ -206,9 +382,9 @@ const CoursePlanTemplatesPage = () => {
                     >
                       <span>{template.name}</span>
                       <small>
-                        {template.visibility === 'default' ? 'Global' : template.org}
+                        {template.visibility === 'default' ? formatMessage(messages.global) : template.org}
                         {' · '}
-                        {template.status}
+                        {formatMessage(statusLabels[template.status] || messages.statusDraft)}
                       </small>
                     </button>
                   ))}
@@ -219,7 +395,7 @@ const CoursePlanTemplatesPage = () => {
           <section className="ws-template-page__editor">
             <div className="ws-template-page__form-grid">
               <div className="ws-template-page__field">
-                <label htmlFor="template-name">Nom du modèle</label>
+                <label htmlFor="template-name">{formatMessage(messages.templateName)}</label>
                 <input
                   id="template-name"
                   value={name}
@@ -227,53 +403,53 @@ const CoursePlanTemplatesPage = () => {
                     setName(event.target.value);
                     setStructure((prev) => ({ ...prev, display_name: event.target.value }));
                   }}
-                  placeholder="ex. Bootcamp pratique"
+                  placeholder={formatMessage(messages.templateNamePlaceholder)}
                 />
               </div>
               <div className="ws-template-page__field">
-                <label htmlFor="template-status">Statut</label>
+                <label htmlFor="template-status">{formatMessage(messages.status)}</label>
                 <select
                   id="template-status"
                   value={statusValue}
                   onChange={(event) => setStatusValue(event.target.value as typeof statusValue)}
                 >
-                  <option value="draft">Brouillon</option>
-                  <option value="published">Publié</option>
-                  <option value="archived">Archivé</option>
+                  <option value="draft">{formatMessage(messages.statusDraft)}</option>
+                  <option value="published">{formatMessage(messages.statusPublished)}</option>
+                  <option value="archived">{formatMessage(messages.statusArchived)}</option>
                 </select>
               </div>
               <div className="ws-template-page__field">
-                <label htmlFor="template-visibility">Portée</label>
+                <label htmlFor="template-visibility">{formatMessage(messages.scope)}</label>
                 <select
                   id="template-visibility"
                   value={visibility}
                   onChange={(event) => setVisibility(event.target.value as typeof visibility)}
                 >
-                  <option value="default">Global</option>
-                  <option value="org">Organisation</option>
+                  <option value="default">{formatMessage(messages.global)}</option>
+                  <option value="org">{formatMessage(messages.organizationScope)}</option>
                 </select>
               </div>
               <div className="ws-template-page__field">
-                <label htmlFor="template-org">Organisation</label>
+                <label htmlFor="template-org">{formatMessage(messages.organization)}</label>
                 <select
                   id="template-org"
                   value={selectedOrg}
                   disabled={visibility === 'default'}
                   onChange={(event) => setSelectedOrg(event.target.value)}
                 >
-                  <option value="">Sélectionner</option>
+                  <option value="">{formatMessage(messages.select)}</option>
                   {orgOptions.map((org) => (
                     <option key={org} value={org}>{org}</option>
                   ))}
                 </select>
               </div>
               <div className="ws-template-page__field ws-template-page__field--wide">
-                <label htmlFor="template-description">Description</label>
+                <label htmlFor="template-description">{formatMessage(messages.description)}</label>
                 <textarea
                   id="template-description"
                   value={description}
                   onChange={(event) => setDescription(event.target.value)}
-                  placeholder="Expliquez quand utiliser ce modèle."
+                  placeholder={formatMessage(messages.descriptionPlaceholder)}
                 />
               </div>
             </div>
@@ -281,9 +457,11 @@ const CoursePlanTemplatesPage = () => {
             <CoursePlanBuilder
               structure={structure}
               onChange={setStructure}
-              sourceLabel={visibility === 'default' ? 'Modèle global' : 'Modèle organisation'}
-              title={name || 'Plan du modèle'}
-              description="Ce plan sera proposé comme point de départ dans l'assistant de création."
+              sourceLabel={visibility === 'default'
+                ? formatMessage(messages.globalTemplateSource)
+                : formatMessage(messages.orgTemplateSource)}
+              title={name || formatMessage(messages.templatePlanTitle)}
+              description={formatMessage(messages.templatePlanDescription)}
             />
 
             <div className="ws-template-page__editor-actions">
@@ -295,7 +473,7 @@ const CoursePlanTemplatesPage = () => {
                   disabled={isSaving}
                 >
                   <Icon src={Delete} />
-                  Archiver
+                  {formatMessage(messages.archive)}
                 </button>
               )}
               <button
@@ -305,7 +483,7 @@ const CoursePlanTemplatesPage = () => {
                 disabled={isSaving}
               >
                 <Icon src={Check} />
-                {isSaving ? 'Enregistrement...' : 'Enregistrer'}
+                {isSaving ? formatMessage(messages.saving) : formatMessage(messages.save)}
               </button>
             </div>
           </section>

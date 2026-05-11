@@ -58,6 +58,7 @@ const SequenceNavigationTabs = ({
               key={buttonUnitId}
               unitId={buttonUnitId}
               isActive={unitId === buttonUnitId}
+              showTitle
             />
           ))}
           {sequenceChildAddable && (

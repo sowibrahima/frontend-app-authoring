@@ -16,6 +16,18 @@ jest.mock('@src/course-unit/data/apiHooks', () => ({
   }),
 }));
 
+jest.mock('@edx/frontend-component-header', () => ({}));
+
+jest.mock('@edx/frontend-component-header/dist/studio-header/StudioHeader', () => ({
+  __esModule: true,
+  default: () => <div data-testid="studio-header" />,
+}));
+
+jest.mock('@edx/frontend-component-header/dist/studio-header/HeaderBody', () => ({
+  __esModule: true,
+  default: () => <div data-testid="studio-header-body" />,
+}));
+
 const unit = {
   id: 'block-v1:UNIX+UX1+2025_T3+type@unit+block@0',
 };
@@ -130,11 +142,11 @@ describe('<SectionCard />', () => {
     const expandButton = screen.getByTestId('section-card-header__expanded-btn');
     fireEvent.click(expandButton);
     expect(screen.queryByTestId('section-card__subsections')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'New subsection' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'New lesson' })).not.toBeInTheDocument();
 
     fireEvent.click(expandButton);
     expect(screen.queryByTestId('section-card__subsections')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'New subsection' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'New lesson' })).toBeInTheDocument();
   });
 
   it('title only updates if changed', async () => {
@@ -182,7 +194,7 @@ describe('<SectionCard />', () => {
     await act(async () => fireEvent.click(menu));
     expect(within(element).queryByTestId('section-card-header__menu-duplicate-button')).not.toBeInTheDocument();
     expect(within(element).queryByTestId('section-card-header__menu-delete-button')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'New subsection' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'New lesson' })).not.toBeInTheDocument();
   });
 
   it('check extended section when URL "show" param in subsection under section', async () => {
@@ -194,7 +206,7 @@ describe('<SectionCard />', () => {
     renderComponent(collapsedSections, `/course/:courseId?show=${subsectionIdUrl}`);
 
     const cardSubsections = await screen.findByTestId('section-card__subsections');
-    const newSubsectionButton = await screen.findByRole('button', { name: 'New subsection' });
+    const newSubsectionButton = await screen.findByRole('button', { name: 'New lesson' });
     expect(cardSubsections).toBeInTheDocument();
     expect(newSubsectionButton).toBeInTheDocument();
   });
@@ -208,7 +220,7 @@ describe('<SectionCard />', () => {
     renderComponent(collapsedSections, `/course/:courseId?show=${unitIdUrl}`);
 
     const cardSubsections = await screen.findByTestId('section-card__subsections');
-    const newSubsectionButton = await screen.findByRole('button', { name: 'New subsection' });
+    const newSubsectionButton = await screen.findByRole('button', { name: 'New lesson' });
     expect(cardSubsections).toBeInTheDocument();
     expect(newSubsectionButton).toBeInTheDocument();
   });
@@ -221,7 +233,7 @@ describe('<SectionCard />', () => {
     renderComponent(collapsedSections, `/course/:courseId?show=${randomId}`);
 
     const cardSubsections = screen.queryByTestId('section-card__subsections');
-    const newSubsectionButton = screen.queryByRole('button', { name: 'New subsection' });
+    const newSubsectionButton = screen.queryByRole('button', { name: 'New lesson' });
     expect(cardSubsections).toBeNull();
     expect(newSubsectionButton).toBeNull();
   });

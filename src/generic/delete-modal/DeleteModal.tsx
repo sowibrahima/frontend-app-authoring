@@ -49,9 +49,10 @@ const DeleteModal = ({
       variant={variant}
       icon={icon}
       footerNode={(
-        <ActionRow>
+        <ActionRow className="delete-modal__actions">
           <Button
             variant={cancelButtonVariant}
+            className="delete-modal__cancel-btn"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -67,12 +68,13 @@ const DeleteModal = ({
               await onDeleteSubmit();
             }}
             variant={buttonVariant}
+            className="delete-modal__delete-btn"
             label={defaultBtnLabel}
           />
         </ActionRow>
       )}
     >
-      <div>{modalDescription}</div>
+      <div className="delete-modal__description">{modalDescription}</div>
     </AlertModal>
   );
 };
