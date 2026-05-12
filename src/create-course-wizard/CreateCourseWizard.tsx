@@ -919,7 +919,7 @@ const CreateCourseWizard = () => {
         ...currentCourseDetails,
         shortDescription: data.shortDescription.trim(),
         language: data.language,
-        overview: data.overviewHtml.trim() || currentCourseDetails?.overview,
+        overview: data.overviewHtml.trim(),
         selfPaced: data.pacing === 'self',
         preRequisiteCourses: data.prerequisiteMode === 'required' && data.prerequisiteCourse.trim()
           ? [data.prerequisiteCourse.trim()]

@@ -7,7 +7,7 @@ import { GradingScaleHandle, GradingScaleSegment, GradingScaleTicks } from './co
 import messages from './messages';
 
 import { useRanger } from './react-ranger';
-import { convertGradeData, MAXIMUM_SCALE_LENGTH } from './utils';
+import { convertGradeData, getDisplayGradeLetter, MAXIMUM_SCALE_LENGTH } from './utils';
 
 const DEFAULT_GRADE_LETTERS = ['A', 'B', 'C', 'D'];
 const DEFAULT_GRADING_SEGMENTS = [
@@ -19,7 +19,9 @@ const normalizeGradingSegments = segments => (
   Array.isArray(segments) && segments.length >= 2 ? segments : DEFAULT_GRADING_SEGMENTS
 );
 const normalizeGradeLetters = (letters, intl) => (
-  Array.isArray(letters) && letters.length ? letters : [getDefaultPassText(intl)]
+  Array.isArray(letters) && letters.length
+    ? letters.map(letter => getDisplayGradeLetter(letter, intl))
+    : [getDefaultPassText(intl)]
 );
 
 const GradingScale = ({
@@ -61,7 +63,7 @@ const GradingScale = ({
   }, [JSON.stringify(convertedResult)]);
 
   useEffect(() => {
-    convertGradeData(letters, gradingSegments, setConvertedResult);
+    convertGradeData(letters, gradingSegments, setConvertedResult, intl);
   }, [gradingSegments, letters]);
 
   const addNewGradingSegment = () => {

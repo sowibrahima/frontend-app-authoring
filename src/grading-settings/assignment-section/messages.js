@@ -89,6 +89,10 @@ const messages = defineMessages({
     id: 'course-authoring.grading-settings.assignment.alert.warning.usage.title',
     defaultMessage: 'Warning: The number of {type} assignments defined here does not match the current number of {type} assignments in the course:',
   },
+  assignmentAlertWarningUsageListLabel: {
+    id: 'course-authoring.grading-settings.assignment.alert.warning.usage.list-label',
+    defaultMessage: '{count} final assignment(s) found:',
+  },
   assignmentAlertWarningSuccess: {
     id: 'course-authoring.grading-settings.assignment.alert.success.title',
     defaultMessage: 'The number of {type} assignments in the course matches the number defined here.',

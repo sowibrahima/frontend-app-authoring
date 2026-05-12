@@ -45,7 +45,9 @@ const GradingTypeAndDueDate = ({
       </span>
       <Icon className="mr-1" size="sm" src={CheckIcon} />
       <span className="status-grading-value">
-        {gradingType || intl.formatMessage(messages.ungradedText)}
+        {gradingType === 'Homework'
+          ? intl.formatMessage(messages.homeworkGradingType)
+          : gradingType || intl.formatMessage(messages.ungradedText)}
       </span>
     </div>
   );
