@@ -87,7 +87,11 @@ const StatusBar = ({
               hour="numeric"
               minute="numeric"
             />
-          ) : courseReleaseDate}
+          ) : (
+            courseReleaseDate === 'Set Date'
+              ? intl.formatMessage(messages.setDate)
+              : courseReleaseDate
+          )}
         </Link>
       </StatusBarItem>
       <StatusBarItem title={intl.formatMessage(messages.pacingTypeTitle)}>

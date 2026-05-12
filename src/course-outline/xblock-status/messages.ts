@@ -37,6 +37,10 @@ const messages = defineMessages({
     id: 'course-authoring.course-outline.xblock-status.gradedAsScreenReader.label',
     defaultMessage: 'Graded as: ',
   },
+  homeworkGradingType: {
+    id: 'course-authoring.course-outline.xblock-status.gradingType.homework',
+    defaultMessage: 'Homework',
+  },
   ungradedText: {
     id: 'course-authoring.course-outline.xblock-status.ungraded.text',
     defaultMessage: 'Ungraded',

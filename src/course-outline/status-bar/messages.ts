@@ -5,6 +5,10 @@ const messages = defineMessages({
     id: 'course-authoring.course-outline.status-bar.start-date',
     defaultMessage: 'Date and details',
   },
+  setDate: {
+    id: 'course-authoring.course-outline.status-bar.set-date',
+    defaultMessage: 'Set Date',
+  },
   pacingTypeTitle: {
     id: 'course-authoring.course-outline.status-bar.pacing-type',
     defaultMessage: 'Pacing type',

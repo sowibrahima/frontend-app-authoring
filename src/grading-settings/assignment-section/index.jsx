@@ -170,7 +170,9 @@ const AssignmentSection = ({
                 description={(
                   <>
                     <span className="course-grading-assignment-item-alert-warning-list-label">
-                      {courseAssignmentUsage.length} Final assignment(s) found:
+                      {intl.formatMessage(messages.assignmentAlertWarningUsageListLabel, {
+                        count: courseAssignmentUsage.length,
+                      })}
                     </span>
                     <ol className="course-grading-assignment-item-alert-warning-list">
                       {courseAssignmentUsage.map(assignmentItem => (
