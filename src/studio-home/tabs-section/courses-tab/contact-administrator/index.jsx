@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Button, Card } from '@openedx/paragon';
 import { Add as AddIcon } from '@openedx/paragon/icons/es5';
+import { getConfig } from '@edx/frontend-platform';
 import { useIntl } from '@edx/frontend-platform/i18n';
 
 import { getStudioHomeData } from '../../../data/selectors';
@@ -12,7 +13,8 @@ const ContactAdministrator = ({
   hasAbilityToCreateCourse, showNewCourseContainer, onClickNewCourse,
 }) => {
   const intl = useIntl();
-  const { studioShortName } = useSelector(getStudioHomeData);
+  const { studioShortName: apiStudioShortName } = useSelector(getStudioHomeData);
+  const studioShortName = apiStudioShortName || getConfig().STUDIO_SHORT_NAME || 'WutiSkill Studio';
 
   return (
     <Card variant="muted">

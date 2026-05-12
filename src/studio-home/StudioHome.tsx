@@ -7,6 +7,7 @@ import {
 } from '@openedx/paragon';
 import { Error } from '@openedx/paragon/icons';
 import SharedHeader from '@edx/frontend-component-header';
+import { getConfig } from '@edx/frontend-platform';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -50,6 +51,7 @@ const StudioHome = () => {
     showNewLibraryButton,
     showNewLibraryV2Button,
   } = studioHomeData;
+  const studioShortName = studioHomeData?.studioShortName || getConfig().STUDIO_SHORT_NAME || 'WutiSkill Studio';
 
   const shouldShowNewLibraryButton = (
     (showNewLibraryButton && !showV2LibraryURL)
@@ -93,7 +95,7 @@ const StudioHome = () => {
               {intl.formatMessage(messages.heroStatusPill)}
             </span>
             <h1 className="ws-studio-home__title">
-              {intl.formatMessage(messages.headingTitle)}
+              {intl.formatMessage(messages.headingTitle, { studioShortName })}
             </h1>
           </div>
           <div className="ws-studio-home__hero-actions">
