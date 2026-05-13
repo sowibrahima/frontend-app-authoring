@@ -114,6 +114,7 @@ interface OutlineModule {
 
 const TOTAL_STEPS = 7;
 const MAX_THUMBNAIL_SIZE = 2 * 1024 * 1024;
+const THUMBNAIL_MIME_TYPES = ['image/png', 'image/jpeg'];
 const COURSE_SETUP_STORAGE_PREFIX = 'wutiskill.course-setup.';
 
 const LANGUAGE_OPTIONS: Array<{ value: string; label: string }> = [
@@ -880,13 +881,14 @@ const CreateCourseWizard = () => {
     if (thumbnailFile) {
       try {
         const fileData = new FormData();
-        fileData.append('files[]', thumbnailFile);
+        fileData.append('file', thumbnailFile);
         const uploadResponse: any = await uploadAssets(courseId, fileData);
         const uploadedAssetUrl = uploadResponse?.asset?.url;
+        const uploadedAssetName = uploadResponse?.asset?.displayName;
 
         if (uploadedAssetUrl) {
           uploadedCourseImagePath = uploadedAssetUrl;
-          uploadedCourseImageName = uploadedAssetUrl.split('block@').pop() || thumbnailFile.name;
+          uploadedCourseImageName = uploadedAssetName || uploadedAssetUrl.split('block@').pop() || thumbnailFile.name;
         }
       } catch (error) {
         // eslint-disable-next-line no-console
@@ -1119,10 +1121,10 @@ const CreateCourseWizard = () => {
       return;
     }
 
-    if (!file.type.startsWith('image/')) {
+    if (!THUMBNAIL_MIME_TYPES.includes(file.type)) {
       setThumbnailError(t(
         'wuti.authoring.wizard.thumbnailTypeError',
-        'File must be a PNG, JPG, or WEBP image.',
+        'File must be a PNG or JPG image.',
       ));
       return;
     }
@@ -2060,7 +2062,7 @@ const CreateCourseWizard = () => {
                       <input
                         ref={fileInputRef}
                         type="file"
-                        accept="image/png,image/jpeg,image/webp"
+                        accept="image/png,image/jpeg"
                         className="ws-wizard__hidden-input"
                         onChange={(event) => handleThumbnailFile(event.target.files?.[0])}
                       />
