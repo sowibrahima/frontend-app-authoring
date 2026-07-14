@@ -46,7 +46,7 @@ const XBlockStatus = ({
   const isVertical = category === COURSE_BLOCK_NAMES.vertical.id;
 
   return (
-    <div className="text-secondary-400 x-small mb-1 xblock-status-row">
+    <div className="text-secondary-400 x-small mb-1">
       {category === COURSE_BLOCK_NAMES.sequential.id && showCorrectness === ShowAnswerTypesKeys.NEVER && (
         <NeverShowAssessmentResultMessage />
       )}

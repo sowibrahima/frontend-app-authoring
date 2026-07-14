@@ -203,7 +203,7 @@ const messages = defineMessages({
   },
   lessonBuilderPdfDescription: {
     id: 'course-authoring.course-unit.lesson-builder.pdf.description',
-    defaultMessage: 'Direct PDF import. Coming soon.',
+    defaultMessage: 'Upload a PDF file and configure how it appears in the course.',
     description: 'PDF choice description.',
   },
   lessonBuilderQuizTitle: {

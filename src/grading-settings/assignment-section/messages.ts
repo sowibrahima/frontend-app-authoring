@@ -9,6 +9,10 @@ const messages = defineMessages({
     id: 'course-authoring.grading-settings.assignment.type-name.description',
     defaultMessage: 'The general category for this type of assignment, for example, Homework or Midterm Exam. This name is visible to learners.',
   },
+  homeworkTypeName: {
+    id: 'course-authoring.grading-settings.assignment.type-name.homework',
+    defaultMessage: 'Homework',
+  },
   assignmentTypeNameErrorMessage1: {
     id: 'course-authoring.grading-settings.assignment.type-name.error.message-1',
     defaultMessage: 'The assignment type must have a name.',

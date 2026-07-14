@@ -59,7 +59,7 @@ jest.mock('../../generic/hooks/context/hooks', () => ({
   }),
 }));
 
-const renderComponent = (props?: AddComponentProps) =>
+const renderComponent = (props?: Partial<AddComponentProps>) =>
   render(
     <IframeProvider>
       <AddComponent
@@ -372,6 +372,19 @@ describe('<AddComponent />', () => {
       // Setting the category and not supplying an additional function launches the traditional editor.
       category: COMPONENT_TYPES.pdf,
     });
+  });
+
+  it('creates a PDF XBlock from the lesson-builder read choices', async () => {
+    const user = userEvent.setup();
+    const { getByRole } = renderComponent({ isEmptyUnit: true });
+
+    await user.click(getByRole('button', { name: new RegExp(messages.lessonBuilderReadTitle.defaultMessage, 'i') }));
+    await user.click(getByRole('button', { name: new RegExp(messages.lessonBuilderPdfTitle.defaultMessage, 'i') }));
+
+    expect(handleCreateNewCourseXBlockMock).toHaveBeenCalledWith({
+      parentLocator: blockId,
+      type: COMPONENT_TYPES.pdf,
+    }, expect.any(Function));
   });
 
   it('verifies "Text" component selection in modal', async () => {

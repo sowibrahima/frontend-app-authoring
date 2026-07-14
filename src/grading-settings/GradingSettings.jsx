@@ -1,34 +1,49 @@
 import { useIntl } from '@edx/frontend-platform/i18n';
 import {
-  Button, Container, StatefulButton,
+  Button,
+  Container,
+  Layout,
+  StatefulButton,
 } from '@openedx/paragon';
-import { CheckCircle, Warning } from '@openedx/paragon/icons';
+import { Add as IconAdd, CheckCircle, Warning } from '@openedx/paragon/icons';
+import { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet';
+
+import { useCourseAuthoringContext } from '@src/CourseAuthoringContext';
+import { STATEFUL_BUTTON_STATES } from '@src/constants';
+import { useCourseSettings } from '@src/data/apiHooks';
+import { useCourseUserPermissions } from '@src/authz/hooks';
+import { getGradingPermissions } from '@src/authz/permissionHelpers';
+import ConnectionErrorAlert from '@src/generic/ConnectionErrorAlert';
+import PermissionDeniedAlert from '@src/generic/PermissionDeniedAlert';
+import SectionSubHeader from '@src/generic/section-sub-header';
+import SubHeader from '@src/generic/sub-header/SubHeader';
+import AlertMessage from '@src/generic/alert-message';
+import InternetConnectionAlert from '@src/generic/internet-connection-alert';
+import getPageHeadTitle from '@src/generic/utils';
+
 import {
-  useCourseSettings,
   useGradingSettings,
   useGradingSettingUpdater,
-} from 'CourseAuthoring/grading-settings/data/apiHooks';
-import PropTypes from 'prop-types';
-import React, { useEffect, useState } from 'react';
-import { Helmet } from 'react-helmet';
-import { STATEFUL_BUTTON_STATES } from '../constants';
-import AlertMessage from '../generic/alert-message';
-import InternetConnectionAlert from '../generic/internet-connection-alert';
-
-import { useModel } from '../generic/model-store';
-import ConnectionErrorAlert from '../generic/ConnectionErrorAlert';
-import SectionSubHeader from '../generic/section-sub-header';
-import SubHeader from '../generic/sub-header/SubHeader';
-import getPageHeadTitle from '../generic/utils';
+} from './data/apiHooks';
 import AssignmentSection from './assignment-section';
 import CreditSection from './credit-section';
 import DeadlineSection from './deadline-section';
 import GradingScale from './grading-scale/GradingScale';
+import GradingSidebar from './grading-sidebar';
 import { useConvertGradeCutoffs, useUpdateGradingData } from './hooks';
 import messages from './messages';
 
-const GradingSettings = ({ courseId }) => {
+const GradingSettings = () => {
   const intl = useIntl();
+  const { courseId, courseDetails } = useCourseAuthoringContext();
+
+  const {
+    isLoading: isLoadingUserPermissions,
+    canViewGradingSettings,
+    canEditGradingSettings,
+  } = useCourseUserPermissions(courseId, getGradingPermissions(courseId));
+
   const {
     data: gradingSettings,
     isLoading: isGradingSettingsLoading,
@@ -41,7 +56,7 @@ const GradingSettings = ({ courseId }) => {
   } = useCourseSettings(courseId);
   const {
     mutate: updateGradingSettings,
-    isLoading: savePending,
+    isPending: savePending,
     isSuccess: savingStatus,
     isError: savingFailed,
   } = useGradingSettingUpdater(courseId);
@@ -50,12 +65,12 @@ const GradingSettings = ({ courseId }) => {
   const courseGradingDetails = gradingSettings?.courseDetails;
   const isLoadingDenied = isGradingSettingsError || isCourseSettingsError;
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
-  const isLoading = isCourseSettingsLoading || isGradingSettingsLoading;
+  const isLoading = isCourseSettingsLoading || isGradingSettingsLoading || isLoadingUserPermissions;
   const [isQueryPending, setIsQueryPending] = useState(false);
   const [showOverrideInternetConnectionAlert, setOverrideInternetConnectionAlert] = useState(false);
   const [eligibleGrade, setEligibleGrade] = useState(null);
 
-  const courseName = useModel('courseDetails', courseId)?.name;
+  const courseName = courseDetails?.name || '';
 
   const {
     graders,
@@ -68,8 +83,8 @@ const GradingSettings = ({ courseId }) => {
     showSavePrompt,
     setShowSavePrompt,
     handleResetPageData,
+    handleAddAssignment,
     handleRemoveAssignment,
-    hasLoadedGradingData,
   } = useUpdateGradingData(courseGradingDetails, setOverrideInternetConnectionAlert, setShowSuccessAlert);
 
   const {
@@ -77,7 +92,6 @@ const GradingSettings = ({ courseId }) => {
     gradeValues,
     sortedGrades,
   } = useConvertGradeCutoffs(gradeCutoffs);
-  const primaryGraders = graders?.length ? [graders[0]] : graders;
 
   useEffect(() => {
     if (savingStatus) {
@@ -89,6 +103,10 @@ const GradingSettings = ({ courseId }) => {
     }
   }, [savePending]);
 
+  if (!isLoadingUserPermissions && !canViewGradingSettings) {
+    return <PermissionDeniedAlert />;
+  }
+
   if (isLoadingDenied) {
     return (
       <Container size="xl" className="course-unit px-4 mt-4">
@@ -97,9 +115,11 @@ const GradingSettings = ({ courseId }) => {
     );
   }
 
-  if (isLoading || !hasLoadedGradingData) {
+  if (isLoading) {
     return null;
   }
+
+  const isEditable = !isLoadingUserPermissions && canEditGradingSettings;
 
   const handleQueryProcessing = () => {
     setShowSuccessAlert(false);
@@ -145,75 +165,103 @@ const GradingSettings = ({ courseId }) => {
         </div>
         <div>
           <section className="setting-items mb-4">
-            <article>
-              <SubHeader
-                title={intl.formatMessage(messages.headingTitle)}
-                subtitle={intl.formatMessage(messages.headingSubtitle)}
-                contentTitle={intl.formatMessage(messages.policy)}
-                description={intl.formatMessage(messages.policiesDescription)}
-              />
-              <section>
-                <GradingScale
-                  gradeCutoffs={gradeCutoffs}
-                  showSavePrompt={setShowSavePrompt}
-                  gradeLetters={gradeLetters}
-                  gradeValues={gradeValues}
-                  sortedGrades={sortedGrades}
-                  setShowSuccessAlert={setShowSuccessAlert}
-                  setGradingData={setGradingData}
-                  resetDataRef={resetDataRef}
-                  setOverrideInternetConnectionAlert={setOverrideInternetConnectionAlert}
-                  setEligibleGrade={setEligibleGrade}
-                  defaultGradeDesignations={gradingSettings?.defaultGradeDesignations}
-                />
-              </section>
-              {courseSettingsData.creditEligibilityEnabled && courseSettingsData.isCreditCourse && (
-                <section>
-                  <SectionSubHeader
-                    title={intl.formatMessage(messages.creditEligibilitySectionTitle)}
-                    description={intl.formatMessage(messages.creditEligibilitySectionDescription)}
+            <Layout
+              lg={[{ span: 9 }, { span: 3 }]}
+              md={[{ span: 9 }, { span: 3 }]}
+              sm={[{ span: 9 }, { span: 3 }]}
+              xs={[{ span: 9 }, { span: 3 }]}
+              xl={[{ span: 9 }, { span: 3 }]}
+            >
+              <Layout.Element>
+                <article>
+                  <SubHeader
+                    title={intl.formatMessage(messages.headingTitle)}
+                    subtitle={intl.formatMessage(messages.headingSubtitle)}
+                    contentTitle={intl.formatMessage(messages.policy)}
+                    description={intl.formatMessage(messages.policiesDescription)}
                   />
-                  <CreditSection
-                    eligibleGrade={eligibleGrade}
-                    setShowSavePrompt={setShowSavePrompt}
-                    minimumGradeCredit={minimumGradeCredit}
-                    setGradingData={setGradingData}
-                    setShowSuccessAlert={setShowSuccessAlert}
-                  />
-                </section>
-              )}
-              <section>
-                <SectionSubHeader
-                  title={intl.formatMessage(messages.gradingRulesPoliciesSectionTitle)}
-                  description={intl.formatMessage(messages.gradingRulesPoliciesSectionDescription)}
+                  <section>
+                    <GradingScale
+                      gradeCutoffs={gradeCutoffs}
+                      showSavePrompt={setShowSavePrompt}
+                      gradeLetters={gradeLetters}
+                      gradeValues={gradeValues}
+                      sortedGrades={sortedGrades}
+                      setShowSuccessAlert={setShowSuccessAlert}
+                      setGradingData={setGradingData}
+                      resetDataRef={resetDataRef}
+                      setOverrideInternetConnectionAlert={setOverrideInternetConnectionAlert}
+                      setEligibleGrade={setEligibleGrade}
+                      defaultGradeDesignations={gradingSettings?.defaultGradeDesignations}
+                      isEditable={isEditable}
+                    />
+                  </section>
+                  {courseSettingsData.creditEligibilityEnabled && courseSettingsData.isCreditCourse && (
+                    <section>
+                      <SectionSubHeader
+                        title={intl.formatMessage(messages.creditEligibilitySectionTitle)}
+                        description={intl.formatMessage(messages.creditEligibilitySectionDescription)}
+                      />
+                      <CreditSection
+                        eligibleGrade={eligibleGrade}
+                        setShowSavePrompt={setShowSavePrompt}
+                        minimumGradeCredit={minimumGradeCredit}
+                        setGradingData={setGradingData}
+                        setShowSuccessAlert={setShowSuccessAlert}
+                        isEditable={isEditable}
+                      />
+                    </section>
+                  )}
+                  <section>
+                    <SectionSubHeader
+                      title={intl.formatMessage(messages.gradingRulesPoliciesSectionTitle)}
+                      description={intl.formatMessage(messages.gradingRulesPoliciesSectionDescription)}
+                    />
+                    <DeadlineSection
+                      setShowSavePrompt={setShowSavePrompt}
+                      gracePeriod={gracePeriod}
+                      setGradingData={setGradingData}
+                      setShowSuccessAlert={setShowSuccessAlert}
+                      isEditable={isEditable}
+                    />
+                  </section>
+                  <section>
+                    <header className="row justify-content-between align-items-center mt-4 mx-0 mb-2">
+                      <h2 className="lead">
+                        {intl.formatMessage(messages.assignmentTypeSectionTitle)}
+                      </h2>
+                      <span className="small text-gray-700">
+                        {intl.formatMessage(messages.assignmentTypeSectionDescription)}
+                      </span>
+                    </header>
+                    <AssignmentSection
+                      handleRemoveAssignment={handleRemoveAssignment}
+                      setShowSavePrompt={setShowSavePrompt}
+                      graders={graders}
+                      setGradingData={setGradingData}
+                      courseAssignmentLists={courseAssignmentLists}
+                      setShowSuccessAlert={setShowSuccessAlert}
+                      isEditable={isEditable}
+                    />
+                    <Button
+                      variant="primary"
+                      iconBefore={IconAdd}
+                      onClick={handleAddAssignment}
+                      disabled={!isEditable}
+                    >
+                      {intl.formatMessage(messages.addNewAssignmentTypeBtn)}
+                    </Button>
+                  </section>
+                </article>
+              </Layout.Element>
+              <Layout.Element>
+                <GradingSidebar
+                  courseId={courseId}
+                  intl={intl}
+                  proctoredExamSettingsUrl={courseSettingsData.mfeProctoredExamSettingsUrl}
                 />
-                <DeadlineSection
-                  setShowSavePrompt={setShowSavePrompt}
-                  gracePeriod={gracePeriod}
-                  setGradingData={setGradingData}
-                  setShowSuccessAlert={setShowSuccessAlert}
-                />
-              </section>
-              <section>
-                <header className="row justify-content-between align-items-center mt-4 mx-0 mb-2">
-                  <h2 className="lead">
-                    {intl.formatMessage(messages.assignmentTypeSectionTitle)}
-                  </h2>
-                  <span className="small text-gray-700">
-                    {intl.formatMessage(messages.assignmentTypeSectionDescription)}
-                  </span>
-                </header>
-                <AssignmentSection
-                  handleRemoveAssignment={handleRemoveAssignment}
-                  setShowSavePrompt={setShowSavePrompt}
-                  graders={primaryGraders}
-                  setGradingData={setGradingData}
-                  courseAssignmentLists={courseAssignmentLists}
-                  setShowSuccessAlert={setShowSuccessAlert}
-                  hideDeleteButton
-                />
-              </section>
-            </article>
+              </Layout.Element>
+            </Layout>
           </section>
         </div>
       </Container>
@@ -235,7 +283,7 @@ const GradingSettings = ({ courseId }) => {
           role="dialog"
           actions={[
             !isQueryPending && (
-              <Button variant="tertiary" onClick={handleResetPageData}>
+              <Button key="cancel" variant="tertiary" onClick={handleResetPageData}>
                 {intl.formatMessage(messages.buttonCancelText)}
               </Button>
             ),
@@ -243,6 +291,7 @@ const GradingSettings = ({ courseId }) => {
               key="statefulBtn"
               onClick={handleSendGradingSettingsData}
               state={isQueryPending ? STATEFUL_BUTTON_STATES.pending : STATEFUL_BUTTON_STATES.default}
+              disabled={!isEditable}
               {...updateValuesButtonState}
             />,
           ].filter(Boolean)}
@@ -254,10 +303,6 @@ const GradingSettings = ({ courseId }) => {
       </div>
     </>
   );
-};
-
-GradingSettings.propTypes = {
-  courseId: PropTypes.string.isRequired,
 };
 
 export default GradingSettings;

@@ -12,14 +12,6 @@ export const getGradingValues = (cutoffs) =>
   Object.values(cutoffs)
     .map(number => Math.round(number * MAXIMUM_SCALE_LENGTH));
 
-export const getDisplayGradeLetter = (letter, intl) => (
-  letter === 'Pass' ? intl.formatMessage(messages.defaultPassText) : letter
-);
-
-export const getStoredGradeLetter = (letter, intl) => (
-  intl && letter === intl.formatMessage(messages.defaultPassText) ? 'Pass' : letter
-);
-
 /**
  * Initially, the data comes in the format { a: 0.8 },
  * this function converts the data structure to the required { current: 100, previous: 80 } format.
@@ -85,7 +77,7 @@ export const getLettersOnShortScale = (idx, letters, intl) => {
  * @param {func} setConvertedResult - Changing the state of the converted result.
  * @returns {void}
  */
-export const convertGradeData = (letters, gradingSegments, setConvertedResult, intl) => {
+export const convertGradeData = (letters, gradingSegments, setConvertedResult) => {
   const convertedData = {};
 
   if (!gradingSegments.length) {
@@ -93,11 +85,7 @@ export const convertGradeData = (letters, gradingSegments, setConvertedResult, i
   }
 
   letters.forEach((letter, idx) => {
-    const segment = gradingSegments[idx];
-
-    if (letter && segment) {
-      convertedData[getStoredGradeLetter(letter, intl)] = segment.previous / MAXIMUM_SCALE_LENGTH;
-    }
+    convertedData[letter] = gradingSegments[idx].previous / MAXIMUM_SCALE_LENGTH;
   });
 
   setConvertedResult(convertedData);

@@ -124,8 +124,8 @@ const SignatoryForm = ({
               className="signatory__image"
             />
           )}
-          <Stack direction="horizontal" className="align-items-baseline">
-            <Stack>
+          <div className="signatory-image-upload" data-testid="signature-image-upload">
+            <div className="signatory-image-upload__field">
               <Form.Control
                 readOnly
                 value={signatureImagePath}
@@ -135,9 +135,9 @@ const SignatoryForm = ({
               <Form.Control.Feedback>
                 <span className="x-small">{intl.formatMessage(messages.imageDescription)}</span>
               </Form.Control.Feedback>
-            </Stack>
-            <Button onClick={open}>{uploadReplaceText}</Button>
-          </Stack>
+            </div>
+            <Button className="signatory-image-upload__action" onClick={open}>{uploadReplaceText}</Button>
+          </div>
         </Form.Group>
       </Stack>
       {isEdit && (

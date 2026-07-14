@@ -13,6 +13,7 @@ import {
 import { ContentCopy, InfoOutline } from '@openedx/paragon/icons';
 
 import { getFileSizeToClosestByte } from '../../utils';
+import { useCopyText } from '../../generic/clipboard';
 import messages from './messages';
 import './FileInfoModalSidebar.scss';
 
@@ -21,6 +22,7 @@ const FileInfoModalSidebar = ({
   handleLockedAsset,
 }) => {
   const intl = useIntl();
+  const copyText = useCopyText();
   const [lockedState, setLockedState] = useState(asset?.locked);
   const handleLock = (e) => {
     const locked = e.target.checked;
@@ -60,7 +62,7 @@ const FileInfoModalSidebar = ({
           src={ContentCopy}
           iconAs={Icon}
           alt={messages.copyStudioUrlTitle.defaultMessage}
-          onClick={() => navigator.clipboard.writeText(asset?.portableUrl)}
+          onClick={() => copyText(asset?.portableUrl)}
         />
       </ActionRow>
       <div className="font-weight-bold mt-3">
@@ -75,7 +77,7 @@ const FileInfoModalSidebar = ({
           src={ContentCopy}
           iconAs={Icon}
           alt={messages.copyWebUrlTitle.defaultMessage}
-          onClick={() => navigator.clipboard.writeText(asset?.externalUrl)}
+          onClick={() => copyText(asset?.externalUrl)}
         />
       </ActionRow>
       <ActionRow className=" border-top mt-3 pt-3">

@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Editor } from '@tinymce/tinymce-react';
 import { getConfig } from '@edx/frontend-platform';
+import { useIntl } from '@edx/frontend-platform/i18n';
 
 import 'tinymce';
 import 'tinymce/themes/silver';
@@ -14,6 +15,7 @@ import SourceCodeModal from '../SourceCodeModal';
 import * as hooks from './hooks';
 import './customTinyMcePlugins/embedIframePlugin';
 import { isLibraryV1Key } from '../../../generic/key-utils';
+import messages from './messages';
 
 export { prepareEditorRef } from './hooks';
 
@@ -49,6 +51,7 @@ const TinyMceWidget = ({
   staticRootUrl,
   ...editorConfig
 }) => {
+  const intl = useIntl();
   const { isImgOpen, openImgModal, closeImgModal } = hooks.imgModalToggle();
   const { isSourceCodeOpen, openSourceCodeModal, closeSourceCodeModal } = hooks.sourceCodeModalToggle(editorRef);
   const { imagesRef } = hooks.useImages({ images, editorContentHtml });
@@ -92,6 +95,14 @@ const TinyMceWidget = ({
             images: imagesRef,
             editorContentHtml,
             staticRootUrl,
+            labels: {
+              generateWithAi: intl.formatMessage(messages.generateWithAi),
+              addImage: intl.formatMessage(messages.addImage),
+              editImageSettings: intl.formatMessage(messages.editImageSettings),
+              sourceCode: intl.formatMessage(messages.sourceCode),
+              codeBlock: intl.formatMessage(messages.codeBlock),
+              questionLabel: intl.formatMessage(messages.questionLabel),
+            },
             ...imageSelection,
             ...editorConfig,
           })

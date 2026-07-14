@@ -7,22 +7,10 @@ import { GradingScaleHandle, GradingScaleSegment, GradingScaleTicks } from './co
 import messages from './messages';
 
 import { useRanger } from './react-ranger';
-import { convertGradeData, getDisplayGradeLetter, MAXIMUM_SCALE_LENGTH } from './utils';
+import { convertGradeData, MAXIMUM_SCALE_LENGTH } from './utils';
 
 const DEFAULT_GRADE_LETTERS = ['A', 'B', 'C', 'D'];
-const DEFAULT_GRADING_SEGMENTS = [
-  { current: MAXIMUM_SCALE_LENGTH, previous: 50 },
-  { current: 50, previous: 0 },
-];
 const getDefaultPassText = intl => intl.formatMessage(messages.defaultPassText);
-const normalizeGradingSegments = segments => (
-  Array.isArray(segments) && segments.length >= 2 ? segments : DEFAULT_GRADING_SEGMENTS
-);
-const normalizeGradeLetters = (letters, intl) => (
-  Array.isArray(letters) && letters.length
-    ? letters.map(letter => getDisplayGradeLetter(letter, intl))
-    : [getDefaultPassText(intl)]
-);
 
 const GradingScale = ({
   showSavePrompt,
@@ -34,27 +22,28 @@ const GradingScale = ({
   sortedGrades,
   setOverrideInternetConnectionAlert,
   setEligibleGrade,
-  defaultGradeDesignations = DEFAULT_GRADE_LETTERS,
+  defaultGradeDesignations,
+  isEditable = true,
 }) => {
   const intl = useIntl();
-  const [gradingSegments, setGradingSegments] = useState(() => normalizeGradingSegments(sortedGrades));
-  const [letters, setLetters] = useState(() => normalizeGradeLetters(gradeLetters, intl));
+  const [gradingSegments, setGradingSegments] = useState(sortedGrades);
+  const [letters, setLetters] = useState(gradeLetters);
   const [convertedResult, setConvertedResult] = useState({});
   const gradingSegmentsValues = Object.values(gradingSegments);
   const eligibleValue = gradingSegmentsValues[gradingSegmentsValues.length - 1];
 
   useEffect(() => {
     if (resetDataRef.current) {
-      setGradingSegments(normalizeGradingSegments(sortedGrades));
-      setLetters(normalizeGradeLetters(gradeLetters, intl));
+      setGradingSegments(sortedGrades);
+      setLetters(gradeLetters);
       // eslint-disable-next-line no-param-reassign
       resetDataRef.current = false;
     }
   }, [gradeCutoffs]);
 
   useEffect(() => {
-    setGradingSegments(normalizeGradingSegments(sortedGrades));
-    setLetters(normalizeGradeLetters(gradeLetters, intl));
+    setGradingSegments(sortedGrades);
+    setLetters(gradeLetters);
   }, [sortedGrades.length]);
 
   useEffect(() => {
@@ -63,24 +52,23 @@ const GradingScale = ({
   }, [JSON.stringify(convertedResult)]);
 
   useEffect(() => {
-    convertGradeData(letters, gradingSegments, setConvertedResult, intl);
+    convertGradeData(letters, gradingSegments, setConvertedResult);
   }, [gradingSegments, letters]);
 
   const addNewGradingSegment = () => {
     setGradingSegments((prevSegments) => {
-      const normalizedSegments = normalizeGradingSegments(prevSegments);
       let updatedGradingSegment = [];
-      if (normalizedSegments.length >= 5) {
-        const segSize = MAXIMUM_SCALE_LENGTH / (normalizedSegments.length + 1);
+      if (prevSegments.length >= 5) {
+        const segSize = MAXIMUM_SCALE_LENGTH / (prevSegments.length + 1);
         updatedGradingSegment = Array.from({
-          length: normalizedSegments.length + 1,
+          length: prevSegments.length + 1,
         }).map((_, i) => ({
           current: 100 - i * segSize,
           previous: 100 - (i + 1) * segSize,
         }));
       } else {
-        const firstSegment = normalizedSegments[normalizedSegments.length - 1];
-        const secondSegment = normalizedSegments[normalizedSegments.length - 2];
+        const firstSegment = prevSegments[prevSegments.length - 1];
+        const secondSegment = prevSegments[prevSegments.length - 2];
         const newCurrentValue = Math.ceil(
           (secondSegment.current - secondSegment.previous) / 2,
         );
@@ -95,7 +83,7 @@ const GradingScale = ({
           previous: firstSegment.current + newCurrentValue,
         };
         updatedGradingSegment = [
-          ...normalizedSegments.slice(0, normalizedSegments.length - 2),
+          ...prevSegments.slice(0, prevSegments.length - 2),
           updatedSecondSegment,
           newSegment,
           firstSegment,
@@ -108,7 +96,7 @@ const GradingScale = ({
       return updatedGradingSegment;
     });
 
-    const nextIndex = (letters.length % defaultGradeDesignations.length);
+    const nextIndex = letters.length % defaultGradeDesignations.length;
 
     if (gradingSegments.length === 2) {
       setLetters([defaultGradeDesignations[0], defaultGradeDesignations[nextIndex]]);
@@ -122,16 +110,18 @@ const GradingScale = ({
     const sortedSegments = newGradingSegmentData.sort((currentValue, previousValue) => currentValue - previousValue);
     const newSegmentValue = sortedSegments[sortedSegments.length - 1 - activeHandleIndex];
     const prevSegmentBoundary = (gradingSegments[activeHandleIndex + 1]
-        && gradingSegments[activeHandleIndex + 1].current) || 0;
+      && gradingSegments[activeHandleIndex + 1].current) || 0;
     const nextSegmentBoundary = gradingSegments[activeHandleIndex - 1].current;
 
     showSavePrompt(true);
 
     setGradingSegments(gradingSegments.map((gradingSegment, idx) => {
       const upperBoundaryValue = (newSegmentValue < nextSegmentBoundary - gapToSegment)
-        ? newSegmentValue : (nextSegmentBoundary - gapToSegment);
+        ? newSegmentValue :
+        (nextSegmentBoundary - gapToSegment);
       const lowerBoundaryValue = (upperBoundaryValue > prevSegmentBoundary + gapToSegment)
-        ? upperBoundaryValue : (prevSegmentBoundary + gapToSegment);
+        ? upperBoundaryValue :
+        (prevSegmentBoundary + gapToSegment);
 
       if (idx === activeHandleIndex - 1) {
         return {
@@ -218,7 +208,7 @@ const GradingScale = ({
       <IconButtonWithTooltip
         tooltipPlacement="top"
         tooltipContent={intl.formatMessage(messages.addNewSegmentButtonAltText)}
-        disabled={gradingSegments.length >= (defaultGradeDesignations.length + 1)}
+        disabled={!isEditable || gradingSegments.length >= (defaultGradeDesignations.length + 1)}
         data-testid="grading-scale-btn-add-segment"
         className="mr-3"
         src={IconAdd}
@@ -240,6 +230,7 @@ const GradingScale = ({
             idx={idx}
             handleLetterChange={handleLetterChange}
             letters={letters}
+            isEditable={isEditable}
           />
         ))}
         {handles.map(({ value, getHandleProps }, idx) => (
@@ -249,6 +240,7 @@ const GradingScale = ({
             gradingSegments={gradingSegments}
             value={value}
             idx={idx}
+            isEditable={isEditable}
           />
         ))}
       </div>
@@ -272,6 +264,11 @@ GradingScale.propTypes = {
   ).isRequired,
   setEligibleGrade: PropTypes.func.isRequired,
   defaultGradeDesignations: PropTypes.arrayOf(PropTypes.string),
+  isEditable: PropTypes.bool,
+};
+
+GradingScale.defaultProps = {
+  defaultGradeDesignations: DEFAULT_GRADE_LETTERS,
 };
 
 export default GradingScale;

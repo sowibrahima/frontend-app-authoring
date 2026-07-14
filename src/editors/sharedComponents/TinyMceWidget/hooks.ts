@@ -283,12 +283,13 @@ export const setupCustomBehavior = ({
   setImage,
   lmsEndpointUrl,
   learningContextId,
+  labels,
 }) => (editor) => {
   const componentGenerator = (window as any).WSAIAssistant?.openComponentGenerationModal;
   if (componentGenerator && ['text', 'question'].includes(editorType)) {
     editor.ui.registry.addButton(tinyMCE.buttons.aiGenerate, {
       text: 'AI',
-      tooltip: 'Generate with AI',
+      tooltip: labels.generateWithAi,
       onAction: () => componentGenerator({
         courseId: learningContextId,
         blockId: editor.id,
@@ -310,13 +311,13 @@ export const setupCustomBehavior = ({
   // image upload button
   editor.ui.registry.addButton(tinyMCE.buttons.imageUploadButton, {
     icon: 'image',
-    tooltip: 'Add Image',
+    tooltip: labels.addImage,
     onAction: openImgModal,
   });
   // editing an existing image
   editor.ui.registry.addButton(tinyMCE.buttons.editImageSettings, {
     icon: 'image',
-    tooltip: 'Edit Image Settings',
+    tooltip: labels.editImageSettings,
     onAction: openModalWithSelectedImage({
       editor, images, setImage, openImgModal,
     }),
@@ -324,7 +325,7 @@ export const setupCustomBehavior = ({
   // overriding the code plugin's icon with 'HTML' text
   editor.ui.registry.addButton(tinyMCE.buttons.code, {
     text: 'HTML',
-    tooltip: 'Source code',
+    tooltip: labels.sourceCode,
     onAction: openSourceCodeModal,
   });
   // add a custom simple inline code block formatter.
@@ -341,7 +342,7 @@ export const setupCustomBehavior = ({
   };
   editor.ui.registry.addToggleButton(tinyMCE.buttons.codeBlock, {
     icon: 'sourcecode',
-    tooltip: 'Code Block',
+    tooltip: labels.codeBlock,
     onAction: toggleCodeFormatting,
     onSetup: setupCodeFormatting,
   });
@@ -353,7 +354,7 @@ export const setupCustomBehavior = ({
   editor.ui.registry.addButton('customLabelButton', {
     icon: 'textToSpeech',
     text: 'Label',
-    tooltip: 'Apply a "Question" label to specific text, recognized by screen readers. Recommended to improve accessibility.',
+    tooltip: labels.questionLabel,
     onAction: toggleLabelFormatting,
   });
   if (editorType === 'expandable') {
@@ -424,6 +425,7 @@ export const editorConfig = ({
   learningContextId,
   staticRootUrl,
   enableImageUpload,
+  labels,
 }) => {
   const lmsEndpointUrl = getConfig().LMS_BASE_URL;
   const studioEndpointUrl = getConfig().STUDIO_BASE_URL;
@@ -470,6 +472,7 @@ export const editorConfig = ({
         content,
         images,
         learningContextId,
+        labels,
       }),
       quickbars_insert_toolbar: quickbarsInsertToolbar,
       quickbars_selection_toolbar: quickbarsSelectionToolbar,

@@ -101,6 +101,24 @@ describe('Signatory Component', () => {
     expect(queryByTestId('dropzone-container')).toBeInTheDocument();
   });
 
+  it('groups the signature path and upload action in the responsive upload row', () => {
+    const { getByTestId, getByRole } = renderSignatory(defaultProps);
+    const uploadRow = getByTestId('signature-image-upload');
+    const replaceButton = getByRole(
+      'button',
+      {
+        name: messages.uploadImageButton.defaultMessage.replace(
+          '{uploadText}',
+          messages.uploadModalReplace.defaultMessage,
+        ),
+      },
+    );
+
+    expect(uploadRow).toContainElement(screen.getByPlaceholderText(messages.imagePlaceholder.defaultMessage));
+    expect(uploadRow).toContainElement(replaceButton);
+    expect(replaceButton).toHaveClass('signatory-image-upload__action');
+  });
+
   it('shows confirm modal on delete icon click', async () => {
     const user = userEvent.setup();
     const { getByLabelText, getByText } = renderSignatory(defaultProps);

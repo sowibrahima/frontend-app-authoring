@@ -39,9 +39,17 @@
       height: auto;
       color: var(--pgn-color-black);
       max-width: min(100%, 42rem);
+      border-color: transparent;
+      box-shadow: none;
 
       &:focus::before {
         display: none;
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--wuti-color-focus);
+        outline-offset: .25rem;
+        border-radius: .375rem;
       }
 
       .pgn__icon {

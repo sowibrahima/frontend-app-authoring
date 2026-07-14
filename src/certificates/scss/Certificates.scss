@@ -139,6 +139,33 @@
     width: 100%;
   }
 
+  .signatory-image-upload {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: .75rem;
+
+    .signatory-image-upload__field {
+      min-width: 0;
+    }
+
+    .signatory-image-upload__action {
+      align-self: start;
+      margin-top: 0;
+      white-space: nowrap;
+    }
+  }
+
+  @media (width <= 47.9375rem) {
+    .signatory-image-upload {
+      grid-template-columns: minmax(0, 1fr);
+
+      .signatory-image-upload__action {
+        justify-self: start;
+      }
+    }
+  }
+
   .certificates-card-form {
     padding: .75rem 0 0;
 

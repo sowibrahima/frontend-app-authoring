@@ -10,7 +10,7 @@ const StatusBadge = ({
   if (text) {
     return (
       <div
-        className="outline-status-badge px-2 py-1 mr-2 rounded bg-white align-self-center align-items-center d-flex border border-light-300"
+        className="px-2 py-1 mr-2 rounded bg-white align-self-center align-items-center d-flex border border-light-300"
         role="status"
       >
         {icon && (

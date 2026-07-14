@@ -162,7 +162,7 @@ const CourseUpdates = () => {
                     )}
                     <div className="updates-container">
                       {courseUpdates.length > 0 && (
-                        <div className="p-4.5">
+                        <div className="updates-list">
                           {courseUpdates.map((courseUpdate, index) => (
                             isInnerFormOpen(courseUpdate.id) ?
                               (

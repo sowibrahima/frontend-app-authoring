@@ -22,12 +22,15 @@ const AssignmentSection = ({
   setGradingData,
   courseAssignmentLists,
   setShowSuccessAlert,
-  hideDeleteButton,
+  isEditable = true,
 }) => {
   const intl = useIntl();
   const [errorList, setErrorList] = useState({});
   const {
-    type, weight, minCount, dropCount,
+    type,
+    weight,
+    minCount,
+    dropCount,
   } = ASSIGNMENT_TYPES;
   const isFieldsWithoutErrors = Object.values(errorList).every(field => field !== true);
 
@@ -74,8 +77,8 @@ const AssignmentSection = ({
     setShowSuccessAlert(false);
   };
 
-  const handleIgnoreLowestScoresToggle = (e, gradeField) => {
-    const nextDropCount = e.target.checked ? Math.max(1, Number(gradeField.dropCount) || 1) : 0;
+  const handleIgnoreLowestScoresToggle = (event, gradeField) => {
+    const nextDropCount = event.target.checked ? Math.max(1, Number(gradeField.dropCount) || 1) : 0;
 
     handleAssignmentChange({
       target: {
@@ -90,17 +93,21 @@ const AssignmentSection = ({
     <div className="assignment-items">
       {graders?.map((gradeField) => {
         const courseAssignmentUsage = courseAssignmentLists[gradeField.type];
+        const displayAssignmentType = gradeField.type === 'Homework'
+          ? intl.formatMessage(messages.homeworkTypeName)
+          : gradeField.type;
         const showDefinedCaseAlert = gradeField.minCount !== courseAssignmentUsage?.length
-            && Boolean(courseAssignmentUsage?.length);
+          && Boolean(courseAssignmentUsage?.length);
         const showNotDefinedCaseAlert = !courseAssignmentUsage?.length && Boolean(gradeField.type);
 
         return (
           <div key={gradeField.id} className="course-grading-assignment-wrapper mb-4">
             <ol className="course-grading-assignment-items p-0 mb-4">
               <AssignmentTypeName
-                value={gradeField.type}
+                value={displayAssignmentType}
                 errorEffort={errorList[`${type}-${gradeField.id}`]}
                 onChange={(e) => handleAssignmentChange(e, gradeField.id)}
+                disabled={!isEditable}
               />
               <AssignmentItem
                 className="course-grading-assignment-total-grade"
@@ -115,6 +122,7 @@ const AssignmentSection = ({
                 onChange={(e) => handleAssignmentChange(e, gradeField.id)}
                 errorEffort={errorList[`${weight}-${gradeField.id}`]}
                 trailingElement="%"
+                disabled={!isEditable}
               />
               <AssignmentItem
                 className="course-grading-assignment-total-number"
@@ -127,14 +135,16 @@ const AssignmentSection = ({
                 value={gradeField.minCount}
                 onChange={(e) => handleAssignmentChange(e, gradeField.id)}
                 errorEffort={errorList[`${minCount}-${gradeField.id}`]}
+                disabled={!isEditable}
               />
               <li className="course-grading-assignment-drop-toggle">
                 <Form.Switch
                   floatLabelLeft
                   className="course-grading-assignment-drop-toggle-control"
                   checked={Number(gradeField.dropCount) > 0 || Boolean(errorList[`${dropCount}-${gradeField.id}`])}
-                  onChange={(e) => handleIgnoreLowestScoresToggle(e, gradeField)}
+                  onChange={(event) => handleIgnoreLowestScoresToggle(event, gradeField)}
                   data-testid="assignment-ignore-lowest-toggle"
+                  disabled={!isEditable}
                 >
                   {intl.formatMessage(messages.ignoreLowestScoresTitle)}
                 </Form.Switch>
@@ -153,11 +163,12 @@ const AssignmentSection = ({
                   name={dropCount}
                   gradeField={gradeField}
                   value={gradeField.dropCount}
-                  onChange={(e) => handleAssignmentChange(e, gradeField.id)}
+                  onChange={(event) => handleAssignmentChange(event, gradeField.id)}
                   secondErrorMsg={intl.formatMessage(messages.numberOfDroppableSecondErrorMessage, {
                     type: gradeField.type,
                   })}
                   errorEffort={errorList[`${dropCount}-${gradeField.id}`]}
+                  disabled={!isEditable}
                 />
               )}
             </ol>
@@ -166,8 +177,8 @@ const AssignmentSection = ({
                 className="course-grading-assignment-item-alert-warning"
                 variant="warning"
                 icon={Warning}
-                title={intl.formatMessage(messages.assignmentAlertWarningUsageTitle, { type: gradeField.type })}
-                description={(
+                title={intl.formatMessage(messages.assignmentAlertWarningUsageTitle, { type: displayAssignmentType })}
+                description={
                   <>
                     <span className="course-grading-assignment-item-alert-warning-list-label">
                       {intl.formatMessage(messages.assignmentAlertWarningUsageListLabel, {
@@ -175,12 +186,10 @@ const AssignmentSection = ({
                       })}
                     </span>
                     <ol className="course-grading-assignment-item-alert-warning-list">
-                      {courseAssignmentUsage.map(assignmentItem => (
-                        <li key={assignmentItem}>{assignmentItem}</li>
-                      ))}
+                      {courseAssignmentUsage.map(assignmentItem => <li key={assignmentItem}>{assignmentItem}</li>)}
                     </ol>
                   </>
-                )}
+                }
                 aria-hidden="true"
               />
             )}
@@ -189,12 +198,12 @@ const AssignmentSection = ({
                 className="course-grading-assignment-item-alert-warning"
                 variant="warning"
                 icon={Warning}
-                title={intl.formatMessage(messages.assignmentAlertWarningTitle, { type: gradeField.type })}
-                description={(
+                title={intl.formatMessage(messages.assignmentAlertWarningTitle, { type: displayAssignmentType })}
+                description={
                   <span className="course-grading-assignment-item-alert-warning-list-label">
                     {intl.formatMessage(messages.assignmentAlertWarningDescription)}
                   </span>
-                )}
+                }
                 aria-hidden="true"
               />
             )}
@@ -203,20 +212,19 @@ const AssignmentSection = ({
                 className="course-grading-assignment-item-alert-success"
                 variant="success"
                 icon={CheckCircle}
-                title={intl.formatMessage(messages.assignmentAlertWarningSuccess, { type: gradeField.type })}
+                title={intl.formatMessage(messages.assignmentAlertWarningSuccess, { type: displayAssignmentType })}
                 aria-hidden="true"
               />
             )}
-            {!hideDeleteButton && (
-              <Button
-                className="course-grading-assignment-delete-btn"
-                variant="outline-primary"
-                size="sm"
-                onClick={() => handleRemoveAssignment(gradeField.id)}
-              >
-                {intl.formatMessage(messages.assignmentDeleteButton)}
-              </Button>
-            )}
+            <Button
+              className="course-grading-assignment-delete-btn"
+              variant="outline-primary"
+              size="sm"
+              onClick={() => handleRemoveAssignment(gradeField.id)}
+              disabled={!isEditable}
+            >
+              {intl.formatMessage(messages.assignmentDeleteButton)}
+            </Button>
           </div>
         );
       })}
@@ -227,7 +235,6 @@ const AssignmentSection = ({
 AssignmentSection.defaultProps = {
   courseAssignmentLists: undefined,
   graders: undefined,
-  hideDeleteButton: false,
 };
 
 AssignmentSection.propTypes = {
@@ -235,11 +242,11 @@ AssignmentSection.propTypes = {
   setGradingData: PropTypes.func.isRequired,
   setShowSavePrompt: PropTypes.func.isRequired,
   setShowSuccessAlert: PropTypes.func.isRequired,
-  hideDeleteButton: PropTypes.bool,
   courseAssignmentLists: PropTypes.shape(defaultAssignmentsPropTypes),
   graders: PropTypes.arrayOf(
     PropTypes.shape(defaultAssignmentsPropTypes),
   ),
+  isEditable: PropTypes.bool,
 };
 
 export default AssignmentSection;

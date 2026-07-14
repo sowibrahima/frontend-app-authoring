@@ -31,6 +31,11 @@ const messages = defineMessages({
     defaultMessage: 'Uploaded file(s) must be 20 MB or less. Please resize file(s) and try again.',
     description: 'This error message is shown when user tries to upload a file larger than 20 MB',
   },
+  singleFileOnlyError: {
+    id: 'course-authoring.files-and-upload.addFiles.error.singleFileOnly',
+    defaultMessage: 'Only one file can be uploaded at a time.',
+    description: 'Error shown when several files are dropped in a single-file dropzone',
+  },
   noResultsFoundMessage: {
     id: 'course-authoring.files-and-upload.table.noResultsFound.message',
     defaultMessage: 'No results found',
@@ -197,6 +202,31 @@ const messages = defineMessages({
     id: 'course-authoring.files-and-uploads.fileActionsMenuButton.label',
     defaultMessage: 'More actions',
     description: 'Accessible label for the file actions dropdown button',
+  },
+  dataViewToggleLabel: {
+    id: 'course-authoring.files-and-uploads.dataViewToggle.label',
+    defaultMessage: 'File display mode',
+    description: 'Accessible label for the files grid/list view selector',
+  },
+  cardViewLabel: {
+    id: 'course-authoring.files-and-uploads.cardView.label',
+    defaultMessage: 'Grid',
+    description: 'Accessible label for the files grid view button',
+  },
+  cardViewTooltip: {
+    id: 'course-authoring.files-and-uploads.cardView.tooltip',
+    defaultMessage: 'Grid view',
+    description: 'Tooltip for the files grid view button',
+  },
+  listViewLabel: {
+    id: 'course-authoring.files-and-uploads.listView.label',
+    defaultMessage: 'List',
+    description: 'Accessible label for the files list view button',
+  },
+  listViewTooltip: {
+    id: 'course-authoring.files-and-uploads.listView.tooltip',
+    defaultMessage: 'List view',
+    description: 'Tooltip for the files list view button',
   },
   sortModalTitleLabel: {
     id: 'course-authoring.files-and-uploads.sortModal.title',

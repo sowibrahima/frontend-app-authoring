@@ -12,8 +12,24 @@
   overflow: hidden;
 }
 
+.updates-list {
+  min-width: 0;
+  padding: 1.875rem;
+}
+
 .updates-handouts-container {
   border-left: .0625rem solid var(--pgn-color-gray-200);
   padding: 1.875rem;
   background: var(--pgn-color-white);
+}
+
+@media (width <= 768px) {
+  .updates-container {
+    grid-template-columns: 1fr;
+  }
+
+  .updates-handouts-container {
+    border-top: .0625rem solid var(--wuti-color-border, #E5E7EB);
+    border-left: 0;
+  }
 }

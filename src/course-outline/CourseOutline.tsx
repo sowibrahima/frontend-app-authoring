@@ -1,27 +1,26 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import {
   Container,
-  Layout,
+  Row,
   TransitionReplace,
   Toast,
-  StandardModal,
+  Button,
+  ActionRow,
 } from '@openedx/paragon';
 import { Helmet } from 'react-helmet';
-import { CheckCircle as CheckCircleIcon } from '@openedx/paragon/icons';
+import { CheckCircle as CheckCircleIcon, CloseFullscreen, OpenInFull } from '@openedx/paragon/icons';
 import { useSelector } from 'react-redux';
 import {
-  arrayMove,
   SortableContext,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { useLocation } from 'react-router-dom';
+import { CourseAuthoringOutlineSidebarSlot } from '@src/plugin-slots/CourseAuthoringOutlineSidebarSlot';
 
 import { LoadingSpinner } from '@src/generic/Loading';
-import { getProcessingNotification } from '@src/generic/processing-notification/data/selectors';
 import { RequestStatus } from '@src/data/constants';
 import SubHeader from '@src/generic/sub-header/SubHeader';
-import ProcessingNotification from '@src/generic/processing-notification';
 import InternetConnectionAlert from '@src/generic/internet-connection-alert';
 import DeleteModal from '@src/generic/delete-modal/DeleteModal';
 import ConfigureModal from '@src/generic/configure-modal/ConfigureModal';
@@ -29,19 +28,16 @@ import { UnlinkModal } from '@src/generic/unlink-modal';
 import AlertMessage from '@src/generic/alert-message';
 import getPageHeadTitle from '@src/generic/utils';
 import CourseOutlineHeaderActionsSlot from '@src/plugin-slots/CourseOutlineHeaderActionsSlot';
+import { useCourseAuthoringContext } from '@src/CourseAuthoringContext';
+import { useCourseOutlineContext } from './CourseOutlineContext';
+import LegacyLibContentBlockAlert from '@src/course-libraries/LegacyLibContentBlockAlert';
 import { ContainerType } from '@src/generic/key-utils';
-import { ComponentPicker, SelectedComponent } from '@src/library-authoring';
-import { ContentType } from '@src/library-authoring/routes';
-import { NOTIFICATION_MESSAGES } from '@src/constants';
-import { COMPONENT_TYPES } from '@src/generic/block-type-utils/constants';
-import { XBlock } from '@src/data/types';
+import { useCourseItemData } from '@src/course-outline/data/apiHooks';
 import {
-  getCurrentItem,
   getProctoredExamsFlag,
   getTimedExamsFlag,
 } from './data/selectors';
 import { COURSE_BLOCK_NAMES } from './constants';
-import StatusBar from './status-bar/StatusBar';
 import EnableHighlightsModal from './enable-highlights-modal/EnableHighlightsModal';
 import SectionCard from './section-card/SectionCard';
 import SubsectionCard from './subsection-card/SubsectionCard';
@@ -51,7 +47,6 @@ import EmptyPlaceholder from './empty-placeholder/EmptyPlaceholder';
 import PublishModal from './publish-modal/PublishModal';
 import PageAlerts from './page-alerts/PageAlerts';
 import DraggableList from './drag-helper/DraggableList';
-import CreateItemNameModal from './create-item-name-modal/CreateItemNameModal';
 import {
   canMoveSection,
   possibleUnitMoves,
@@ -59,24 +54,35 @@ import {
 } from './drag-helper/utils';
 import { useCourseOutline } from './hooks';
 import messages from './messages';
+import headerMessages from './header-navigations/messages';
 import { getTagsExportFile } from './data/api';
 import OutlineAddChildButtons from './OutlineAddChildButtons';
+import { StatusBar } from './status-bar/StatusBar';
 
-interface CourseOutlineProps {
-  courseId: string,
-}
-
-const CourseOutline = ({ courseId }: CourseOutlineProps) => {
+const CourseOutline = () => {
   const intl = useIntl();
   const location = useLocation();
+  const {
+    courseId,
+    courseUsageKey,
+    isUnlinkModalOpen,
+    closeUnlinkModal,
+  } = useCourseAuthoringContext();
+  const {
+    currentSelection,
+    sections,
+    restoreSectionList,
+    setSections,
+    updateSectionOrderByIndex,
+    updateSubsectionOrderByIndex,
+    updateUnitOrderByIndex,
+  } = useCourseOutlineContext();
 
   const {
-    courseUsageKey,
     courseName,
     savingStatus,
     statusBarData,
     courseActions,
-    sectionsList,
     isCustomRelativeDatesActive,
     isLoading,
     isLoadingDenied,
@@ -87,48 +93,25 @@ const CourseOutline = ({ courseId }: CourseOutlineProps) => {
     isInternetConnectionAlertFailed,
     isDisabledReindexButton,
     isHighlightsModalOpen,
-    isPublishModalOpen,
     isConfigureModalOpen,
     isDeleteModalOpen,
-    isUnlinkModalOpen,
     closeHighlightsModal,
-    closePublishModal,
     handleConfigureModalClose,
     closeDeleteModal,
-    closeUnlinkModal,
-    openPublishModal,
     openConfigureModal,
     openDeleteModal,
-    openUnlinkModal,
     headerNavigationsActions,
     openEnableHighlightsModal,
     closeEnableHighlightsModal,
-    isAddLibrarySectionModalOpen,
-    openAddLibrarySectionModal,
-    closeAddLibrarySectionModal,
-    isCreateItemNameModalOpen,
-    createItemNameModalItemType,
-    closeCreateItemNameModal,
-    handleCreateItemNameSubmit,
     handleEnableHighlightsSubmit,
     handleInternetConnectionFailed,
     handleOpenHighlightsModal,
     handleHighlightsFormSubmit,
     handleConfigureItemSubmit,
-    handlePublishItemSubmit,
-    handleEditSubmit,
     handleDeleteItemSubmit,
-    handleUnlinkItemSubmit,
     handleDuplicateSectionSubmit,
     handleDuplicateSubsectionSubmit,
     handleDuplicateUnitSubmit,
-    handleNewSectionSubmit,
-    handleNewSubsectionSubmit,
-    handleNewUnitSubmit,
-    handleAddUnitFromLibrary,
-    handleAddSubsectionFromLibrary,
-    handleAddSectionFromLibrary,
-    getUnitUrl,
     handleVideoSharingOptionChange,
     handlePasteClipboardClick,
     notificationDismissUrl,
@@ -143,7 +126,7 @@ const CourseOutline = ({ courseId }: CourseOutlineProps) => {
     handleSubsectionDragAndDrop,
     handleUnitDragAndDrop,
     errors,
-    resetScrollState,
+    handleUnlinkItemSubmit,
   } = useCourseOutline({ courseId });
 
   // Use `setToastMessage` to show the toast.
@@ -164,107 +147,26 @@ const CourseOutline = ({ courseId }: CourseOutlineProps) => {
     }
   }, [location, courseId, courseName]);
 
-  const [sections, setSections] = useState<XBlock[]>(sectionsList);
+  const { data: currentItemData } = useCourseItemData(currentSelection?.currentId);
 
-  const restoreSectionList = () => {
-    setSections(() => [...sectionsList]);
-  };
-
-  const {
-    isShow: isShowProcessingNotification,
-    title: processingNotificationTitle,
-  } = useSelector(getProcessingNotification);
-
-  const currentItemData = useSelector(getCurrentItem);
-
-  const itemCategory = currentItemData?.category;
+  const itemCategory = currentItemData?.category || '';
   const itemCategoryName = COURSE_BLOCK_NAMES[itemCategory]?.name.toLowerCase();
 
   const enableProctoredExams = useSelector(getProctoredExamsFlag);
   const enableTimedExams = useSelector(getTimedExamsFlag);
 
-  /**
-   * Move section to new index
-   */
-  const updateSectionOrderByIndex = (currentIndex: number, newIndex: number) => {
-    if (currentIndex === newIndex) {
-      return;
-    }
-    setSections((prevSections) => {
-      const newSections = arrayMove(prevSections, currentIndex, newIndex);
-      handleSectionDragAndDrop(newSections.map(section => section.id));
-      return newSections;
-    });
-  };
-
-  /**
-   * Uses details from move information and moves subsection
-   */
-  const updateSubsectionOrderByIndex = (section: XBlock, moveDetails) => {
-    const { fn, args, sectionId } = moveDetails;
-    if (!args) {
-      return;
-    }
-    const [sectionsCopy, newSubsections] = fn(...args);
-    if (newSubsections && sectionId) {
-      setSections(sectionsCopy);
-      handleSubsectionDragAndDrop(
-        sectionId,
-        section.id,
-        newSubsections.map(subsection => subsection.id),
-        restoreSectionList,
-      );
-    }
-  };
-
-  /**
-   * Uses details from move information and moves unit
-   */
-  const updateUnitOrderByIndex = (section: XBlock, moveDetails) => {
-    const {
-      fn, args, sectionId, subsectionId,
-    } = moveDetails;
-    if (!args) {
-      return;
-    }
-    const [sectionsCopy, newUnits] = fn(...args);
-    if (newUnits && sectionId && subsectionId) {
-      setSections(sectionsCopy);
-      handleUnitDragAndDrop(
-        sectionId,
-        section.id,
-        subsectionId,
-        newUnits.map(unit => unit.id),
-        restoreSectionList,
-      );
-    }
-  };
-
-  const handleSelectLibrarySection = useCallback((selectedSection: SelectedComponent) => {
-    handleAddSectionFromLibrary.mutateAsync({
-      type: COMPONENT_TYPES.libraryV2,
-      category: ContainerType.Chapter,
-      parentLocator: courseUsageKey,
-      libraryContentKey: selectedSection.usageKey,
-    });
-    closeAddLibrarySectionModal();
-  }, [closeAddLibrarySectionModal, handleAddSectionFromLibrary.mutateAsync, courseId, courseUsageKey]);
-
-  useEffect(() => {
-    setSections(sectionsList);
-  }, [sectionsList]);
-
   if (isLoading) {
+    // eslint-disable-next-line react/jsx-no-useless-fragment
     return (
-      <div className="ws-course-outline-loading" aria-live="polite">
-        <LoadingSpinner className="ws-course-outline-loading__spinner" />
-      </div>
+      <Row className="m-0 mt-4 justify-content-center">
+        <LoadingSpinner />
+      </Row>
     );
   }
 
   if (isLoadingDenied) {
     return (
-      <Container size="xl" className="px-4 mt-4">
+      <Container fluid className="px-3 mt-4">
         <PageAlerts
           courseId={courseId}
           notificationDismissUrl={notificationDismissUrl}
@@ -287,8 +189,8 @@ const CourseOutline = ({ courseId }: CourseOutlineProps) => {
       <Helmet>
         <title>{getPageHeadTitle(courseName, intl.formatMessage(messages.headingTitle))}</title>
       </Helmet>
-      <Container size="xl" className="px-4 ws-course-outline-page">
-        <section className="course-outline-container ws-course-outline-container mb-4 mt-5">
+      <Container fluid className="px-3">
+        <section className="course-outline-container mb-4 mt-5">
           <PageAlerts
             courseId={courseId}
             notificationDismissUrl={notificationDismissUrl}
@@ -302,197 +204,197 @@ const CourseOutline = ({ courseId }: CourseOutlineProps) => {
             savingStatus={savingStatus}
             errors={errors}
           />
+          <LegacyLibContentBlockAlert courseId={courseId} />
           <TransitionReplace>
-            {showSuccessAlert ? (
-              <AlertMessage
-                key={intl.formatMessage(messages.alertSuccessAriaLabelledby)}
-                show={showSuccessAlert}
-                variant="success"
-                icon={CheckCircleIcon}
-                title={intl.formatMessage(messages.alertSuccessTitle)}
-                description={intl.formatMessage(messages.alertSuccessDescription)}
-                aria-hidden="true"
-                aria-labelledby={intl.formatMessage(messages.alertSuccessAriaLabelledby)}
-                aria-describedby={intl.formatMessage(messages.alertSuccessAriaDescribedby)}
-              />
-            ) : null}
+            {showSuccessAlert ?
+              (
+                <AlertMessage
+                  key={intl.formatMessage(messages.alertSuccessAriaLabelledby)}
+                  show={showSuccessAlert}
+                  variant="success"
+                  icon={CheckCircleIcon}
+                  title={intl.formatMessage(messages.alertSuccessTitle)}
+                  description={intl.formatMessage(messages.alertSuccessDescription)}
+                  aria-hidden="true"
+                  aria-labelledby={intl.formatMessage(messages.alertSuccessAriaLabelledby)}
+                  aria-describedby={intl.formatMessage(messages.alertSuccessAriaDescribedby)}
+                />
+              ) :
+              null}
           </TransitionReplace>
           <SubHeader
-            title={intl.formatMessage(messages.headingTitle)}
+            title={courseName}
             subtitle={intl.formatMessage(messages.headingSubtitle)}
-            headerActions={(
+            hideBorder
+            headerActions={
               <CourseOutlineHeaderActionsSlot
                 isReIndexShow={isReIndexShow}
                 isSectionsExpanded={isSectionsExpanded}
                 headerNavigationsActions={headerNavigationsActions}
                 isDisabledReindexButton={isDisabledReindexButton}
-                hasSections={Boolean(sectionsList.length)}
+                hasSections={Boolean(sections.length)}
                 courseActions={courseActions}
                 errors={errors}
                 sections={sections}
               />
-            )}
+            }
           />
-          <Layout
-            lg={[{ span: 12 }]}
-            md={[{ span: 12 }]}
-            sm={[{ span: 12 }]}
-            xs={[{ span: 12 }]}
-            xl={[{ span: 12 }]}
-          >
-            <Layout.Element>
+          <StatusBar
+            courseId={courseId}
+            isLoading={isLoading}
+            statusBarData={statusBarData}
+            openEnableHighlightsModal={openEnableHighlightsModal}
+            handleVideoSharingOptionChange={handleVideoSharingOptionChange}
+          />
+          <hr className="mt-4 mb-0 w-100 text-light-400" />
+          <div className="d-flex align-items-start">
+            <div className="flex-fill">
               <article>
                 <div>
-                  <section className="course-outline-section ws-course-outline-section">
-                    <StatusBar
-                      courseId={courseId}
-                      isLoading={isLoading}
-                      statusBarData={statusBarData}
-                      openEnableHighlightsModal={openEnableHighlightsModal}
-                      handleVideoSharingOptionChange={handleVideoSharingOptionChange}
-                    />
+                  <ActionRow className="mt-3">
+                    {Boolean(sections.length) && (
+                      <Button
+                        variant="outline-primary"
+                        id="expand-collapse-all-button"
+                        data-testid="expand-collapse-all-button"
+                        iconBefore={isSectionsExpanded ? CloseFullscreen : OpenInFull}
+                        onClick={headerNavigationsActions.handleExpandAll}
+                      >
+                        {isSectionsExpanded
+                          ? intl.formatMessage(headerMessages.collapseAllButton)
+                          : intl.formatMessage(headerMessages.expandAllButton)}
+                      </Button>
+                    )}
+                  </ActionRow>
+                  <section>
                     {!errors?.outlineIndexApi && (
-                      <div className="pt-4 ws-outline-content">
-                        {sections.length ? (
-                          <>
-                            <DraggableList
-                              items={sections}
-                              setSections={setSections}
-                              restoreSectionList={restoreSectionList}
-                              handleSectionDragAndDrop={handleSectionDragAndDrop}
-                              handleSubsectionDragAndDrop={handleSubsectionDragAndDrop}
-                              handleUnitDragAndDrop={handleUnitDragAndDrop}
-                            >
-                              <SortableContext
-                                id="root"
+                      <div className="pt-4">
+                        {sections.length ?
+                          (
+                            <>
+                              <DraggableList
                                 items={sections}
-                                strategy={verticalListSortingStrategy}
+                                setSections={setSections}
+                                restoreSectionList={restoreSectionList}
+                                handleSectionDragAndDrop={handleSectionDragAndDrop}
+                                handleSubsectionDragAndDrop={handleSubsectionDragAndDrop}
+                                handleUnitDragAndDrop={handleUnitDragAndDrop}
                               >
-                                {sections.map((section, sectionIndex) => (
-                                  <SectionCard
-                                    key={section.id}
-                                    section={section}
-                                    index={sectionIndex}
-                                    canMoveItem={canMoveSection(sections)}
-                                    isSelfPaced={statusBarData.isSelfPaced}
-                                    isCustomRelativeDatesActive={isCustomRelativeDatesActive}
-                                    savingStatus={savingStatus}
-                                    onOpenHighlightsModal={handleOpenHighlightsModal}
-                                    onOpenPublishModal={openPublishModal}
-                                    onOpenConfigureModal={openConfigureModal}
-                                    onOpenDeleteModal={openDeleteModal}
-                                    onOpenUnlinkModal={openUnlinkModal}
-                                    onEditSectionSubmit={handleEditSubmit}
-                                    onDuplicateSubmit={handleDuplicateSectionSubmit}
-                                    isSectionsExpanded={isSectionsExpanded}
-                                    onNewSubsectionSubmit={handleNewSubsectionSubmit}
-                                    onOrderChange={updateSectionOrderByIndex}
-                                    onAddSubsectionFromLibrary={handleAddSubsectionFromLibrary.mutateAsync}
-                                    resetScrollState={resetScrollState}
-                                  >
-                                    <SortableContext
-                                      id={section.id}
-                                      items={section.childInfo.children}
-                                      strategy={verticalListSortingStrategy}
+                                <SortableContext
+                                  id="root"
+                                  items={sections}
+                                  strategy={verticalListSortingStrategy}
+                                >
+                                  {sections.map((section, sectionIndex) => (
+                                    <SectionCard
+                                      key={section.id}
+                                      section={section}
+                                      index={sectionIndex}
+                                      canMoveItem={canMoveSection(sections)}
+                                      isSelfPaced={statusBarData.isSelfPaced}
+                                      isCustomRelativeDatesActive={isCustomRelativeDatesActive}
+                                      onOpenHighlightsModal={handleOpenHighlightsModal}
+                                      onOpenConfigureModal={openConfigureModal}
+                                      onOpenDeleteModal={openDeleteModal}
+                                      onDuplicateSubmit={handleDuplicateSectionSubmit}
+                                      isSectionsExpanded={isSectionsExpanded}
+                                      onOrderChange={updateSectionOrderByIndex}
                                     >
-                                      {section.childInfo.children.map((subsection, subsectionIndex) => (
-                                        <SubsectionCard
-                                          key={subsection.id}
-                                          section={section}
-                                          subsection={subsection}
-                                          index={subsectionIndex}
-                                          getPossibleMoves={possibleSubsectionMoves(
-                                            [...sections],
-                                            sectionIndex,
-                                            section,
-                                            section.childInfo.children,
-                                          )}
-                                          isSectionsExpanded={isSectionsExpanded}
-                                          isSelfPaced={statusBarData.isSelfPaced}
-                                          isCustomRelativeDatesActive={isCustomRelativeDatesActive}
-                                          savingStatus={savingStatus}
-                                          onOpenPublishModal={openPublishModal}
-                                          onOpenDeleteModal={openDeleteModal}
-                                          onOpenUnlinkModal={openUnlinkModal}
-                                          onEditSubmit={handleEditSubmit}
-                                          onDuplicateSubmit={handleDuplicateSubsectionSubmit}
-                                          onOpenConfigureModal={openConfigureModal}
-                                          onNewUnitSubmit={handleNewUnitSubmit}
-                                          onAddUnitFromLibrary={handleAddUnitFromLibrary.mutateAsync}
-                                          onOrderChange={updateSubsectionOrderByIndex}
-                                          onPasteClick={handlePasteClipboardClick}
-                                          resetScrollState={resetScrollState}
-                                        >
-                                          <SortableContext
-                                            id={subsection.id}
-                                            items={subsection.childInfo.children}
-                                            strategy={verticalListSortingStrategy}
+                                      <SortableContext
+                                        id={section.id}
+                                        items={section.childInfo.children}
+                                        strategy={verticalListSortingStrategy}
+                                      >
+                                        {section.childInfo.children.map((subsection, subsectionIndex) => (
+                                          <SubsectionCard
+                                            key={subsection.id}
+                                            section={section}
+                                            subsection={subsection}
+                                            index={subsectionIndex}
+                                            getPossibleMoves={possibleSubsectionMoves(
+                                              [...sections],
+                                              sectionIndex,
+                                              section,
+                                              section.childInfo.children,
+                                            )}
+                                            isSectionsExpanded={isSectionsExpanded}
+                                            isSelfPaced={statusBarData.isSelfPaced}
+                                            isCustomRelativeDatesActive={isCustomRelativeDatesActive}
+                                            onOpenDeleteModal={openDeleteModal}
+                                            onDuplicateSubmit={handleDuplicateSubsectionSubmit}
+                                            onOpenConfigureModal={openConfigureModal}
+                                            onOrderChange={updateSubsectionOrderByIndex}
+                                            onPasteClick={handlePasteClipboardClick}
                                           >
-                                            {subsection.childInfo.children.map((unit, unitIndex) => (
-                                              <UnitCard
-                                                key={unit.id}
-                                                unit={unit}
-                                                subsection={subsection}
-                                                section={section}
-                                                isSelfPaced={statusBarData.isSelfPaced}
-                                                isCustomRelativeDatesActive={isCustomRelativeDatesActive}
-                                                index={unitIndex}
-                                                getPossibleMoves={possibleUnitMoves(
-                                                  [...sections],
-                                                  sectionIndex,
-                                                  subsectionIndex,
-                                                  section,
-                                                  subsection,
-                                                  subsection.childInfo.children,
-                                                )}
-                                                savingStatus={savingStatus}
-                                                onOpenPublishModal={openPublishModal}
-                                                onOpenConfigureModal={openConfigureModal}
-                                                onOpenDeleteModal={openDeleteModal}
-                                                onOpenUnlinkModal={openUnlinkModal}
-                                                onEditSubmit={handleEditSubmit}
-                                                onDuplicateSubmit={handleDuplicateUnitSubmit}
-                                                getTitleLink={getUnitUrl}
-                                                onOrderChange={updateUnitOrderByIndex}
-                                                discussionsSettings={discussionsSettings}
-                                              />
-                                            ))}
-                                          </SortableContext>
-                                        </SubsectionCard>
-                                      ))}
-                                    </SortableContext>
-                                  </SectionCard>
-                                ))}
-                              </SortableContext>
-                            </DraggableList>
-                            {courseActions.childAddable && (
-                              <OutlineAddChildButtons
-                                handleNewButtonClick={handleNewSectionSubmit}
-                                handleUseFromLibraryClick={openAddLibrarySectionModal}
-                                childType={ContainerType.Section}
-                              />
-                            )}
-                          </>
-                        ) : (
-                          <EmptyPlaceholder>
-                            {courseActions.childAddable && (
-                              <OutlineAddChildButtons
-                                handleNewButtonClick={handleNewSectionSubmit}
-                                handleUseFromLibraryClick={openAddLibrarySectionModal}
-                                childType={ContainerType.Section}
-                                btnVariant="primary"
-                                btnClasses="mt-1"
-                              />
-                            )}
-                          </EmptyPlaceholder>
-                        )}
+                                            <SortableContext
+                                              id={subsection.id}
+                                              items={subsection.childInfo.children}
+                                              strategy={verticalListSortingStrategy}
+                                            >
+                                              {subsection.childInfo.children.map((unit, unitIndex) => (
+                                                <UnitCard
+                                                  key={unit.id}
+                                                  unit={unit}
+                                                  subsection={subsection}
+                                                  section={section}
+                                                  isSelfPaced={statusBarData.isSelfPaced}
+                                                  isCustomRelativeDatesActive={isCustomRelativeDatesActive}
+                                                  index={unitIndex}
+                                                  getPossibleMoves={possibleUnitMoves(
+                                                    [...sections],
+                                                    sectionIndex,
+                                                    subsectionIndex,
+                                                    section,
+                                                    subsection,
+                                                    subsection.childInfo.children,
+                                                  )}
+                                                  onOpenConfigureModal={openConfigureModal}
+                                                  onOpenDeleteModal={openDeleteModal}
+                                                  onDuplicateSubmit={handleDuplicateUnitSubmit}
+                                                  onOrderChange={updateUnitOrderByIndex}
+                                                  discussionsSettings={discussionsSettings}
+                                                />
+                                              ))}
+                                            </SortableContext>
+                                          </SubsectionCard>
+                                        ))}
+                                      </SortableContext>
+                                    </SectionCard>
+                                  ))}
+                                </SortableContext>
+                              </DraggableList>
+                              {courseActions.childAddable && (
+                                <OutlineAddChildButtons
+                                  childType={ContainerType.Section}
+                                  parentLocator={courseUsageKey}
+                                />
+                              )}
+                            </>
+                          ) :
+                          (
+                            <EmptyPlaceholder>
+                              {courseActions.childAddable && (
+                                <OutlineAddChildButtons
+                                  childType={ContainerType.Section}
+                                  parentLocator={courseUsageKey}
+                                  btnVariant="primary"
+                                  btnClasses="mt-1"
+                                />
+                              )}
+                            </EmptyPlaceholder>
+                          )}
                       </div>
                     )}
                   </section>
                 </div>
               </article>
-            </Layout.Element>
-          </Layout>
+            </div>
+            <CourseAuthoringOutlineSidebarSlot
+              courseId={courseId}
+              courseName={courseName}
+              sections={sections}
+            />
+          </div>
           <EnableHighlightsModal
             isOpen={isEnableHighlightsModalOpen}
             close={closeEnableHighlightsModal}
@@ -504,15 +406,16 @@ const CourseOutline = ({ courseId }: CourseOutlineProps) => {
           onClose={closeHighlightsModal}
           onSubmit={handleHighlightsFormSubmit}
         />
-        <PublishModal
-          isOpen={isPublishModalOpen}
-          onClose={closePublishModal}
-          onPublishSubmit={handlePublishItemSubmit}
-        />
+        <PublishModal />
         <ConfigureModal
           isOpen={isConfigureModalOpen}
           onClose={handleConfigureModalClose}
           onConfigureSubmit={handleConfigureItemSubmit}
+          /**
+           * Only sections need overflow visible (for the Release date datepicker, fixed in #2901);
+           * enabling it for subsection/unit modals causes the Visibility tab background to clip.
+           */
+          isOverflowVisible={itemCategory === COURSE_BLOCK_NAMES.chapter.id}
           currentItemData={currentItemData}
           enableProctoredExams={enableProctoredExams}
           enableTimedExams={enableTimedExams}
@@ -531,40 +434,8 @@ const CourseOutline = ({ courseId }: CourseOutlineProps) => {
           close={closeUnlinkModal}
           onUnlinkSubmit={handleUnlinkItemSubmit}
         />
-        <CreateItemNameModal
-          isOpen={isCreateItemNameModalOpen}
-          itemType={createItemNameModalItemType}
-          onClose={closeCreateItemNameModal}
-          onSubmit={handleCreateItemNameSubmit}
-        />
-        <StandardModal
-          title={intl.formatMessage(messages.sectionPickerModalTitle)}
-          isOpen={isAddLibrarySectionModalOpen}
-          onClose={closeAddLibrarySectionModal}
-          isOverflowVisible={false}
-          size="xl"
-        >
-          <ComponentPicker
-            showOnlyPublished
-            extraFilter={['block_type = "section"']}
-            componentPickerMode="single"
-            onComponentSelected={handleSelectLibrarySection}
-            visibleTabs={[ContentType.sections]}
-          />
-        </StandardModal>
       </Container>
       <div className="alert-toast">
-        <ProcessingNotification
-          // Show processing toast if any mutation is running
-          isShow={
-            isShowProcessingNotification
-            || handleAddUnitFromLibrary.isPending
-            || handleAddSubsectionFromLibrary.isPending
-            || handleAddSectionFromLibrary.isPending
-          }
-          // HACK: Use saving as default title till we have a need for better messages
-          title={processingNotificationTitle || NOTIFICATION_MESSAGES.saving}
-        />
         <InternetConnectionAlert
           isFailed={isInternetConnectionAlertFailed}
           isQueryPending={savingStatus === RequestStatus.PENDING}

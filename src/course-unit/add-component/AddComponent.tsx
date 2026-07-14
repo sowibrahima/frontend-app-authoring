@@ -103,7 +103,7 @@ const AddComponent = ({
   const [selectedComponents, setSelectedComponents] = useState<SelectedComponent[]>([]);
   const [usageId, setUsageId] = useState(null);
   const { sendMessageToIframe } = useIframe();
-  const { useVideoGalleryFlow } = useWaffleFlags(courseId ?? undefined);
+  const { useVideoGalleryFlow, useNewPdfEditor } = useWaffleFlags(courseId ?? undefined);
 
   const courseUnit = useSelector(getCourseUnitData);
   const sequenceId = courseUnit?.ancestorInfo?.ancestors?.[0]?.id;
@@ -220,7 +220,20 @@ const AddComponent = ({
         showAddLibraryContentModal();
         break;
       case COMPONENT_TYPES.advanced:
-        handleCreateNewCourseXBlock({ type: moduleName, category: moduleName, parentLocator: blockId });
+        if (moduleName === COMPONENT_TYPES.pdf && useNewPdfEditor) {
+          handleCreateNewCourseXBlock(
+            { type: moduleName, parentLocator: blockId },
+            /* istanbul ignore next */
+            ({ courseKey, locator }) => {
+              setCourseId(courseKey);
+              setBlockType(moduleName);
+              setNewBlockId(locator);
+              showXBlockEditorModal();
+            },
+          );
+        } else {
+          handleCreateNewCourseXBlock({ type: moduleName, category: moduleName, parentLocator: blockId });
+        }
         break;
       case COMPONENT_TYPES.openassessment:
         handleCreateNewCourseXBlock({ boilerplate: moduleName, category: type, parentLocator: blockId });
@@ -322,7 +335,7 @@ const AddComponent = ({
       title: intl.formatMessage(messages.lessonBuilderPdfTitle),
       description: intl.formatMessage(messages.lessonBuilderPdfDescription),
       icon: COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.html],
-      disabled: true,
+      onClick: () => createActivity(COMPONENT_TYPES.advanced, COMPONENT_TYPES.pdf),
     },
   ];
 

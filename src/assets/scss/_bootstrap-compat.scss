@@ -1707,6 +1707,25 @@ table.pgn__data-table {
   background: rgba(17, 24, 39, .36);
 }
 
+// TinyMCE creates its dropdowns and colour/font pickers outside the editor.
+// The editor hook moves that auxiliary layer into the active Paragon modal so
+// it is not treated as an outside click. Keep it above the dialog and make the
+// controls interactive after that move.
+.pgn__modal-layer > .tox-tinymce-aux {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--pgn-elevation-modal-zindex, 1310) + 1);
+  pointer-events: none;
+
+  .tox-menu,
+  .tox-dialog,
+  .tox-pop,
+  .tox-swatches-menu,
+  .tox-collection {
+    pointer-events: auto;
+  }
+}
+
 .pgn__modal-dialog,
 .pgn__modal-popup,
 .modal-dialog {

@@ -12,6 +12,7 @@ import {
   Icon,
 } from '@openedx/paragon';
 import { MoreHoriz } from '@openedx/paragon/icons';
+import { useCopyText } from '../../generic/clipboard';
 import messages from './messages';
 
 const MENU_WIDTH = 248;
@@ -31,6 +32,7 @@ const FileMenu = ({
   fileType,
 }) => {
   const intl = useIntl();
+  const copyText = useCopyText();
   const [isOpen, setIsOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const triggerRef = useRef(null);
@@ -140,17 +142,17 @@ const FileMenu = ({
       {fileType === 'video' ? (
         renderMenuItem({
           children: intl.formatMessage(messages.copyVideoIdTitle),
-          onClick: () => navigator.clipboard.writeText(id),
+          onClick: () => copyText(id),
         })
       ) : (
         <>
           {renderMenuItem({
             children: intl.formatMessage(messages.copyStudioUrlTitle),
-            onClick: () => navigator.clipboard.writeText(portableUrl),
+            onClick: () => copyText(portableUrl),
           })}
           {renderMenuItem({
             children: intl.formatMessage(messages.copyWebUrlTitle),
-            onClick: () => navigator.clipboard.writeText(externalUrl),
+            onClick: () => copyText(externalUrl),
           })}
           {renderMenuItem({
             children: locked

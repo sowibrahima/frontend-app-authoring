@@ -3,6 +3,7 @@ import TableActions from './TableActions';
 import FilterStatus from './FilterStatus';
 import RowStatus from './RowStatus';
 import Footer from './Footer';
+import LocalizedDataViewToggle from './LocalizedDataViewToggle';
 import {
   AccessColumn,
   ActiveColumn,
@@ -18,6 +19,7 @@ export {
   FilterStatus,
   RowStatus,
   Footer,
+  LocalizedDataViewToggle,
   AccessColumn,
   ActiveColumn,
   MoreInfoColumn,

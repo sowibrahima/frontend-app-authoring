@@ -27,6 +27,7 @@ import {
   MoreInfoColumn,
   FilterStatus,
   Footer,
+  LocalizedDataViewToggle,
 } from './table-components';
 import ApiStatusToast from './ApiStatusToast';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
@@ -135,6 +136,14 @@ const FileTable = ({
   } = data;
   const defaultCurrentView = (fileType === 'video' && localStorage.getItem('videosCurrentView')) || (fileType === 'file' && localStorage.getItem('filesCurrentView')) || defaultView;
   const [currentView, setCurrentView] = useState(defaultCurrentView);
+  const handleDataViewToggle = (value) => {
+    if (fileType === 'video') {
+      localStorage.setItem('videosCurrentView', value);
+    } else {
+      localStorage.setItem('filesCurrentView', value);
+    }
+    setCurrentView(value);
+  };
   // eslint-disable-next-line react/no-unstable-nested-components
   const FileTextFilter = ({ column }) => {
     const inputText = intl.formatMessage(messages.searchInputLabel, { fileType });
@@ -281,17 +290,8 @@ const FileTable = ({
         isPaginated
         defaultColumnValues={{ Filter: FileTextFilter }}
         dataViewToggleOptions={{
-          isDataViewToggleEnabled: true,
-          onDataViewToggle: (val) => {
-            if (fileType === 'video') {
-              localStorage.setItem('videosCurrentView', val);
-              setCurrentView(val);
-            } else {
-              // There's only 2 fileTypes currently being used i.e. video or file
-              localStorage.setItem('filesCurrentView', val);
-              setCurrentView(val);
-            }
-          },
+          isDataViewToggleEnabled: false,
+          onDataViewToggle: handleDataViewToggle,
           defaultActiveStateValue: defaultCurrentView,
           togglePlacement: 'left',
         }}
@@ -314,12 +314,15 @@ const FileTable = ({
             maxSize={maxFileSize}
             errorMessages={{
               invalidSize: intl.formatMessage(messages.fileSizeError),
-              multipleDragged: 'Dropzone can only upload a single file.',
+              multipleDragged: intl.formatMessage(messages.singleFileOnlyError),
             }}
           />
         ) : (
           <div data-testid="files-data-table" className="bg-light-200">
-            <DataTable.TableControlBar />
+            <div className="files-table-control-bar">
+              <DataTable.TableControlBar />
+              <LocalizedDataViewToggle currentView={currentView} onChange={handleDataViewToggle} />
+            </div>
             <hr className="mb-5 border-light-700" />
             { currentView === 'card' && <CardView CardComponent={fileCard} columnSizes={columnSizes} selectionPlacement="left" skeletonCardCount={6} /> }
             { currentView === 'list' && <DataTable.Table /> }

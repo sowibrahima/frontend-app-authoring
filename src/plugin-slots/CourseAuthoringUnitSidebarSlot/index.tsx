@@ -1,9 +1,8 @@
 import { PluginSlot } from '@openedx/frontend-plugin-framework/dist';
-import { Stack } from '@openedx/paragon';
-import Sidebar from '../../course-unit/sidebar';
-import LocationInfo from '../../course-unit/sidebar/LocationInfo';
-import PublishControls from '../../course-unit/sidebar/PublishControls';
-import SplitTestSidebarInfo from '../../course-unit/sidebar/SplitTestSidebarInfo';
+import classNames from 'classnames';
+
+import { UnitSidebar } from '@src/course-unit/unit-sidebar/UnitSidebar';
+import { isUnitPageNewDesignEnabled } from '@src/course-unit/utils';
 
 export const CourseAuthoringUnitSidebarSlot = (
   {
@@ -16,42 +15,38 @@ export const CourseAuthoringUnitSidebarSlot = (
     isSplitTestType,
   }: CourseAuthoringUnitSidebarSlotProps,
 ) => (
-  <PluginSlot
-    id="org.openedx.frontend.authoring.course_unit_sidebar.v2"
-    pluginProps={{
-      blockId, courseId, unitTitle, xBlocks, readOnly, isUnitVerticalType, isSplitTestType,
-    }}
+  <div
+    className={classNames({ 'sidebar': isUnitPageNewDesignEnabled() })}
   >
-    <Stack gap={3}>
-      {isUnitVerticalType && (
-        <PluginSlot
-          id="org.openedx.frontend.authoring.course_unit_sidebar.v1"
-          idAliases={['course_authoring_unit_sidebar_slot']}
-          pluginProps={{
-            blockId, courseId, unitTitle, xBlocks, readOnly,
-          }}
-        >
-          <Sidebar data-testid="course-unit-sidebar">
-            <PublishControls blockId={blockId} />
-          </Sidebar>
-          <Sidebar data-testid="course-unit-location-sidebar">
-            <LocationInfo />
-          </Sidebar>
-        </PluginSlot>
-      )}
-      {isSplitTestType && (
-        <Sidebar data-testid="course-split-test-sidebar">
-          <SplitTestSidebarInfo />
-        </Sidebar>
-      )}
-    </Stack>
-  </PluginSlot>
+    <PluginSlot
+      id="org.openedx.frontend.authoring.course_unit_sidebar.v2"
+      pluginProps={{
+        blockId,
+        courseId,
+        unitTitle,
+        xBlocks,
+        readOnly,
+        isUnitVerticalType,
+        isSplitTestType,
+      }}
+    >
+      <UnitSidebar
+        legacySidebarProps={{
+          unitTitle,
+          xBlocks,
+          readOnly,
+          isUnitVerticalType,
+          isSplitTestType,
+        }}
+      />
+    </PluginSlot>
+  </div>
 );
 
 type XBlock = {
-  id: string,
-  name: string,
-  blockType: string,
+  id: string;
+  name: string;
+  blockType: string;
 };
 
 interface CourseAuthoringUnitSidebarSlotProps {

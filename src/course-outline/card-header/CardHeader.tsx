@@ -1,5 +1,9 @@
 import {
-  ReactNode, useEffect, useRef, useState,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
 } from 'react';
 import { getConfig } from '@edx/frontend-platform';
 import { useIntl } from '@edx/frontend-platform/i18n';
@@ -11,6 +15,7 @@ import {
   Icon,
   IconButton,
   IconButtonWithTooltip,
+  Stack,
   useToggle,
 } from '@openedx/paragon';
 import {
@@ -20,38 +25,38 @@ import {
 } from '@openedx/paragon/icons';
 
 import { useContentTagsCount } from '@src/generic/data/apiHooks';
-import { ContentTagsDrawerSheet } from '@src/content-tags-drawer';
 import TagCount from '@src/generic/tag-count';
 import { useEscapeClick } from '@src/hooks';
 import { XBlockActions } from '@src/data/types';
-import { RequestStatus, RequestStatusType } from '@src/data/constants';
+import { useUpdateCourseBlockName } from '@src/course-outline/data/apiHooks';
+import { useCourseAuthoringContext } from '@src/CourseAuthoringContext';
+import { useCourseOutlineContext } from '@src/course-outline/CourseOutlineContext';
 import { ITEM_BADGE_STATUS } from '../constants';
 import { scrollToElement } from '../utils';
 import CardStatus from './CardStatus';
 import messages from './messages';
+import { useOutlineSidebarContext } from '../outline-sidebar/OutlineSidebarContext';
 
 interface CardHeaderProps {
   title: string;
   status: string;
-  cardId?: string,
+  cardId: string;
   hasChanges: boolean;
   onClickPublish: () => void;
   onClickConfigure: () => void;
   onClickMenuButton: () => void;
-  onClickEdit: () => void;
-  isFormOpen: boolean;
-  onEditSubmit: (titleValue: string) => void;
-  closeForm: () => void;
   onClickDelete: () => void;
   onClickUnlink: () => void;
   onClickDuplicate: () => void;
   onClickMoveUp: () => void;
   onClickMoveDown: () => void;
   onClickCopy?: () => void;
+  onClickCard?: (e: React.MouseEvent) => void;
+  onClickManageTags?: () => void;
   titleComponent: ReactNode;
   namePrefix: string;
-  proctoringExamConfigurationLink?: string,
-  actions: XBlockActions,
+  proctoringExamConfigurationLink?: string;
+  actions: XBlockActions;
   enableCopyPasteUnits?: boolean;
   isVertical?: boolean;
   isSequential?: boolean;
@@ -63,13 +68,12 @@ interface CardHeaderProps {
   parentInfo?: {
     graded: boolean;
     isTimeLimited?: boolean;
-  },
+  };
   // An optional component that is rendered before the dropdown. This is used by the Subsection
   // and Unit card components to render their plugin slots.
-  extraActionsComponent?: ReactNode,
+  extraActionsComponent?: ReactNode;
   onClickSync?: () => void;
   readyToSync?: boolean;
-  savingStatus?: RequestStatusType;
 }
 
 const CardHeader = ({
@@ -80,16 +84,14 @@ const CardHeader = ({
   onClickPublish,
   onClickConfigure,
   onClickMenuButton,
-  onClickEdit,
-  isFormOpen,
-  onEditSubmit,
-  closeForm,
   onClickDelete,
   onClickUnlink,
   onClickDuplicate,
   onClickMoveUp,
   onClickMoveDown,
   onClickCopy,
+  onClickCard,
+  onClickManageTags,
   titleComponent,
   namePrefix,
   actions,
@@ -103,13 +105,21 @@ const CardHeader = ({
   extraActionsComponent,
   onClickSync,
   readyToSync,
-  savingStatus,
 }: CardHeaderProps) => {
   const intl = useIntl();
   const [searchParams] = useSearchParams();
   const [titleValue, setTitleValue] = useState(title);
   const cardHeaderRef = useRef(null);
-  const [isManageTagsDrawerOpen, openManageTagsDrawer, closeManageTagsDrawer] = useToggle(false);
+  const { setCurrentPageKey } = useOutlineSidebarContext();
+
+  const openManageTagsDrawer = useCallback(() => {
+    setCurrentPageKey('align');
+    onClickMenuButton();
+    onClickManageTags?.();
+  }, [setCurrentPageKey, cardId]);
+  const { courseId } = useCourseAuthoringContext();
+  const { currentSelection } = useCourseOutlineContext();
+  const [isFormOpen, openForm, closeForm] = useToggle(false);
 
   // Use studio url as base if proctoringExamConfigurationLink is a relative link
   const fullProctoringExamConfigurationLink = () => (
@@ -120,7 +130,11 @@ const CardHeader = ({
     || status === ITEM_BADGE_STATUS.publishedNotLive) && !hasChanges;
 
   const { data: contentTagCount } = useContentTagsCount(cardId);
-  const isSaving = savingStatus === RequestStatus.IN_PROGRESS;
+
+  const onEditClick = () => {
+    onClickMenuButton();
+    openForm();
+  };
 
   useEffect(() => {
     const locatorId = searchParams.get('show');
@@ -133,70 +147,96 @@ const CardHeader = ({
     }
   }, []);
 
-  const showDiscussionsEnabledBadge = (
-    isVertical
-      && !parentInfo?.isTimeLimited
-      && discussionEnabled
-      && discussionsSettings?.providerType === 'openedx'
-      && (
-        discussionsSettings?.enableGradedUnits
-          || (!discussionsSettings?.enableGradedUnits && !parentInfo?.graded)
-      )
-  );
+  const showDiscussionsEnabledBadge = isVertical
+    && !parentInfo?.isTimeLimited
+    && discussionEnabled
+    && discussionsSettings?.providerType === 'openedx'
+    && (
+      discussionsSettings?.enableGradedUnits
+      || (!discussionsSettings?.enableGradedUnits && !parentInfo?.graded)
+    );
 
   useEscapeClick({
-    onEscape: () => {
+    onEscape: /* istanbul ignore next */ () => {
       setTitleValue(title);
       closeForm();
     },
-    dependency: title,
+    dependency: [title],
   });
+
+  const editMutation = useUpdateCourseBlockName(courseId);
+  const handleEditSubmit = useCallback(() => {
+    if (title !== titleValue) {
+      editMutation.mutate({
+        itemId: cardId,
+        displayName: titleValue,
+        subsectionId: currentSelection?.subsectionId,
+        sectionId: currentSelection?.sectionId,
+      }, {
+        onSettled: () => closeForm(),
+      });
+    } else {
+      closeForm();
+    }
+  }, [title, titleValue, cardId, editMutation]);
 
   return (
     <>
-      <div
+      {
+        /* This is a special case; we can skip accessibility here (tabbing and select with keyboard) since the
+        `SortableItem` component handles that for the whole `{Container}Card`.
+        This `onClick` allows the user to select the Card by clicking on white areas of this component. */
+      }
+      <div // eslint-disable-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events
         className="item-card-header"
         data-testid={`${namePrefix}-card-header`}
         ref={cardHeaderRef}
+        onClick={onClickCard}
       >
-        {isFormOpen ? (
-          <Form.Group className="m-0 w-75">
-            <Form.Control
-              data-testid={`${namePrefix}-edit-field`}
-              ref={(e) => e && e.focus()}
-              value={titleValue}
-              name="displayName"
-              onChange={(e) => setTitleValue(e.target.value)}
-              aria-label={intl.formatMessage(messages.editFieldAriaLabel)}
-              onBlur={() => onEditSubmit(titleValue)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  onEditSubmit(titleValue);
-                }
-              }}
-              disabled={isSaving}
-            />
-          </Form.Group>
-        ) : (
-          <>
-            {titleComponent}
-            <IconButtonWithTooltip
-              className="item-card-button-icon"
-              data-testid={`${namePrefix}-edit-button`}
-              alt={intl.formatMessage(messages.altButtonRename)}
-              tooltipContent={<div>{intl.formatMessage(messages.altButtonRename)}</div>}
-              iconAs={EditIcon}
-              onClick={onClickEdit}
-              // @ts-ignore
-              disabled={isSaving}
-            />
-          </>
-        )}
+        {isFormOpen ?
+          (
+            <Form.Group className="m-0 w-75">
+              <Form.Control
+                data-testid={`${namePrefix}-edit-field`}
+                ref={(e) => e && e.focus()}
+                value={titleValue}
+                name="displayName"
+                onChange={(e) => setTitleValue(e.target.value)}
+                aria-label={intl.formatMessage(messages.editFieldAriaLabel)}
+                onBlur={handleEditSubmit}
+                onKeyDown={/* istanbul ignore next */ (e) => {
+                  if (e.key === 'Enter') {
+                    handleEditSubmit();
+                  } else if (e.key === ' ') {
+                    // Avoid passing propagation to the `SortableItem` in the card,
+                    // which executes a `preventDefault`. If propagation is not prevented,
+                    // spaces cannot be added to names.
+                    e.stopPropagation();
+                  }
+                }}
+                disabled={editMutation.isPending}
+              />
+            </Form.Group>
+          ) :
+          (
+            <Stack direction="horizontal" gap={2}>
+              {titleComponent}
+              <IconButtonWithTooltip
+                className="item-card-button-icon"
+                data-testid={`${namePrefix}-edit-button`}
+                alt={intl.formatMessage(messages.altButtonRename)}
+                tooltipContent={<div>{intl.formatMessage(messages.altButtonRename)}</div>}
+                iconAs={EditIcon}
+                onClick={onEditClick}
+                disabled={editMutation.isPending}
+              />
+            </Stack>
+          )}
         <div className="ml-auto d-flex">
           {(isVertical || isSequential) && (
             <CardStatus status={status} showDiscussionsEnabledBadge={showDiscussionsEnabledBadge || false} />
           )}
-          { getConfig().ENABLE_TAGGING_TAXONOMY_PAGES === 'true' && !!contentTagCount && (
+          {getConfig().ENABLE_TAGGING_TAXONOMY_PAGES === 'true' && !!contentTagCount && (
             <TagCount count={contentTagCount} onClick={openManageTagsDrawer} />
           )}
           {extraActionsComponent}
@@ -240,11 +280,21 @@ const CardHeader = ({
               </Dropdown.Item>
               <Dropdown.Item
                 data-testid={`${namePrefix}-card-header__menu-configure-button`}
-                disabled={isSaving}
+                disabled={editMutation.isPending}
                 onClick={onClickConfigure}
               >
                 {intl.formatMessage(messages.menuConfigure)}
               </Dropdown.Item>
+              {getConfig().ENABLE_TAGGING_TAXONOMY_PAGES === 'true' && (
+                <Dropdown.Item
+                  data-testid={`${namePrefix}-card-header__menu-manage-tags-button`}
+                  disabled={editMutation.isPending}
+                  onClick={openManageTagsDrawer}
+                >
+                  {intl.formatMessage(messages.menuManageTags)}
+                </Dropdown.Item>
+              )}
+
               {isVertical && enableCopyPasteUnits && (
                 <Dropdown.Item onClick={onClickCopy}>
                   {intl.formatMessage(messages.menuCopy)}
@@ -300,11 +350,6 @@ const CardHeader = ({
           </Dropdown>
         </div>
       </div>
-      <ContentTagsDrawerSheet
-        id={cardId}
-        onClose={/* istanbul ignore next */ () => closeManageTagsDrawer()}
-        showSheet={isManageTagsDrawerOpen}
-      />
     </>
   );
 };

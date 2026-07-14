@@ -185,6 +185,28 @@ describe('<AssignmentSection />', () => {
     expect(getByTestId('assignment-type-name-input')).not.toBeDisabled();
   });
 
+  it('displays the canonical Homework assignment type in French without changing stored data', () => {
+    const { getByTestId } = render(
+      <IntlProvider
+        locale="fr"
+        messages={{
+          [messages.homeworkTypeName.id]: 'Devoir',
+        }}
+      >
+        <AssignmentSection
+          handleRemoveAssignment={jest.fn()}
+          setShowSavePrompt={jest.fn()}
+          graders={[{ ...defaultAssignments, type: 'Homework' }]}
+          setGradingData={jest.fn()}
+          courseAssignmentLists={{ Homework: [] }}
+          setShowSuccessAlert={jest.fn()}
+        />
+      </IntlProvider>,
+    );
+
+    expect(getByTestId('assignment-type-name-input')).toHaveValue('Devoir');
+  });
+
   it('checking correct error msg if total weight have negative number', async () => {
     const { getByText, getByTestId } = render(<RootWrapper />);
     await waitFor(() => {

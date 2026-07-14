@@ -22,8 +22,8 @@
     background-color: var(--wuti-color-surface-subtle);
     box-shadow: 0 0 0;
 
-      .pgn__data-table-status-bar {
-        display: grid;
+    .pgn__data-table-status-bar {
+      display: grid;
       grid-template-columns: minmax(44rem, 1fr) minmax(34rem, auto);
       align-items: start;
       gap: 1.5rem;
@@ -142,6 +142,17 @@
       .btn {
         white-space: nowrap;
       }
+    }
+
+    .files-table-control-bar {
+      position: relative;
+    }
+
+    .files-data-view-toggle {
+      position: absolute;
+      right: 1.5rem;
+      bottom: 1rem;
+      z-index: 1;
     }
 
     .pgn__data-table-card-view {
