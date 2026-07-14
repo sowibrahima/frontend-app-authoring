@@ -12,6 +12,7 @@ import { Icon } from '@openedx/paragon';
 import {
   ArrowLeft,
   ArrowRight,
+  AutoAwesome,
   Check,
   CreditCard,
   EditNote,
@@ -37,8 +38,7 @@ import {
 import { getCourseDetails, updateCourseDetails } from '../schedule-and-details/data/api';
 import { uploadAssets } from '../generic/course-upload-image/data/api';
 import { COMPONENT_TYPES } from '../generic/block-type-utils/constants';
-import { addNewCourseItem, getCourseOutlineIndex } from '../course-outline/data/api';
-import { createCourseXblock } from '../course-unit/data/api';
+import { createCourseXblock, getCourseOutlineIndex } from '../course-outline/data/api';
 import {
   CoursePlanBuilder,
   CoursePlanDraft,
@@ -633,11 +633,11 @@ async function provisionOutlineDraft(courseId: string, outlineDraft: OutlineModu
   }
 
   for (const moduleItem of outlineDraft) {
-    const sectionResult: any = await addNewCourseItem(
-      courseUsageKey,
-      'chapter',
-      cleanTitle(moduleItem.title, 'New module'),
-    );
+    const sectionResult: any = await createCourseXblock({
+      parentLocator: courseUsageKey,
+      type: 'chapter',
+      displayName: cleanTitle(moduleItem.title, 'New module'),
+    });
     const sectionLocator = sectionResult?.locator;
 
     if (!sectionLocator) {
@@ -645,11 +645,11 @@ async function provisionOutlineDraft(courseId: string, outlineDraft: OutlineModu
     }
 
     for (const lessonItem of moduleItem.lessons) {
-      const subsectionResult: any = await addNewCourseItem(
-        sectionLocator,
-        'sequential',
-        cleanTitle(lessonItem.title, 'New lesson'),
-      );
+      const subsectionResult: any = await createCourseXblock({
+        parentLocator: sectionLocator,
+        type: 'sequential',
+        displayName: cleanTitle(lessonItem.title, 'New lesson'),
+      });
       const subsectionLocator = subsectionResult?.locator;
 
       if (!subsectionLocator) {
@@ -657,11 +657,11 @@ async function provisionOutlineDraft(courseId: string, outlineDraft: OutlineModu
       }
 
       for (const activityItem of lessonItem.activities) {
-        const unitResult: any = await addNewCourseItem(
-          subsectionLocator,
-          'vertical',
-          cleanTitle(activityItem.title, 'New activity page'),
-        );
+        const unitResult: any = await createCourseXblock({
+          parentLocator: subsectionLocator,
+          type: 'vertical',
+          displayName: cleanTitle(activityItem.title, 'New activity page'),
+        });
         const unitLocator = unitResult?.locator;
 
         if (unitLocator) {
@@ -1432,10 +1432,14 @@ const CreateCourseWizard = () => {
     && data.templateId !== ''
     && planDraft.structure.sections.length > 0
   ) || (
+    data.creationStrategy === 'ai'
+    && aiPromptSeed !== ''
+  ) || (
     data.creationStrategy === 'scratch'
   );
 
   const outlineReviewValid = data.creationStrategy === 'scratch'
+    || data.creationStrategy === 'ai'
     || planDraft.structure.sections.length > 0;
   const mediaAndDescriptionValid = Boolean(thumbnailPreview) && data.overviewHtml.trim().length > 0;
   const calendarValid = useMemo(
@@ -2155,6 +2159,7 @@ const CreateCourseWizard = () => {
                       <input
                         id="ww-course-start"
                         type="datetime-local"
+                        lang={intl.locale.startsWith('fr') ? 'fr-FR' : intl.locale}
                         className="ws-wizard__input"
                         value={data.courseStart}
                         onChange={(event) => {
@@ -2170,6 +2175,7 @@ const CreateCourseWizard = () => {
                       <input
                         id="ww-course-end"
                         type="datetime-local"
+                        lang={intl.locale.startsWith('fr') ? 'fr-FR' : intl.locale}
                         className="ws-wizard__input"
                         value={data.courseEnd}
                         onChange={(event) => {
@@ -2188,6 +2194,12 @@ const CreateCourseWizard = () => {
                   <h2 className="ws-wizard__section-title">
                     {t('wuti.authoring.wizard.enrollmentPeriod', 'Enrollment period')}
                   </h2>
+                  <p className="ws-wizard__field-hint">
+                    {t(
+                      'wuti.authoring.wizard.enrollmentPeriodHint',
+                      'Enrollment must start on or before the course start date and end on or before the course end date.',
+                    )}
+                  </p>
                   <div className="ws-wizard__field-row">
                     <div className="ws-wizard__field">
                       <label className="ws-wizard__label" htmlFor="ww-enrollment-start">
@@ -2196,6 +2208,7 @@ const CreateCourseWizard = () => {
                       <input
                         id="ww-enrollment-start"
                         type="datetime-local"
+                        lang={intl.locale.startsWith('fr') ? 'fr-FR' : intl.locale}
                         className="ws-wizard__input"
                         value={data.enrollmentStart}
                         onChange={(event) => {
@@ -2211,6 +2224,7 @@ const CreateCourseWizard = () => {
                       <input
                         id="ww-enrollment-end"
                         type="datetime-local"
+                        lang={intl.locale.startsWith('fr') ? 'fr-FR' : intl.locale}
                         className="ws-wizard__input"
                         value={data.enrollmentEnd}
                         onChange={(event) => {
@@ -2236,7 +2250,6 @@ const CreateCourseWizard = () => {
                   <button
                     type="button"
                     className="ws-wizard__btn ws-wizard__btn--primary"
-                    disabled={!calendarValid}
                     onClick={() => {
                       if (validateCalendarStep()) {
                         goToStep(4);
@@ -2609,6 +2622,12 @@ const CreateCourseWizard = () => {
                       description: t('wuti.authoring.wizard.templateMethodDescription', 'Use a predefined course structure adapted to your domain.'),
                     },
                     {
+                      value: 'ai' as CreationStrategy,
+                      icon: AutoAwesome,
+                      title: t('wuti.authoring.wizard.aiCourseCreationTitle', 'Generate with AI'),
+                      description: t('wuti.authoring.wizard.aiMethodDescription', 'Let the assistant create the course plan from your topic and context.'),
+                    },
+                    {
                       value: 'scratch' as CreationStrategy,
                       icon: EditNote,
                       title: t('wuti.authoring.wizard.scratchMethodTitle', 'Start from scratch'),
@@ -2690,6 +2709,37 @@ const CreateCourseWizard = () => {
                               />
                             </div>
                           )}
+                        </div>
+                      )}
+
+                      {option.value === 'ai' && data.creationStrategy === 'ai' && (
+                        <div className="ws-wizard__nested-panel">
+                          <div className="ws-wizard__nested-panel-header">
+                            <p className="ws-wizard__nested-panel-title">
+                              {t('wuti.authoring.wizard.generationIntentTitle', 'Generation topic or intent')}
+                            </p>
+                            <p className="ws-wizard__nested-panel-copy">
+                              {t('wuti.authoring.wizard.aiAssistantCopy', 'The course will be created, then the AI assistant will generate its initial structure from this context.')}
+                            </p>
+                          </div>
+
+                          <div className="ws-wizard__field">
+                            <label className="ws-wizard__label" htmlFor="ww-final-ai-prompt">
+                              {t('wuti.authoring.wizard.generationPrompt', 'Generation prompt')}
+                            </label>
+                            <textarea
+                              id="ww-final-ai-prompt"
+                              className={`ws-wizard__textarea${touched.topicPrompt && !aiPromptSeed ? ' ws-wizard__input--error' : ''}`}
+                              placeholder={t('wuti.authoring.wizard.generationPromptPlaceholder', 'e.g. Generate a beginner Python course plan with practical exercises and short quizzes.')}
+                              value={data.topicPrompt}
+                              onChange={(event) => setField('topicPrompt', event.target.value)}
+                            />
+                            {touched.topicPrompt && !aiPromptSeed && (
+                              <span className="ws-wizard__field-error">
+                                {t('wuti.authoring.wizard.promptRequired', 'Add a topic or objective to generate a plan.')}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       )}
                     </React.Fragment>
