@@ -27,6 +27,7 @@ const renderComponent = children =>
   );
 
 beforeEach(async () => {
+  mockPathname = '/evilguy/';
   const mocks = initializeMocks();
   store = mocks.reduxStore;
   axiosMock = mocks.axiosMock;
@@ -101,6 +102,16 @@ describe('Course authoring page', () => {
     );
     expect(await wrapper.findByTestId(contentTestId)).toBeInTheDocument();
     expect(wrapper.queryByTestId('notFoundAlert')).not.toBeInTheDocument();
+  });
+  test('renders the WutiSkill footer on course pages', async () => {
+    await mockStoreError();
+    const wrapper = renderComponent(
+      <CourseAuthoringPage>
+        <div data-testid="courseAuthoringPageContent" />
+      </CourseAuthoringPage>,
+    );
+
+    expect(await wrapper.findByText(/WutiSkill Inc\./)).toBeInTheDocument();
   });
   const mockStoreDenied = async () => {
     const studioApiBaseUrl = getConfig().STUDIO_BASE_URL;

@@ -30,7 +30,7 @@ jest.mock('react-router-dom', () => ({
 
 /** Helper function to get the Studio header in the rendered HTML */
 function getHeaderElement(): HTMLElement {
-  const header = screen.getByRole('banner');
+  const [header] = screen.getAllByRole('banner');
   expect(header.tagName).toEqual('HEADER');
   return header;
 }

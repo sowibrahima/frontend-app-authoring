@@ -196,6 +196,7 @@ interface BaseProps {
   rerunLink?: string | null;
   courseKey?: string;
   isLibraries?: boolean;
+  isMigrated?: boolean;
   subtitleWrapper?: ((subtitle: JSX.Element) => ReactElement) | null; // Wrapper for the default subtitle element
   subtitleBeforeWidget?: ReactElement | null; // Adds a widget before the default subtitle element
   cardStatusWidget?: ReactElement | null;
@@ -230,6 +231,7 @@ export const CardItem: React.FC<Props> = ({
   number,
   run = '',
   isLibraries = false,
+  isMigrated = false,
   courseKey = '',
   selectMode,
   selectPosition,
@@ -249,6 +251,7 @@ export const CardItem: React.FC<Props> = ({
     rerunCreatorStatus,
   } = useSelector(getStudioHomeData);
   const waffleFlags = useWaffleFlags();
+  const intl = useIntl();
   const cardRef = useRef<HTMLDivElement>(null);
 
   const destinationUrl: string = path ?? (
@@ -293,9 +296,10 @@ export const CardItem: React.FC<Props> = ({
           <header className="ws-course-card__header">
             <span className="ws-course-card__org">{org || '-'}</span>
 
-            {showActions && (
+            {showActionsMenu && (
               <Dropdown>
                 <Dropdown.Toggle
+                  id={`course-actions-${courseKey || itemId || number}`}
                   as={IconButton}
                   iconAs={MoreHoriz}
                   variant="primary"
@@ -308,7 +312,7 @@ export const CardItem: React.FC<Props> = ({
                       as={Link}
                       to={rerunLink ?? ''}
                     >
-                      {messages.btnReRunText.defaultMessage}
+                      <FormattedMessage {...messages.btnReRunText} />
                     </Dropdown.Item>
                   )}
                   <Dropdown.Item href={lmsLink}>

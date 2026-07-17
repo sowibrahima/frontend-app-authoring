@@ -10,7 +10,6 @@ import {
 import { Add as AddIcon, Error, ManageAccounts } from '@openedx/paragon/icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { getConfig } from '@edx/frontend-platform';
-import { StudioFooterSlot } from '@edx/frontend-component-footer';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import Loading from '../generic/Loading';
@@ -25,6 +24,7 @@ import CreateNewCourseForm from './create-new-course-form';
 import messages from './messages';
 import { useStudioHome } from './hooks';
 import AlertMessage from '../generic/alert-message';
+import WutiFooter from '../footer/WutiFooter';
 
 const StudioHome = () => {
   const intl = useIntl();
@@ -201,7 +201,7 @@ const StudioHome = () => {
           isQueryPending={anyQueryIsPending}
         />
       </div>
-      <StudioFooterSlot />
+      <WutiFooter />
     </>
   );
 };

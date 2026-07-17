@@ -1,7 +1,7 @@
 .ws-minimal-footer {
   margin-top: auto;
-  border-top: 1px solid #eef2f6;
-  background: #fafaf7;
+  border-top: 1px solid var(--wuti-color-border);
+  background: var(--wuti-color-bg);
 }
 
 .ws-minimal-footer__inner {
@@ -18,7 +18,7 @@
 .ws-minimal-footer__copyright,
 .ws-minimal-footer__link {
   margin: 0;
-  color: #98a2b3;
+  color: var(--wuti-color-disabled-text);
   font-family: "JetBrains Mono", monospace;
   font-size: 0.82rem;
   letter-spacing: 0.025em;
@@ -38,7 +38,7 @@
 
   &:hover,
   &:focus-visible {
-    color: #667085;
+    color: var(--wuti-color-muted);
     text-decoration: none;
   }
 }

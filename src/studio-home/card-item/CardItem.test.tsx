@@ -21,7 +21,9 @@ describe('<CardItem />', () => {
   it('should render course details for non-library course', () => {
     const props = studioHomeMock.archivedCourses[0];
     render(<CardItem {...props} />);
-    expect(screen.getByText(`${props.org} / ${props.number} / ${props.run}`)).toBeInTheDocument();
+    expect(screen.getByText(props.org)).toBeInTheDocument();
+    expect(screen.getByText(props.number)).toBeInTheDocument();
+    expect(screen.getByText(props.run)).toBeInTheDocument();
   });
 
   it('should render correct links for non-library course', () => {
@@ -29,7 +31,7 @@ describe('<CardItem />', () => {
     render(<CardItem {...props} />);
     const courseTitleLink = screen.getByText(props.displayName);
     expect(courseTitleLink).toHaveAttribute('href', `${props.url}`);
-    const dropDownMenu = screen.getByRole('button', { name: /course actions/i });
+    const dropDownMenu = screen.getByRole('button', { name: messages.btnDropDownText.defaultMessage });
     fireEvent.click(dropDownMenu);
     const btnReRunCourse = screen.getByText(messages.btnReRunText.defaultMessage);
     expect(btnReRunCourse).toHaveAttribute('href', props.rerunLink);
@@ -42,7 +44,7 @@ describe('<CardItem />', () => {
     render(<CardItem {...props} />);
     const courseTitleLink = screen.getByText(props.displayName);
     expect(courseTitleLink).toHaveAttribute('href', `${props.url}`);
-    const dropDownMenu = screen.getByRole('button', { name: /course actions/i });
+    const dropDownMenu = screen.getByRole('button', { name: messages.btnDropDownText.defaultMessage });
     fireEvent.click(dropDownMenu);
     const btnReRunCourse = screen.getByText(messages.btnReRunText.defaultMessage);
     expect(btnReRunCourse).toHaveAttribute('href', `/${trimSlashes(props.rerunLink)}`);

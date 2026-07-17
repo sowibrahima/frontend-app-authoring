@@ -4,8 +4,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   useLocation,
 } from 'react-router-dom';
-import { StudioFooterSlot } from '@edx/frontend-component-footer';
 import Header from './header';
+import WutiFooter from './footer/WutiFooter';
 import NotFoundAlert from './generic/NotFoundAlert';
 import PermissionDeniedAlert from './generic/PermissionDeniedAlert';
 import { fetchOnlyStudioHomeData } from './studio-home/data/thunks';
@@ -62,7 +62,7 @@ const CourseAuthoringPage = ({ children }: Props) => {
           />
         ))}
       {children}
-      {!inProgress && !isEditor && <StudioFooterSlot />}
+      {!inProgress && !isEditor && <WutiFooter />}
     </div>
   );
 };
