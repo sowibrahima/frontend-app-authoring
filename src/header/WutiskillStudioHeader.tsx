@@ -20,7 +20,6 @@ import {
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 
-import { useWaffleFlags } from '../data/apiHooks';
 import { getStudioHomeData } from '../studio-home/data/selectors';
 import { createCorrectInternalRoute } from '../utils';
 import './WutiskillStudioHeader.scss';
@@ -109,22 +108,6 @@ const messages = defineMessages({
   },
 });
 
-const getTabHref = ({
-  courseId,
-  studioBaseUrl,
-  useMfeRoute,
-  mfePath,
-  studioPath,
-}: {
-  courseId: string;
-  studioBaseUrl: string;
-  useMfeRoute: boolean;
-  mfePath: string;
-  studioPath: string;
-}) => (useMfeRoute
-  ? createCorrectInternalRoute(`/course/${courseId}${mfePath}`)
-  : `${studioBaseUrl}${studioPath}/${courseId}`);
-
 const updateScrollIndicatorState = (
   setTabsScrollIndicator: React.Dispatch<React.SetStateAction<{
     isVisible: boolean;
@@ -177,8 +160,6 @@ const WutiskillStudioHeader = ({
   const intl = useIntl();
   const location = useLocation();
   const tabsRef = useRef<HTMLElement | null>(null);
-  const waffleFlags = useWaffleFlags();
-  const studioBaseUrl = getConfig().STUDIO_BASE_URL;
   const { canAccessAdvancedSettings } = useSelector(getStudioHomeData);
   const [tabsScrollIndicator, setTabsScrollIndicator] = useState({
     isVisible: false,
@@ -192,45 +173,29 @@ const WutiskillStudioHeader = ({
         id: 'plan',
         label: intl.formatMessage(messages.plan),
         icon: MenuBook,
-        href: waffleFlags.useNewCourseOutlinePage
-          ? createCorrectInternalRoute(`/course/${contextId}`)
-          : `${studioBaseUrl}/course/${contextId}`,
+        href: createCorrectInternalRoute(`/course/${contextId}`),
         matchPaths: ['', 'subsection', 'editor', 'libraries'],
       },
       {
         id: 'horaires',
         label: intl.formatMessage(messages.schedule),
         icon: Schedule,
-        href: getTabHref({
-          courseId: contextId,
-          studioBaseUrl,
-          useMfeRoute: waffleFlags.useNewScheduleDetailsPage,
-          mfePath: '/settings/details',
-          studioPath: '/settings/details',
-        }),
+        href: createCorrectInternalRoute(`/course/${contextId}/settings/details`),
         matchPaths: ['settings/details'],
       },
       {
         id: 'evaluation',
         label: intl.formatMessage(messages.grading),
         icon: Grading,
-        href: getTabHref({
-          courseId: contextId,
-          studioBaseUrl,
-          useMfeRoute: waffleFlags.useNewGradingPage,
-          mfePath: '/settings/grading',
-          studioPath: '/settings/grading',
-        }),
+        href: createCorrectInternalRoute(`/course/${contextId}/settings/grading`),
         matchPaths: ['settings/grading'],
       },
-      ...((getConfig().ENABLE_CERTIFICATE_PAGE === 'true' || waffleFlags.useNewCertificatesPage)
+      ...(getConfig().ENABLE_CERTIFICATE_PAGE === 'true'
         ? [{
           id: 'certificats',
           label: intl.formatMessage(messages.certificates),
           icon: EmojiEvents,
-          href: waffleFlags.useNewCertificatesPage
-            ? createCorrectInternalRoute(`/course/${contextId}/certificates`)
-            : `${studioBaseUrl}/certificates/${contextId}`,
+          href: createCorrectInternalRoute(`/course/${contextId}/certificates`),
           matchPaths: ['certificates'],
         }]
         : []),
@@ -238,57 +203,35 @@ const WutiskillStudioHeader = ({
         id: 'fichiers',
         label: intl.formatMessage(messages.files),
         icon: FolderOpen,
-        href: getTabHref({
-          courseId: contextId,
-          studioBaseUrl,
-          useMfeRoute: waffleFlags.useNewFilesUploadsPage,
-          mfePath: '/assets',
-          studioPath: '/assets',
-        }),
+        href: createCorrectInternalRoute(`/course/${contextId}/assets`),
         matchPaths: ['assets', 'videos'],
       },
       {
         id: 'equipe',
         label: intl.formatMessage(messages.courseTeam),
         icon: People,
-        href: getTabHref({
-          courseId: contextId,
-          studioBaseUrl,
-          useMfeRoute: waffleFlags.useNewCourseTeamPage,
-          mfePath: '/course_team',
-          studioPath: '/course_team',
-        }),
+        href: createCorrectInternalRoute(`/course/${contextId}/course_team`),
         matchPaths: ['course_team'],
       },
       {
         id: 'groupes',
         label: intl.formatMessage(messages.groups),
         icon: Groups,
-        href: getTabHref({
-          courseId: contextId,
-          studioBaseUrl,
-          useMfeRoute: waffleFlags.useNewGroupConfigurationsPage,
-          mfePath: '/group_configurations',
-          studioPath: '/group_configurations',
-        }),
+        href: createCorrectInternalRoute(`/course/${contextId}/group_configurations`),
         matchPaths: ['group_configurations'],
       },
       {
         id: 'mailing',
         label: intl.formatMessage(messages.email),
         icon: Email,
-        href: waffleFlags.useNewUpdatesPage
-          ? createCorrectInternalRoute(`/course/${contextId}/course_info`)
-          : `${studioBaseUrl}/course_info/${contextId}`,
+        href: createCorrectInternalRoute(`/course/${contextId}/course_info`),
         matchPaths: ['course_info'],
       },
       {
         id: 'import_export',
         label: intl.formatMessage(messages.importExport),
         icon: ImportExport,
-        href: waffleFlags.useNewImportPage
-          ? createCorrectInternalRoute(`/course/${contextId}/import`)
-          : `${studioBaseUrl}/import/${contextId}`,
+        href: createCorrectInternalRoute(`/course/${contextId}/import`),
         matchPaths: ['import', 'export'],
       },
       ...(canAccessAdvancedSettings
@@ -296,20 +239,14 @@ const WutiskillStudioHeader = ({
           id: 'avance',
           label: intl.formatMessage(messages.settings),
           icon: Settings,
-          href: getTabHref({
-            courseId: contextId,
-            studioBaseUrl,
-            useMfeRoute: waffleFlags.useNewAdvancedSettingsPage,
-            mfePath: '/settings/advanced',
-            studioPath: '/settings/advanced',
-          }),
+          href: createCorrectInternalRoute(`/course/${contextId}/settings/advanced`),
           matchPaths: ['settings/advanced'],
         }]
         : []),
     ];
 
     return items;
-  }, [canAccessAdvancedSettings, contextId, intl, studioBaseUrl, waffleFlags]);
+  }, [canAccessAdvancedSettings, contextId, intl]);
 
   const courseBasePath = `/course/${contextId}`;
   const activeTabId = useMemo(

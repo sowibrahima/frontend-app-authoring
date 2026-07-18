@@ -8,6 +8,10 @@ import { getApiWaffleFlagsUrl } from './data/api';
 import { initializeMocks, render } from './testUtils';
 import { CourseAuthoringProvider } from './CourseAuthoringContext';
 
+jest.mock('./header/WutiskillStudioHeader', () => function WutiskillStudioHeaderMock() {
+  return <header data-testid="wutiskillStudioHeader" />;
+});
+
 const courseId = 'course-v1:edX+TestX+Test_Course';
 let mockPathname = '/evilguy/';
 jest.mock('react-router-dom', () => ({
@@ -19,12 +23,11 @@ jest.mock('react-router-dom', () => ({
 let axiosMock;
 let store;
 
-const renderComponent = children =>
-  render(
-    <CourseAuthoringProvider courseId={courseId}>
-      {children}
-    </CourseAuthoringProvider>,
-  );
+const renderComponent = children => render(
+  <CourseAuthoringProvider courseId={courseId}>
+    {children}
+  </CourseAuthoringProvider>,
+);
 
 beforeEach(async () => {
   mockPathname = '/evilguy/';
@@ -112,6 +115,18 @@ describe('Course authoring page', () => {
     );
 
     expect(await wrapper.findByText(/WutiSkill Inc\./)).toBeInTheDocument();
+  });
+  test('renders the WutiSkill course navigation shell on course pages', async () => {
+    await mockStoreError();
+    const wrapper = renderComponent(
+      <CourseAuthoringPage>
+        <div data-testid="courseAuthoringPageContent" />
+      </CourseAuthoringPage>,
+    );
+
+    expect(await wrapper.findByTestId('wutiskillStudioHeader')).toBeInTheDocument();
+    expect(wrapper.getByTestId('wutiskillStudioHeader').closest('.ws-course-authoring-shell'))
+      .toBeInTheDocument();
   });
   const mockStoreDenied = async () => {
     const studioApiBaseUrl = getConfig().STUDIO_BASE_URL;

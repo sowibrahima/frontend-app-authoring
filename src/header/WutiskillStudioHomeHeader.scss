@@ -115,7 +115,11 @@ $ws-disabled: var(--wuti-color-disabled-text, #9CA3AF);
   align-items: center;
   gap: .55rem;
   color: $ws-text;
-  cursor: default;
+  cursor: pointer;
+}
+
+.ws-studio-home-header__user-menu {
+  position: relative;
 }
 
 .ws-studio-home-header__avatar {
@@ -136,4 +140,46 @@ $ws-disabled: var(--wuti-color-disabled-text, #9CA3AF);
   width: .95rem;
   height: .95rem;
   color: $ws-disabled;
+}
+
+.ws-studio-home-header__account-menu {
+  position: absolute;
+  top: calc(100% + .65rem);
+  right: 0;
+  min-width: 12rem;
+  padding: .45rem;
+  border: 1px solid $ws-border;
+  border-radius: 1rem;
+  background: $ws-surface;
+  box-shadow: 0 1rem 2.5rem color-mix(in srgb, $ws-text 12%, transparent);
+  display: grid;
+  gap: .15rem;
+}
+
+.ws-studio-home-header__account-link {
+  width: 100%;
+  border: 0;
+  border-radius: .7rem;
+  padding: .7rem .8rem;
+  background: transparent;
+  color: $ws-text;
+  font: inherit;
+  font-size: .88rem;
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: $ws-hover;
+    color: $ws-brand;
+    text-decoration: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $ws-brand;
+    outline-offset: 1px;
+  }
 }
