@@ -29,6 +29,11 @@ const messages = defineMessages({
     id: 'course-authoring.course-outline.status-bar.checklists.completed',
     defaultMessage: 'completed',
   },
+  notificationMetadataTitle: {
+    id: 'course-authoring.course-outline.status-bar.notification-metadata',
+    defaultMessage: '{count, plural, one {{count} notification} other {{count} notifications}}',
+    description: 'Metadata notifications text in course outline',
+  },
   highlightEmailsTitle: {
     id: 'course-authoring.course-outline.status-bar.highlight-emails',
     defaultMessage: 'Highlight emails',
@@ -74,6 +79,31 @@ const messages = defineMessages({
   videoSharingAllOnText: {
     id: 'course-authoring.course-outline.status-bar.video-sharing.allOn.text',
     defaultMessage: 'All videos',
+  },
+  unpublishedBadgeText: {
+    id: 'course-authoring.course-outline.status-bar.unpublished.badge.text',
+    defaultMessage: 'Unpublished changes',
+    description: 'Text shown when a course has unpublished changes.',
+  },
+  activeBadgeText: {
+    id: 'course-authoring.course-outline.status-bar.active.badge.text',
+    defaultMessage: 'Active',
+    description: 'Text shown when a course has started and has not ended.',
+  },
+  archivedBadgeText: {
+    id: 'course-authoring.course-outline.status-bar.archived.badge.text',
+    defaultMessage: 'Archived',
+    description: 'Text shown when a course has ended.',
+  },
+  upcomingBadgeText: {
+    id: 'course-authoring.course-outline.status-bar.upcoming.badge.text',
+    defaultMessage: 'Upcoming',
+    description: 'Text shown when a course has not started.',
+  },
+  libraryUpdatesText: {
+    id: 'course-authoring.course-outline.status-bar.library.updates.text',
+    defaultMessage: '{count, plural, one {{count} library update} other {{count} library updates}}',
+    description: 'Status text displaying the count of library updates.',
   },
 });
 

@@ -62,6 +62,24 @@ describe('<HeaderActions />', () => {
     initializeMocks();
   });
 
+  it.each(
+    [
+      'addButton',
+      'courseInfoButton',
+      'courseInfoButtonTooltip',
+      'newSectionButtonTooltip',
+      'reindexButton',
+      'reindexButtonTooltip',
+      'viewLiveButton',
+      'viewLiveButtonTooltip',
+    ] as const,
+  )('defines an internationalized descriptor for %s', (messageKey) => {
+    expect(messages[messageKey]).toEqual(expect.objectContaining({
+      id: expect.any(String),
+      defaultMessage: expect.any(String),
+    }));
+  });
+
   it('render HeaderActions component correctly', async () => {
     renderComponent();
 

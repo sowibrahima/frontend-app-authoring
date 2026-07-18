@@ -5,6 +5,11 @@ const messages = defineMessages({
     id: 'course-authoring.course-outline.header-navigations.button.new-section',
     defaultMessage: 'New module',
   },
+  addButton: {
+    id: 'course-authoring.course-outline.header-navigations.button.add-button',
+    defaultMessage: 'Add',
+    description: 'Label for the button that opens the add-content sidebar.',
+  },
   newSectionButtonTooltip: {
     id: 'course-authoring.course-outline.header-navigations.button.new-section.tooltip',
     defaultMessage: 'Add a new module',
@@ -28,6 +33,16 @@ const messages = defineMessages({
   viewLiveButton: {
     id: 'course-authoring.course-outline.header-navigations.button.view-live',
     defaultMessage: 'View live',
+  },
+  courseInfoButtonTooltip: {
+    id: 'course-authoring.course-outline.header-navigations.button.course.info.tooltip',
+    defaultMessage: 'Click to open course info in sidebar',
+    description: 'Tooltip for the button that opens course information in the sidebar.',
+  },
+  courseInfoButton: {
+    id: 'course-authoring.course-outline.header-navigations.button.course.info',
+    defaultMessage: 'Course info',
+    description: 'Label for the button that opens course information in the sidebar.',
   },
   viewLiveButtonTooltip: {
     id: 'course-authoring.course-outline.header-navigations.button.view-live.tooltip',
