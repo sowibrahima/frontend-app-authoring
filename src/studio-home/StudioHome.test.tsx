@@ -15,10 +15,7 @@ import studioHomeMock from './__mocks__/studioHomeMock';
 import { getStudioHomeApiUrl } from './data/api';
 import { StudioHome } from '.';
 
-const {
-  studioShortName,
-  studioRequestEmail,
-} = studioHomeMock;
+const { studioRequestEmail } = studioHomeMock;
 
 const mockUseSelector = jest.fn();
 jest.spyOn(reactRedux, 'useSelector').mockImplementation(mockUseSelector);
@@ -45,14 +42,14 @@ describe('<StudioHome />', () => {
 
     it('should render fetch error', async () => {
       render(<StudioHome />, { path: '/home' });
-      expect(screen.getByText('Failed to load Studio home. Please try again later.')).toBeInTheDocument();
+      expect(screen.getByText('Unable to load Studio. Try again in a few moments.')).toBeInTheDocument();
     });
 
     it('should render Studio home title', async () => {
       render(<StudioHome />, { path: '/home' });
       // Search only within the header; don't match on the similar text in the body's error message.
       const header = getHeaderElement();
-      expect(within(header).getByText('Studio home')).toBeInTheDocument();
+      expect(within(header).getByText('WutiSkill')).toBeInTheDocument();
     });
   });
 
@@ -66,7 +63,7 @@ describe('<StudioHome />', () => {
     it('should render page and page title correctly', async () => {
       render(<StudioHome />, { path: '/home' });
       const header = getHeaderElement();
-      expect(within(header).getByText(`${studioShortName} home`)).toBeInTheDocument();
+      expect(within(header).getByText('WutiSkill')).toBeInTheDocument();
     });
 
     it('should render "email staff" header button for users without create permission', async () => {
@@ -76,8 +73,7 @@ describe('<StudioHome />', () => {
       });
 
       render(<StudioHome />, { path: '/home' });
-      const header = getHeaderElement();
-      const link = within(header).getByRole('link', { name: 'Email staff to create course' });
+      const link = screen.getByRole('link', { name: 'Contact staff' });
       expect(link).toHaveAttribute('href', `mailto:${studioRequestEmail}`);
     });
 
@@ -88,8 +84,7 @@ describe('<StudioHome />', () => {
       });
 
       render(<StudioHome />, { path: '/home' });
-      const header = getHeaderElement();
-      within(header).getByRole('button', { name: 'New course' }); // will error if not found
+      screen.getByRole('button', { name: 'Create course' });
     });
 
     it('should render roles and permissions button', async () => {
@@ -99,8 +94,7 @@ describe('<StudioHome />', () => {
       });
 
       render(<StudioHome />, { path: '/home' });
-      const header = getHeaderElement();
-      const rolesButton = within(header).getByRole('link', { name: 'Roles and permissions' });
+      const rolesButton = screen.getByRole('link', { name: 'Roles and permissions' });
       expect(rolesButton).toHaveAttribute('href', 'https://admin-console.example.com/authz');
     });
 
@@ -173,41 +167,22 @@ describe('<StudioHome />', () => {
       expect(screen.queryByRole('button', { name: 'New library' })).toBeInTheDocument();
     });
 
-    it('should render "create new course" container', async () => {
+    it('should open the WutiSkill course creation wizard', async () => {
       mockUseSelector.mockReturnValue({
         ...studioHomeMock,
         courseCreatorStatus: COURSE_CREATOR_STATES.granted,
       });
 
-      const newCourseContainerText = 'Create a new course';
       render(<StudioHome />, { path: '/home' });
 
-      expect(screen.queryByText(newCourseContainerText)).not.toBeInTheDocument();
-      const createNewCourseButton = screen.getByRole('button', { name: 'New course' });
+      const createNewCourseButton = screen.getByRole('button', { name: 'Create course' });
       fireEvent.click(createNewCourseButton);
-      expect(screen.queryByText(newCourseContainerText)).toBeInTheDocument();
-    });
-
-    it('should hide "create new course" container', async () => {
-      mockUseSelector.mockReturnValue({
-        ...studioHomeMock,
-        courseCreatorStatus: COURSE_CREATOR_STATES.granted,
-      });
-
-      const newCourseContainerText = 'Create a new course';
-      render(<StudioHome />, { path: '/home' });
-
-      const createNewCourseButton = screen.getByRole('button', { name: 'New course' });
-      fireEvent.click(createNewCourseButton);
-      expect(screen.queryByText(newCourseContainerText)).toBeInTheDocument();
-
-      const cancelButton = screen.getByRole('button', { name: 'Cancel' });
-      fireEvent.click(cancelButton);
-      expect(screen.queryByText(newCourseContainerText)).not.toBeInTheDocument();
+      expect(mockNavigate).toHaveBeenCalledWith('/home/create-course');
+      expect(screen.queryByTestId('create-course-form')).not.toBeInTheDocument();
     });
 
     describe('contact administrator card', () => {
-      const adminCardTitleText = 'Are you staff on an existing Studio course?';
+      const adminCardTitleText = 'Are you a member of an existing course team on Studio?';
 
       it('should show the "contact administrator" card with no "add course" buttons', () => {
         mockUseSelector.mockReturnValue({
@@ -233,14 +208,15 @@ describe('<StudioHome />', () => {
         const addCourseButton = screen.getByTestId('contact-admin-create-course');
         expect(addCourseButton).toBeVisible();
         fireEvent.click(addCourseButton);
-        expect(screen.getByTestId('create-course-form')).toBeVisible();
+        expect(mockNavigate).toHaveBeenCalledWith('/home/create-course');
+        expect(screen.queryByTestId('create-course-form')).not.toBeInTheDocument();
       });
     });
 
     it('should show footer', () => {
       render(<StudioHome />, { path: '/home' });
-      expect(screen.getByText('Looking for help with Studio?')).toBeInTheDocument();
-      expect(screen.getByText('LMS')).toHaveAttribute('href', process.env.LMS_BASE_URL);
+      expect(document.querySelector('.ws-minimal-footer')).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Help center' })).toBeInTheDocument();
     });
   });
 });

@@ -78,6 +78,14 @@
   font-weight: 800;
 }
 
+.ws-studio-home__subtitle {
+  max-width: 42rem;
+  margin: 0.65rem 0 0;
+  color: var(--wuti-color-muted, #6B7280);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
 .ws-studio-home__hero-actions {
   display: flex;
   align-items: center;
@@ -86,7 +94,8 @@
 }
 
 .ws-studio-home__create-course-btn,
-.ws-studio-home__new-library-btn {
+.ws-studio-home__new-library-btn,
+.ws-studio-home__roles-link {
   border: 0;
   border-radius: 999px;
   display: inline-flex;
@@ -101,6 +110,28 @@
 
   &:active {
     transform: scale(0.98);
+  }
+}
+
+.ws-studio-home__roles-link {
+  min-height: 2.7rem;
+  border: 1px solid var(--wuti-color-border, #E5E7EB);
+  padding: 0 1rem;
+  background: var(--wuti-color-surface, #FFFFFF);
+  color: var(--wuti-color-brand, #590D22);
+  text-decoration: none;
+
+  svg {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--wuti-color-brand, #590D22) 24%, var(--wuti-color-border, #E5E7EB));
+    background: var(--wuti-color-hover, #F9FAFB);
+    color: var(--wuti-color-brand, #590D22);
+    text-decoration: none;
+    transform: translateY(-1px);
   }
 }
 

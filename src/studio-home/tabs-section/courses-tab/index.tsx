@@ -77,40 +77,42 @@ const CardList = ({
       {hasCourses ?
         (
           <>
-            {courses.map(
-              ({
-                courseKey,
-                displayName,
-                lmsLink,
-                org,
-                rerunLink,
-                number,
-                run,
-                url,
-              }) => (
-                <CardItem
-                  key={courseKey}
-                  courseKey={courseKey}
-                  onClick={() => onClickCard?.(courseKey)}
-                  itemId={courseKey}
-                  displayName={displayName}
-                  lmsLink={lmsLink}
-                  rerunLink={rerunLink}
-                  org={org}
-                  number={number}
-                  run={run}
-                  url={url}
-                  selectMode={inSelectMode ? 'single' : undefined}
-                  selectPosition={inSelectMode ? 'card' : undefined}
-                  isSelected={inSelectMode && selectedCourseId === courseKey}
-                  subtitleBeforeWidget={MigrationStatusWidget && <MigrationStatusWidget courseId={courseKey} />}
-                />
-              ),
-            )}
+            <div className="ws-home-courses-grid">
+              {courses.map(
+                ({
+                  courseKey,
+                  displayName,
+                  lmsLink,
+                  org,
+                  rerunLink,
+                  number,
+                  run,
+                  url,
+                }) => (
+                  <CardItem
+                    key={courseKey}
+                    courseKey={courseKey}
+                    onClick={() => onClickCard?.(courseKey)}
+                    itemId={courseKey}
+                    displayName={displayName}
+                    lmsLink={lmsLink}
+                    rerunLink={rerunLink}
+                    org={org}
+                    number={number}
+                    run={run}
+                    url={url}
+                    selectMode={inSelectMode ? 'single' : undefined}
+                    selectPosition={inSelectMode ? 'card' : undefined}
+                    isSelected={inSelectMode && selectedCourseId === courseKey}
+                    subtitleBeforeWidget={MigrationStatusWidget && <MigrationStatusWidget courseId={courseKey} />}
+                  />
+                ),
+              )}
+            </div>
 
             {numPages > 1 && (
               <Pagination
-                className="d-flex justify-content-center w-100"
+                className="ws-home-courses-pagination"
                 paginationLabel="pagination navigation"
                 pageCount={numPages}
                 currentPage={currentPage}
@@ -225,9 +227,9 @@ export const CoursesList: React.FC<Props> = ({
       (
         <div className="courses-tab-container">
           {isShowProcessing && <ProcessingCourses />}
-          <div className="d-flex flex-row align-items-center justify-content-between my-4">
+          <div className="ws-home-courses-toolbar">
             <CoursesFilters dispatch={dispatch} locationValue={locationValue} isLoading={isLoading} />
-            <p data-testid="pagination-info" className="my-0">
+            <p data-testid="pagination-info" className="ws-home-courses-count">
               {intl.formatMessage(messages.coursesPaginationInfo, {
                 length: courses?.length,
                 total: coursesCount,

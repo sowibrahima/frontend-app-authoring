@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -27,7 +27,6 @@ const useStudioHome = () => {
     courseCreatorSavingStatus,
     deleteNotificationSavingStatus,
   } = useSelector(getSavingStatuses);
-  const [showNewCourseContainer, setShowNewCourseContainer] = useState(false);
   const isLoadingPage = studioHomeLoadingStatus === RequestStatus.IN_PROGRESS;
   const isFailedLoadingPage = studioHomeLoadingStatus === RequestStatus.FAILED;
 
@@ -50,7 +49,6 @@ const useStudioHome = () => {
   const courseListQueryString = courseListQuery.size ? `?${courseListQuery.toString()}` : '';
   useEffect(() => {
     dispatch(fetchStudioHomeData(courseListQueryString, false, studioHomeCoursesParams));
-    setShowNewCourseContainer(false);
   }, [courseListQueryString]);
 
   useEffect(() => {
@@ -107,12 +105,10 @@ const useStudioHome = () => {
     anyQueryIsFailed,
     isShowEmailStaff,
     anyQueryIsPending,
-    showNewCourseContainer,
     courseCreatorSavingStatus,
     isShowOrganizationDropdown,
     hasAbilityToCreateNewCourse,
     isFiltered,
-    setShowNewCourseContainer,
     librariesV1Enabled,
     librariesV2Enabled,
   };
