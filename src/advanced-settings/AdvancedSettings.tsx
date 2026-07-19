@@ -80,10 +80,7 @@ const AdvancedSettings = () => {
     disabledStates: ['pending'],
   };
 
-  const {
-    proctoringErrors,
-    mfeProctoredExamSettingsUrl,
-  } = proctoringExamErrors;
+  const { proctoringErrors } = proctoringExamErrors;
 
   useEffect(() => {
     if (isQuerySuccess) {
@@ -264,10 +261,7 @@ const AdvancedSettings = () => {
               </article>
             </Layout.Element>
             <Layout.Element>
-              <SettingsSidebar
-                courseId={courseId}
-                proctoredExamSettingsUrl={mfeProctoredExamSettingsUrl}
-              />
+              <SettingsSidebar courseId={courseId} />
             </Layout.Element>
           </Layout>
         </section>

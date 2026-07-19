@@ -6,9 +6,10 @@ import {
   waitFor,
   fireEvent,
 } from '../testUtils';
+import { getCourseSettingsApiUrl } from '../data/api';
 import { executeThunk } from '../utils';
 import { courseDetailsMock, courseSettingsMock } from './__mocks__';
-import { getCourseDetailsApiUrl, getCourseSettingsApiUrl } from './data/api';
+import { getCourseDetailsApiUrl } from './data/api';
 import { updateCourseDetailsQuery } from './data/thunks';
 import { DATE_FORMAT } from '../constants';
 import creditMessages from './credit-section/messages';
@@ -22,6 +23,13 @@ let axiosMock;
 let store;
 const courseId = '123';
 const getCourseDetailsMinimalApiUrl = () => `${getCourseDetailsApiUrl(courseId)}?response=minimal`;
+
+jest.mock('../CourseAuthoringContext', () => ({
+  useCourseAuthoringContext: () => ({
+    courseId,
+    courseDetails: { name: 'Test course' },
+  }),
+}));
 
 // Mock the tinymce lib
 jest.mock('@tinymce/tinymce-react', () => {
@@ -64,7 +72,7 @@ describe('<ScheduleAndDetails />', () => {
   });
 
   it('should render without errors', async () => {
-    const { getByText, queryByRole, getAllByText } = render(<ScheduleAndDetails courseId={courseId} />);
+    const { getByText, queryByRole, getAllByText } = render(<ScheduleAndDetails />);
     await waitFor(() => {
       const scheduleAndDetailElements = getAllByText(messages.headingTitle.defaultMessage);
       const scheduleAndDetailTitle = scheduleAndDetailElements[0];
@@ -100,7 +108,7 @@ describe('<ScheduleAndDetails />', () => {
       .onGet(getCourseSettingsApiUrl(courseId))
       .reply(200, updatedResponse);
 
-    const { queryAllByText } = render(<ScheduleAndDetails courseId={courseId} />);
+    const { queryAllByText } = render(<ScheduleAndDetails />);
     await waitFor(() => {
       expect(
         queryAllByText(creditMessages.creditTitle.defaultMessage).length,
@@ -110,7 +118,7 @@ describe('<ScheduleAndDetails />', () => {
 
   it('should show save alert onChange ', async () => {
     const { getAllByPlaceholderText, getByText } = render(
-      <ScheduleAndDetails courseId={courseId} />,
+      <ScheduleAndDetails />,
     );
     let inputs;
     await waitFor(() => {
@@ -126,7 +134,7 @@ describe('<ScheduleAndDetails />', () => {
 
   it('should send one update request when saving changed values', async () => {
     const { getAllByPlaceholderText, getByText } = render(
-      <ScheduleAndDetails courseId={courseId} />,
+      <ScheduleAndDetails />,
     );
     let inputs;
     await waitFor(() => {
@@ -148,7 +156,7 @@ describe('<ScheduleAndDetails />', () => {
   });
 
   it('should display a success message when course details saves', async () => {
-    const { getByText } = render(<ScheduleAndDetails courseId={courseId} />);
+    const { getByText } = render(<ScheduleAndDetails />);
     await executeThunk(updateCourseDetailsQuery(courseId, 'DaTa'), store.dispatch);
     expect(getByText(messages.alertSuccess.defaultMessage)).toBeInTheDocument();
   });
@@ -157,7 +165,7 @@ describe('<ScheduleAndDetails />', () => {
     axiosMock
       .onGet(getCourseDetailsApiUrl(courseId))
       .reply(404, 'error');
-    const { getByText } = render(<ScheduleAndDetails courseId={courseId} />);
+    const { getByText } = render(<ScheduleAndDetails />);
     await waitFor(() => {
       expect(getByText(messages.alertLoadFail.defaultMessage)).toBeInTheDocument();
     });
@@ -167,7 +175,7 @@ describe('<ScheduleAndDetails />', () => {
     axiosMock
       .onGet(getCourseSettingsApiUrl(courseId))
       .reply(404, 'error');
-    const { getByText } = render(<ScheduleAndDetails courseId={courseId} />);
+    const { getByText } = render(<ScheduleAndDetails />);
     await waitFor(() => {
       expect(getByText(messages.alertLoadFail.defaultMessage)).toBeInTheDocument();
     });
@@ -177,7 +185,7 @@ describe('<ScheduleAndDetails />', () => {
     axiosMock
       .onPut(getCourseDetailsMinimalApiUrl())
       .reply(404, 'error');
-    const { getByText } = render(<ScheduleAndDetails courseId={courseId} />);
+    const { getByText } = render(<ScheduleAndDetails />);
     await act(async () => {
       await executeThunk(updateCourseDetailsQuery(courseId, 'DaTa'), store.dispatch);
     });

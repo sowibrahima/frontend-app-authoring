@@ -322,7 +322,7 @@ const WutiskillStudioHeader = ({
         secondaryMenuItems={[]}
         logoDestination={createCorrectInternalRoute('/home')}
         showStudioLinkInUserMenu={false}
-        userMenuVariant="studio"
+        userMenuVariant="default"
         desktopBrandSupplement={(
           <a href={planHref} className="ws-studio-shell__brand-link">
             <span className="ws-studio-shell__brand-meta">

@@ -67,6 +67,18 @@ describe('Editor Pages Load no header', () => {
     );
     expect(wrapper.queryByRole('status')).toBeInTheDocument();
   });
+  test('does not mount route content before the course context is ready', async () => {
+    mockPathname = '/course/test/';
+    await mockStoreSuccess();
+    const wrapper = renderComponent(
+      <CourseAuthoringPage>
+        <div data-testid="route-content" />
+      </CourseAuthoringPage>,
+    );
+
+    expect(wrapper.queryByRole('status')).toBeInTheDocument();
+    expect(wrapper.queryByTestId('route-content')).not.toBeInTheDocument();
+  });
 });
 
 describe('Course authoring page', () => {

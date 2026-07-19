@@ -41,6 +41,18 @@ const CourseAuthoringPage = ({ children }: Props) => {
   if (courseAppsApiStatus === RequestStatus.DENIED) {
     return <PermissionDeniedAlert />;
   }
+
+  // Route pages depend on CourseAuthoringContext. Mounting them while the
+  // course request is still pending lets child effects issue requests with an
+  // undefined course id and also produces duplicate loading indicators.
+  if (inProgress && !isEditor) {
+    return (
+      <div className="ws-course-authoring-shell">
+        <Loading />
+      </div>
+    );
+  }
+
   return (
     <div className={isEditor ? undefined : 'ws-course-authoring-shell'}>
       {
@@ -49,18 +61,16 @@ const CourseAuthoringPage = ({ children }: Props) => {
       we shouldn't have the header and footer on these pages.
       This functionality will be removed in TNL-9591 */
       }
-      {inProgress
-        ? !isEditor && <Loading />
-        : (!isEditor && (
-          <WutiskillStudioHeader
-            number={courseNumber}
-            org={courseOrg}
-            title={courseTitle}
-            contextId={courseId}
-          />
-        ))}
+      {!isEditor && (
+        <WutiskillStudioHeader
+          number={courseNumber}
+          org={courseOrg}
+          title={courseTitle}
+          contextId={courseId}
+        />
+      )}
       {children}
-      {!inProgress && !isEditor && <WutiFooter />}
+      {!isEditor && <WutiFooter />}
     </div>
   );
 };

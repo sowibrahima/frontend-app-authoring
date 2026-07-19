@@ -102,7 +102,10 @@ export const OutlineSidebarProvider = ({ children }: { children?: React.ReactNod
     setCurrentFlow,
     stopCurrentFlow,
   ] = useToggleWithValue<OutlineFlow>();
-  const [isOpen, open, , toggle] = useToggle(true);
+  // Keep the course outline at full width until the user explicitly opens a
+  // sidebar page. Starting open without a selected item renders an empty info
+  // rail and makes the Course info action appear to do nothing.
+  const [isOpen, open, , toggle] = useToggle(false);
   const [currentTabKey, setCurrentTabKey] = useState<string>();
 
   /**

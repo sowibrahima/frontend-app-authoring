@@ -5,9 +5,8 @@ import {
   MailtoLink,
   Row,
 } from '@openedx/paragon';
-import { getConfig } from '@edx/frontend-platform';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import { Error, ManageAccounts } from '@openedx/paragon/icons';
+import { Error } from '@openedx/paragon/icons';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import Loading from '../generic/Loading';
@@ -54,10 +53,6 @@ const StudioHome = () => {
   const shouldShowNewLibraryButton = (showNewLibraryButton && !showV2LibraryURL)
     || (showV2LibraryURL && showNewLibraryV2Button);
 
-  const adminConsoleUrl = getConfig().ADMIN_CONSOLE_URL
-    ? `${getConfig().ADMIN_CONSOLE_URL}/authz`
-    : null;
-
   const handleCreateLibrary = () => {
     navigate(showV2LibraryURL ? '/library/create' : '/libraries-v1/create');
   };
@@ -101,18 +96,6 @@ const StudioHome = () => {
           </div>
 
           <div className="ws-studio-home__hero-actions">
-            {adminConsoleUrl && (
-              <a
-                className="ws-studio-home__roles-link"
-                href={adminConsoleUrl}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <Icon src={ManageAccounts} />
-                {intl.formatMessage(messages.addRolesPermissionsBtnText)}
-              </a>
-            )}
-
             {hasAbilityToCreateNewCourse && (
               <button
                 type="button"

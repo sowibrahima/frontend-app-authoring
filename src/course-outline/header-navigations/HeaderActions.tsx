@@ -39,13 +39,12 @@ const HeaderActions = ({
 }: HeaderActionsProps) => {
   const intl = useIntl();
 
-  const { clearSelection, open, setCurrentPageKey } = useOutlineSidebarContext();
+  const { clearSelection, setCurrentPageKey } = useOutlineSidebarContext();
   const { handleReIndex, lmsLink } = headerNavigationsActions;
 
   const handleCourseInfoClick = () => {
     clearSelection();
     setCurrentPageKey('info');
-    open();
   };
 
   return (

@@ -1,8 +1,19 @@
-import userEvent from '@testing-library/user-event';
 import { getConfig, setConfig } from '@edx/frontend-platform';
 
 import { initializeMocks, render, screen } from '../testUtils';
 import WutiskillStudioHomeHeader from './WutiskillStudioHomeHeader';
+
+const sharedHeaderMock = jest.fn();
+jest.mock('@edx/frontend-component-header', () => function SharedHeaderMock(props) {
+  sharedHeaderMock(props);
+  return (
+    <header>
+      {props.mainMenuItems.map(item => (
+        <a key={item.href} href={item.href}>{item.content}</a>
+      ))}
+    </header>
+  );
+});
 
 describe('WutiskillStudioHomeHeader', () => {
   beforeEach(() => {
@@ -15,30 +26,19 @@ describe('WutiskillStudioHomeHeader', () => {
     });
   });
 
-  it('exposes only implemented home navigation and a functional account menu', async () => {
-    const user = userEvent.setup();
+  it('delegates navigation and the account menu to the shared header', async () => {
     render(<WutiskillStudioHomeHeader />, {
       routerProps: { initialEntries: ['/home'] },
     });
 
-    expect(screen.getByRole('button', { name: 'Dashboard' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Templates' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Analytics' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Settings' })).not.toBeInTheDocument();
-
-    const menuButton = screen.getByRole('button', { name: 'User menu' });
-    expect(menuButton).toHaveAttribute('aria-expanded', 'false');
-    await user.click(menuButton);
-
-    expect(menuButton).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getByRole('button', { name: 'Studio home' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Learner dashboard' })).toHaveAttribute(
-      'href',
-      'https://apps.example.test/learner-dashboard',
-    );
-    expect(screen.getByRole('link', { name: 'Sign out' })).toHaveAttribute(
-      'href',
-      'https://lms.example.test/logout',
-    );
+    expect(screen.getByRole('link', { name: 'Dashboard' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Templates' })).toBeInTheDocument();
+    expect(screen.queryByText('Analytics')).not.toBeInTheDocument();
+    expect(screen.queryByText('Settings')).not.toBeInTheDocument();
+    expect(sharedHeaderMock).toHaveBeenCalledWith(expect.objectContaining({
+      showStudioLinkInUserMenu: false,
+      userMenuVariant: 'default',
+      secondaryMenuItems: [],
+    }));
   });
 });

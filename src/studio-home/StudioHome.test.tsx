@@ -15,6 +15,10 @@ import studioHomeMock from './__mocks__/studioHomeMock';
 import { getStudioHomeApiUrl } from './data/api';
 import { StudioHome } from '.';
 
+jest.mock('../header/WutiskillStudioHomeHeader', () => function WutiskillStudioHomeHeaderMock() {
+  return <header>WutiSkill</header>;
+});
+
 const { studioRequestEmail } = studioHomeMock;
 
 const mockUseSelector = jest.fn();
@@ -87,15 +91,14 @@ describe('<StudioHome />', () => {
       screen.getByRole('button', { name: 'Create course' });
     });
 
-    it('should render roles and permissions button', async () => {
+    it('should not render the legacy roles and permissions button', async () => {
       setConfig({
         ...getConfig(),
         ADMIN_CONSOLE_URL: 'https://admin-console.example.com',
       });
 
       render(<StudioHome />, { path: '/home' });
-      const rolesButton = screen.getByRole('link', { name: 'Roles and permissions' });
-      expect(rolesButton).toHaveAttribute('href', 'https://admin-console.example.com/authz');
+      expect(screen.queryByRole('link', { name: 'Roles and permissions' })).not.toBeInTheDocument();
     });
 
     it('should show verify email layout if user inactive', async () => {

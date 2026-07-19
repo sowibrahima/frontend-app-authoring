@@ -1,5 +1,6 @@
 import React from 'react';
 import { defineMessages, useIntl } from '@edx/frontend-platform/i18n';
+import { PluginSlot } from '@openedx/frontend-plugin-framework';
 import { Link } from 'react-router-dom';
 import { getPublicSiteUrl } from '../publicSiteLinks';
 
@@ -59,28 +60,33 @@ const WutiFooter = () => {
   ].filter((link) => Boolean(link.to || link.href));
 
   return (
-    <footer className="ws-minimal-footer">
-      <div className="ws-minimal-footer__inner">
-        <p className="ws-minimal-footer__copyright">
-          {intl.formatMessage(messages.copyright, { year: currentYear })}
-        </p>
-        {footerLinks.length ? (
-          <nav className="ws-minimal-footer__links" aria-label={intl.formatMessage(messages.footerNav)}>
-            {footerLinks.map((link) => (
-              link.to ? (
-                <Link key={link.label} to={link.to} className="ws-minimal-footer__link">
-                  {link.label}
-                </Link>
-              ) : (
-                <a key={link.label} href={link.href || undefined} className="ws-minimal-footer__link">
-                  {link.label}
-                </a>
-              )
-            ))}
-          </nav>
-        ) : null}
-      </div>
-    </footer>
+    <PluginSlot
+      id="org.openedx.frontend.layout.studio_footer.v1"
+      idAliases={['studio_footer_slot']}
+    >
+      <footer className="ws-minimal-footer">
+        <div className="ws-minimal-footer__inner">
+          <p className="ws-minimal-footer__copyright">
+            {intl.formatMessage(messages.copyright, { year: currentYear })}
+          </p>
+          {footerLinks.length ? (
+            <nav className="ws-minimal-footer__links" aria-label={intl.formatMessage(messages.footerNav)}>
+              {footerLinks.map((link) => (
+                link.to ? (
+                  <Link key={link.label} to={link.to} className="ws-minimal-footer__link">
+                    {link.label}
+                  </Link>
+                ) : (
+                  <a key={link.label} href={link.href || undefined} className="ws-minimal-footer__link">
+                    {link.label}
+                  </a>
+                )
+              ))}
+            </nav>
+          ) : null}
+        </div>
+      </footer>
+    </PluginSlot>
   );
 };
 

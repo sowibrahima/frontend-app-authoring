@@ -12,8 +12,8 @@
   margin-bottom: 1rem;
   padding: 1rem 1.2rem;
   border-radius: 1.25rem;
-  border: 1px solid #E6E8ED;
-  background: #FFFFFF;
+  border: 1px solid var(--wuti-color-border);
+  background: var(--wuti-color-surface);
   box-shadow: none;
   transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
 
@@ -29,8 +29,8 @@
   }
 
   &:hover {
-    border-color: #D8DCE5;
-    box-shadow: 0 10px 22px rgb(17 24 39 / .06);
+    border-color: color-mix(in srgb, var(--wuti-color-brand) 18%, var(--wuti-color-border));
+    box-shadow: 0 10px 22px color-mix(in srgb, var(--wuti-color-text) 6%, transparent);
   }
 
   .outline-sortable-item__drag-btn {
@@ -42,10 +42,10 @@
     width: 2rem;
     height: 2rem;
     border-radius: 999px;
-    border: 1px solid var(--wuti-color-border, #E5E7EB);
-    background: var(--wuti-color-surface, #FFFFFF);
-    color: #6B7280;
-    box-shadow: 0 8px 18px color-mix(in srgb, var(--wuti-color-text, #111827) 5%, transparent);
+    border: 1px solid var(--wuti-color-border);
+    background: var(--wuti-color-surface);
+    color: var(--wuti-color-muted);
+    box-shadow: 0 8px 18px color-mix(in srgb, var(--wuti-color-text) 5%, transparent);
     cursor: grab;
     transition:
       opacity 140ms ease,
@@ -57,9 +57,9 @@
 
     &:hover {
       transform: scale(1.04);
-      border-color: color-mix(in srgb, var(--wuti-color-brand, #590D22) 28%, var(--wuti-color-border, #E5E7EB));
-      background: color-mix(in srgb, var(--wuti-color-brand, #590D22) 5%, var(--wuti-color-surface, #FFFFFF));
-      color: #374151;
+      border-color: color-mix(in srgb, var(--wuti-color-brand) 28%, var(--wuti-color-border));
+      background: color-mix(in srgb, var(--wuti-color-brand) 5%, var(--wuti-color-surface));
+      color: var(--wuti-color-text);
     }
 
     &:active {
@@ -76,7 +76,7 @@
 
 .outline-sortable-item--dragging {
   opacity: 0;
-  box-shadow: 0 16px 26px rgb(17 24 39 / .11);
+  box-shadow: 0 16px 26px color-mix(in srgb, var(--wuti-color-text) 11%, transparent);
 }
 
 .outline-sortable-item--dragging .outline-sortable-item__drag-btn {

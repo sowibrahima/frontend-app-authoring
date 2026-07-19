@@ -48,29 +48,17 @@ describe('<OutlineSidebar>', () => {
     initializeMocks();
   });
 
-  it('should render the new sidebar by default', async () => {
+  it('should render the sidebar only after the user opens it', async () => {
     renderComponent();
-
-    // Check that the new sidebar is rendered, with the Info page
-    await waitFor(() => {
-      expect(screen.getByText('Test Course')).toBeInTheDocument();
-    });
 
     const sidebarToggle = screen.getByTestId('sidebar-toggle');
     expect(sidebarToggle).toBeInTheDocument();
+    expect(screen.queryByText('Test Course')).not.toBeInTheDocument();
 
-    // Hide the sidebar
     const toggleButton = within(sidebarToggle).getByRole('button', { name: 'Toggle' });
     expect(toggleButton).toBeInTheDocument();
     await userEvent.click(toggleButton);
 
-    // Check that there are no more Info sidebar elements
-    expect(screen.queryByText('Test Course')).not.toBeInTheDocument();
-
-    // Show the sidebar
-    await userEvent.click(toggleButton);
-
-    // Check that the new sidebar is rendered, with the Info page
     await waitFor(() => {
       expect(screen.getByText('Test Course')).toBeInTheDocument();
     });
@@ -80,5 +68,9 @@ describe('<OutlineSidebar>', () => {
 
     // Check that the help page is rendered
     expect(screen.getByText('Creating your course organization')).toBeInTheDocument();
+
+    // The explicit toggle still closes the sidebar.
+    await userEvent.click(toggleButton);
+    expect(screen.queryByText('Creating your course organization')).not.toBeInTheDocument();
   });
 });

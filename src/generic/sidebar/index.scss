@@ -43,6 +43,33 @@
     }
   }
 
+  .sidebar-shell {
+    align-items: flex-start !important;
+  }
+
+  .sidebar-page-selector {
+    width: 100%;
+    margin-bottom: .75rem;
+  }
+
+  .sidebar-page-selector__toggle.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    min-height: 2.25rem;
+    max-width: 100%;
+    border: 1px solid var(--wuti-color-border);
+    border-radius: 999px;
+    padding: .35rem .75rem !important;
+    color: var(--wuti-color-brand) !important;
+    background: var(--wuti-color-surface) !important;
+    line-height: 1.2;
+  }
+
+  .sidebar-page-selector__toggle.btn::after {
+    margin-left: auto;
+  }
+
   .dropdown-toggle {
     padding: .2rem .5rem;
     background-color: transparent !important;

@@ -52,11 +52,19 @@ export const getPublishInfo = (
  */
 export const getReleaseInfo = (intl: IntlShape, releaseDate: string, releaseDateFrom: string) => {
   if (releaseDate) {
+    const decodedReleaseDateFrom = releaseDateFrom
+      .replace(/&quot;|&#34;/g, '"')
+      .replace(/&#39;|&apos;/g, "'")
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/\s+(["”»])\s*$/, '$1');
+
     return {
       isScheduled: true,
       releaseDate,
-      releaseDateFrom,
-      sectionNameMessage: intl.formatMessage(messages.releaseInfoWithSection, { sectionName: releaseDateFrom }),
+      releaseDateFrom: decodedReleaseDateFrom,
+      sectionNameMessage: intl.formatMessage(messages.releaseInfoWithSection, { sectionName: decodedReleaseDateFrom }),
     };
   }
   return {

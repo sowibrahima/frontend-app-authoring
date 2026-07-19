@@ -1,8 +1,6 @@
 import { useIntl } from '@edx/frontend-platform/i18n';
-import { Hyperlink } from '@openedx/paragon';
 import { getConfig } from '@edx/frontend-platform';
 import { HelpSidebar } from '@src/generic/help-sidebar';
-import { useHelpUrls } from '@src/help-urls/hooks';
 import { useCourseAuthoringContext } from '@src/CourseAuthoringContext';
 
 import messages from './messages';
@@ -10,7 +8,6 @@ import messages from './messages';
 const ImportSidebar = () => {
   const intl = useIntl();
   const { courseId } = useCourseAuthoringContext();
-  const { importCourse: importLearnMoreUrl } = useHelpUrls(['importCourse']);
   return (
     <HelpSidebar courseId={courseId}>
       <h4 className="help-sidebar-about-title">{intl.formatMessage(messages.title1)}</h4>
@@ -35,14 +32,6 @@ const ImportSidebar = () => {
       <hr />
       <h4 className="help-sidebar-about-title">{intl.formatMessage(messages.warningTitle)}</h4>
       <p className="help-sidebar-about-descriptions">{intl.formatMessage(messages.warningDescription)}</p>
-      <hr />
-      <Hyperlink
-        className="small"
-        destination={importLearnMoreUrl}
-        target="_blank"
-      >
-        {intl.formatMessage(messages.learnMoreButtonTitle)}
-      </Hyperlink>
     </HelpSidebar>
   );
 };

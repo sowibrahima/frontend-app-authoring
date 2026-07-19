@@ -1,5 +1,3 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
 import {
   Container, Button, StatefulButton,
@@ -13,12 +11,12 @@ import { useIntl } from '@edx/frontend-platform/i18n';
 
 import Placeholder from '../editors/Placeholder';
 import { RequestStatus } from '../data/constants';
-import { useModel } from '../generic/model-store';
 import AlertMessage from '../generic/alert-message';
 import InternetConnectionAlert from '../generic/internet-connection-alert';
 import { STATEFUL_BUTTON_STATES } from '../constants';
 import getPageHeadTitle from '../generic/utils';
 import { useScrollToHashElement } from '../hooks';
+import { useCourseAuthoringContext } from '../CourseAuthoringContext';
 import {
   fetchCourseSettingsQuery,
   fetchCourseDetailsQuery,
@@ -43,7 +41,7 @@ import LicenseSection from './license-section';
 import messages from './messages';
 import { useLoadValuesPrompt, useSaveValuesPrompt } from './hooks';
 
-const ScheduleAndDetails = ({ courseId }) => {
+const ScheduleAndDetails = () => {
   const intl = useIntl();
   const courseSettings = useSelector(getCourseSettings);
   const courseDetails = useSelector(getCourseDetails);
@@ -52,7 +50,7 @@ const ScheduleAndDetails = ({ courseId }) => {
   const isLoading = loadingDetailsStatus === RequestStatus.IN_PROGRESS
     || loadingSettingsStatus === RequestStatus.IN_PROGRESS;
 
-  const course = useModel('courseDetails', courseId);
+  const { courseId, courseDetails: course } = useCourseAuthoringContext();
   document.title = getPageHeadTitle(course?.name, intl.formatMessage(messages.headingTitle));
 
   const {
@@ -375,10 +373,6 @@ const ScheduleAndDetails = ({ courseId }) => {
       </div>
     </>
   );
-};
-
-ScheduleAndDetails.propTypes = {
-  courseId: PropTypes.string.isRequired,
 };
 
 export default ScheduleAndDetails;

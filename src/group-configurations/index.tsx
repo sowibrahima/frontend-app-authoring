@@ -1,44 +1,45 @@
-import PropTypes from 'prop-types';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import {
-  Container, Stack, Row,
+  Container, Layout, Stack, Row,
 } from '@openedx/paragon';
+import { Helmet } from 'react-helmet';
 
 import { LoadingSpinner } from '../generic/Loading';
-import { useModel } from '../generic/model-store';
 import SubHeader from '../generic/sub-header/SubHeader';
 import getPageHeadTitle from '../generic/utils';
-import ProcessingNotification from '../generic/processing-notification';
 import { SavingErrorAlert } from '../generic/saving-error-alert';
+import { useCourseAuthoringContext } from '../CourseAuthoringContext';
 import messages from './messages';
 import ContentGroupsSection from './content-groups-section';
 import ExperimentConfigurationsSection from './experiment-configurations-section';
+import TeamGroupsSection from './team-groups-section';
 import EnrollmentTrackGroupsSection from './enrollment-track-groups-section';
+import GroupConfigurationSidebar from './group-configuration-sidebar';
 import { useGroupConfigurations } from './hooks';
 import ConnectionErrorAlert from '../generic/ConnectionErrorAlert';
 
-const GroupConfigurations = ({ courseId }) => {
+const GroupConfigurations = () => {
   const { formatMessage } = useIntl();
-  const courseDetails = useModel('courseDetails', courseId);
+  const { courseId, courseDetails } = useCourseAuthoringContext();
   const {
     isLoading,
-    savingStatus,
-    errorMessage,
+    anyMutationFailed,
+    mutationErrorMessage,
     contentGroupActions,
     experimentConfigurationActions,
-    processingNotificationTitle,
-    isShowProcessingNotification,
-    groupConfigurations: {
-      allGroupConfigurations,
-      shouldShowEnrollmentTrack,
-      shouldShowExperimentGroups,
-      experimentGroupConfigurations,
-    },
+    groupConfigurations,
     isLoadingDenied,
-  } = useGroupConfigurations(courseId);
+  } = useGroupConfigurations();
+
+  const {
+    allGroupConfigurations = [],
+    shouldShowEnrollmentTrack = false,
+    shouldShowExperimentGroups = false,
+    experimentGroupConfigurations = [],
+  } = groupConfigurations ?? {};
 
   document.title = getPageHeadTitle(
-    courseDetails?.name,
+    courseDetails?.name ?? '',
     formatMessage(messages.headingTitle),
   );
 
@@ -59,59 +60,70 @@ const GroupConfigurations = ({ courseId }) => {
   }
 
   const enrollmentTrackGroup = shouldShowEnrollmentTrack
-    ? allGroupConfigurations[0]
+    ? allGroupConfigurations.find((group) => group.scheme === 'enrollment_track')
     : null;
-  const contentGroup = allGroupConfigurations?.[shouldShowEnrollmentTrack ? 1 : 0];
+  const contentGroup = allGroupConfigurations.find((group) => group.scheme === 'cohort');
+  const teamGroups = allGroupConfigurations.filter((group) => group.scheme === 'team');
 
   return (
     <>
+      <Helmet>
+        <title>{getPageHeadTitle(courseDetails?.name ?? '', formatMessage(messages.headingTitle))}</title>
+      </Helmet>
       <Container size="xl" className="group-configurations px-4">
         <div className="mt-5" />
         <SubHeader
           title={formatMessage(messages.headingTitle)}
           subtitle={formatMessage(messages.headingSubtitle)}
         />
-        <Stack
-          gap={3}
-          className="group-configurations__content"
-          data-testid="group-configurations-main-content-wrapper"
+        <Layout
+          lg={[{ span: 9 }, { span: 3 }]}
+          md={[{ span: 9 }, { span: 3 }]}
+          sm={[{ span: 9 }, { span: 3 }]}
+          xs={[{ span: 9 }, { span: 3 }]}
+          xl={[{ span: 9 }, { span: 3 }]}
         >
-          {!!enrollmentTrackGroup && (
-            <EnrollmentTrackGroupsSection
-              availableGroup={enrollmentTrackGroup}
-            />
-          )}
-          {!!contentGroup && (
-            <ContentGroupsSection
-              availableGroup={contentGroup}
-              contentGroupActions={contentGroupActions}
-            />
-          )}
-          {shouldShowExperimentGroups && (
-            <ExperimentConfigurationsSection
+          <Layout.Element>
+            <Stack gap={3} data-testid="group-configurations-main-content-wrapper">
+              {teamGroups.map((teamGroup) => (
+                <TeamGroupsSection key={teamGroup.id} availableGroup={teamGroup} />
+              ))}
+              {!!enrollmentTrackGroup && (
+                <EnrollmentTrackGroupsSection availableGroup={enrollmentTrackGroup} />
+              )}
+              {!!contentGroup && (
+                <ContentGroupsSection
+                  availableGroup={contentGroup}
+                  contentGroupActions={contentGroupActions}
+                />
+              )}
+              {shouldShowExperimentGroups && (
+                <ExperimentConfigurationsSection
+                  courseId={courseId}
+                  availableGroups={experimentGroupConfigurations}
+                  experimentConfigurationActions={experimentConfigurationActions}
+                />
+              )}
+            </Stack>
+          </Layout.Element>
+          <Layout.Element>
+            <GroupConfigurationSidebar
               courseId={courseId}
-              availableGroups={experimentGroupConfigurations}
-              experimentConfigurationActions={experimentConfigurationActions}
+              shouldShowExperimentGroups={shouldShowExperimentGroups}
+              shouldShowContentGroup={!!contentGroup}
+              shouldShowEnrollmentTrackGroup={!!enrollmentTrackGroup}
             />
-          )}
-        </Stack>
+          </Layout.Element>
+        </Layout>
       </Container>
       <div className="alert-toast">
         <SavingErrorAlert
-          savingStatus={savingStatus}
-          errorMessage={errorMessage}
-        />
-        <ProcessingNotification
-          isShow={isShowProcessingNotification}
-          title={processingNotificationTitle}
+          isQueryFailed={anyMutationFailed}
+          errorMessage={mutationErrorMessage}
         />
       </div>
     </>
   );
-};
-
-GroupConfigurations.propTypes = {
-  courseId: PropTypes.string.isRequired,
 };
 
 export default GroupConfigurations;

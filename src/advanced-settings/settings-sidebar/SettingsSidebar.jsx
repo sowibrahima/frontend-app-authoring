@@ -6,10 +6,9 @@ import PropTypes from 'prop-types';
 import { HelpSidebar } from '../../generic/help-sidebar';
 import messages from './messages';
 
-const SettingsSidebar = ({ courseId, proctoredExamSettingsUrl = '' }) => (
+const SettingsSidebar = ({ courseId }) => (
   <HelpSidebar
     courseId={courseId}
-    proctoredExamSettingsUrl={proctoredExamSettingsUrl}
     showOtherSettings
   >
     <h4 className="help-sidebar-about-title">
@@ -33,7 +32,6 @@ const SettingsSidebar = ({ courseId, proctoredExamSettingsUrl = '' }) => (
 
 SettingsSidebar.propTypes = {
   courseId: PropTypes.string.isRequired,
-  proctoredExamSettingsUrl: PropTypes.string,
 };
 
 export default SettingsSidebar;

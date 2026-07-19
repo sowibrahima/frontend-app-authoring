@@ -96,17 +96,17 @@ export function Sidebar<T extends SidebarPages>({
   const activeKey = isOpen ? currentPageKey : undefined;
 
   return (
-    <Stack direction="horizontal" className="align-items-baseline flex-fill overflow-hidden" gap={2}>
+    <Stack direction="horizontal" className="sidebar-shell align-items-start flex-fill overflow-hidden" gap={2}>
       {(isOpen && !!currentPageKey) ?
         (
           <ResizableBox>
             <div className="sidebar-content p-3 bg-white border-right">
-              <Dropdown data-testid="sidebar-dropdown">
+              <Dropdown className="sidebar-page-selector" data-testid="sidebar-dropdown">
                 <Dropdown.Toggle
                   id="dropdown-toggle-with-iconbutton"
                   as={Button}
                   variant="tertiary"
-                  className="x-small text-primary font-weight-bold pl-0"
+                  className="sidebar-page-selector__toggle x-small text-primary font-weight-bold pl-0"
                 >
                   {intl.formatMessage(title)}
                   <Icon src={SidebarIcon} size="xs" className="ml-2" />
