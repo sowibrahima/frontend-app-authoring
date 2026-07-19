@@ -229,10 +229,6 @@
     border-color: transparent;
   }
 
-  .help-sidebar.outline-sidebar {
-    display: none !important;
-  }
-
   .alert,
   .pgn__alert,
   .alert-content {
@@ -370,4 +366,7 @@
       min-width: 12.5rem;
     }
   }
+}
+.course-outline-main {
+  min-width: 0;
 }

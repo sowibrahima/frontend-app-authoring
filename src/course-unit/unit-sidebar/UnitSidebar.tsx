@@ -43,6 +43,7 @@ export const UnitSidebar = ({
       setCurrentPageKey={handleChangePage}
       isOpen={isOpen}
       toggle={toggle}
+      minWidth={320}
     />
   );
 };

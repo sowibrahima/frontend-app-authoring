@@ -90,40 +90,7 @@ const getItemStatusBadgeContent = (
 /**
  * Get section border color
  */
-const getItemStatusBorder = (status?: ItemBadgeStatusValue) => {
-  switch (status) {
-    case ITEM_BADGE_STATUS.live:
-      return {
-        borderLeft: '5px solid #00688D',
-      };
-    case ITEM_BADGE_STATUS.publishedNotLive:
-      return {
-        borderLeft: '5px solid #0D7D4D',
-      };
-    case ITEM_BADGE_STATUS.gated:
-      return {
-        borderLeft: '5px solid #000000',
-      };
-    case ITEM_BADGE_STATUS.staffOnly:
-      return {
-        borderLeft: '5px solid #000000',
-      };
-    case ITEM_BADGE_STATUS.unpublishedChanges:
-      return {
-        borderLeft: '5px solid #F0CC00',
-      };
-    case ITEM_BADGE_STATUS.draft:
-      return {
-        borderLeft: '5px solid #F0CC00',
-      };
-    case ITEM_BADGE_STATUS.unscheduled:
-      return {
-        borderLeft: '5px solid #ccc',
-      };
-    default:
-      return {};
-  }
-};
+const getItemStatusBorder = (_status?: ItemBadgeStatusValue) => ({});
 
 /**
  * Get formatted highlights form values

@@ -112,6 +112,13 @@ jest.mock('@edx/frontend-platform/logging', () => ({
   logError: jest.fn(),
 }));
 
+// The production slot renders its default contents unless a Tutor plugin
+// explicitly replaces them. Keep that contract in this component test without
+// bootstrapping the full frontend plugin runtime.
+jest.mock('@openedx/frontend-plugin-framework', () => ({
+  PluginSlot: ({ children }) => children,
+}));
+
 jest.mock('@dnd-kit/core', () => ({
   ...jest.requireActual('@dnd-kit/core'),
   // Since jsdom (used by jest) does not support getBoundingClientRect function
@@ -378,7 +385,6 @@ describe('<CourseOutline />', () => {
       toJSON: () => {},
     }));
     expect(elements.length).toBe(4);
-
     axiosMock
       .onPost(getXBlockBaseApiUrl())
       .reply(200, {
@@ -387,7 +393,7 @@ describe('<CourseOutline />', () => {
     axiosMock
       .onGet(getXBlockApiUrl(courseSectionMock.id))
       .reply(200, courseSectionMock);
-    const newSectionButton = (await screen.findAllByRole('button', { name: 'New section' }))[0];
+    const newSectionButton = (await screen.findAllByRole('button', { name: 'New module' }))[0];
     await user.click(newSectionButton);
 
     elements = await screen.findAllByTestId('section-card');
@@ -427,7 +433,7 @@ describe('<CourseOutline />', () => {
     axiosMock
       .onGet(getXBlockApiUrl(firstSectionData.id))
       .reply(200, firstSectionData);
-    const newSubsectionButton = await within(section).findByRole('button', { name: 'New subsection' });
+    const newSubsectionButton = await within(section).findByRole('button', { name: 'New lesson' });
     await user.click(newSubsectionButton);
 
     subsections = await within(section).findAllByTestId('subsection-card');
@@ -447,7 +453,7 @@ describe('<CourseOutline />', () => {
       .reply(200, {
         locator: 'block-v1:UNIX+UX1+2025_T3+type@vertical+block@vertical1e842129',
       });
-    const newUnitButton = await within(subsectionElement).findByRole('button', { name: 'New unit' });
+    const newUnitButton = await within(subsectionElement).findByRole('button', { name: 'New activity page' });
     await act(async () => fireEvent.click(newUnitButton));
     expect(axiosMock.history.post.length).toBe(3);
     const [section] = courseOutlineIndexMock.courseStructure.childInfo.children;
@@ -469,7 +475,7 @@ describe('<CourseOutline />', () => {
     expect(units.length).toBe(1);
 
     const addUnitFromLibraryButton = within(subsectionElement).getByRole('button', {
-      name: /use unit from library/i,
+      name: /use an activity from the library/i,
     });
     await user.click(addUnitFromLibraryButton);
 
@@ -491,7 +497,7 @@ describe('<CourseOutline />', () => {
     expect(subsections.length).toBe(2);
 
     const addSubsectionFromLibraryButton = within(sectionElement).getByRole('button', {
-      name: /use subsection from library/i,
+      name: /use a lesson from the library/i,
     });
     await user.click(addSubsectionFromLibraryButton);
 
@@ -511,7 +517,7 @@ describe('<CourseOutline />', () => {
     expect(sections.length).toBe(4);
 
     const addSectionFromLibraryButton = await screen.findByRole('button', {
-      name: /use section from library/i,
+      name: /use a module from the library/i,
     });
     await user.click(addSectionFromLibraryButton);
 
@@ -2518,7 +2524,7 @@ describe('<CourseOutline />', () => {
           unlinkable: true,
         },
       });
-    const newSectionButton = (await screen.findAllByRole('button', { name: 'New section' }))[0];
+    const newSectionButton = (await screen.findAllByRole('button', { name: 'New module' }))[0];
     fireEvent.click(newSectionButton);
 
     const element = await screen.findByTestId('section-card');

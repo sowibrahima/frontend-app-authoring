@@ -1,10 +1,8 @@
 import { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import { Hyperlink } from '@openedx/paragon';
 
 import { HelpSidebar } from '../../generic/help-sidebar';
-import { useHelpUrls } from '../../help-urls/hooks';
 import { getSidebarData } from './utils';
 import messages from './messages';
 
@@ -15,7 +13,6 @@ const GroupConfigurationSidebar = ({
   shouldShowEnrollmentTrackGroup,
 }) => {
   const intl = useIntl();
-  const urls = useHelpUrls(['groupConfigurations', 'enrollmentTracks', 'contentGroups']);
   const sidebarData = getSidebarData({
     messages,
     intl,
@@ -31,7 +28,7 @@ const GroupConfigurationSidebar = ({
       className="mt-4"
     >
       {sidebarData
-        .map(({ title, paragraphs, urlKey }, idx) => (
+        .map(({ title, paragraphs }, idx) => (
           <Fragment key={title}>
             <h4 className="help-sidebar-about-title">
               {title}
@@ -41,14 +38,6 @@ const GroupConfigurationSidebar = ({
                 {text}
               </p>
             ))}
-            <Hyperlink
-              target="_blank"
-              showLaunchIcon={false}
-              href={urls[urlKey]}
-              className="mt-2 mb-3.5 sidebar-link"
-            >
-              {intl.formatMessage(messages.learnMoreBtn)}
-            </Hyperlink>
             {idx !== sidebarData.length - 1 && <hr />}
           </Fragment>
         ))}

@@ -20,6 +20,7 @@ const OutlineSideBar = () => {
       setCurrentPageKey={setCurrentPageKey}
       isOpen={isOpen}
       toggle={toggle}
+      minWidth={320}
     />
   );
 };

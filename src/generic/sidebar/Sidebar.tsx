@@ -42,6 +42,8 @@ interface SidebarProps<T extends SidebarPages> {
   isOpen: boolean;
   /** Function that toggles the sidebar */
   toggle: () => void;
+  /** Minimum width of the resizable sidebar content in pixels. */
+  minWidth?: number;
 }
 
 /**
@@ -85,6 +87,7 @@ export function Sidebar<T extends SidebarPages>({
   setCurrentPageKey,
   isOpen,
   toggle,
+  minWidth = 440,
 }: SidebarProps<T>) {
   const intl = useIntl();
 
@@ -96,20 +99,20 @@ export function Sidebar<T extends SidebarPages>({
   const activeKey = isOpen ? currentPageKey : undefined;
 
   return (
-    <Stack direction="horizontal" className="sidebar-shell align-items-start flex-fill overflow-hidden" gap={2}>
+    <Stack direction="horizontal" className="sidebar-shell align-items-start overflow-hidden" gap={2}>
       {(isOpen && !!currentPageKey) ?
         (
-          <ResizableBox>
-            <div className="sidebar-content p-3 bg-white border-right">
+          <ResizableBox minWidth={minWidth}>
+            <div className="sidebar-content p-3 bg-white border-right" style={{ minWidth }}>
               <Dropdown className="sidebar-page-selector" data-testid="sidebar-dropdown">
                 <Dropdown.Toggle
                   id="dropdown-toggle-with-iconbutton"
                   as={Button}
                   variant="tertiary"
-                  className="sidebar-page-selector__toggle x-small text-primary font-weight-bold pl-0"
+                  className="sidebar-page-selector__toggle x-small text-primary font-weight-bold"
                 >
                   {intl.formatMessage(title)}
-                  <Icon src={SidebarIcon} size="xs" className="ml-2" />
+                  <Icon src={SidebarIcon} size="xs" />
                 </Dropdown.Toggle>
                 <Dropdown.Menu className="mt-1">
                   {Object.entries(pages).map(([key, page]) => (

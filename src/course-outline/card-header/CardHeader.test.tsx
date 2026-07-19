@@ -7,25 +7,42 @@ import {
 import CardHeader from './CardHeader';
 import TitleButton from './TitleButton';
 import messages from './messages';
-import { RequestStatus } from '../../data/constants';
+import { CourseAuthoringProvider } from '../../CourseAuthoringContext';
 
 const onExpandMock = jest.fn();
 const onClickMenuButtonMock = jest.fn();
 const onClickPublishMock = jest.fn();
-const onClickEditMock = jest.fn();
 const onClickDeleteMock = jest.fn();
 const onClickUnlinkMock = jest.fn();
 const onClickDuplicateMock = jest.fn();
 const onClickConfigureMock = jest.fn();
 const onClickMoveUpMock = jest.fn();
 const onClickMoveDownMock = jest.fn();
-const closeFormMock = jest.fn();
-
 const mockGetTagsCount = jest.fn();
+const mockUpdateCourseBlockName = {
+  isPending: false,
+  mutate: jest.fn(),
+};
+
+jest.mock('../outline-sidebar/OutlineSidebarContext', () => ({
+  useOutlineSidebarContext: () => ({
+    setCurrentPageKey: jest.fn(),
+  }),
+}));
+
+jest.mock('../CourseOutlineContext', () => ({
+  useCourseOutlineContext: () => ({
+    currentSelection: null,
+  }),
+}));
 
 jest.mock('../../generic/data/api', () => ({
   ...jest.requireActual('../../generic/data/api'),
   getTagsCount: () => mockGetTagsCount(),
+}));
+
+jest.mock('../data/apiHooks', () => ({
+  useUpdateCourseBlockName: () => mockUpdateCourseBlockName,
 }));
 
 const cardHeaderProps = {
@@ -35,11 +52,6 @@ const cardHeaderProps = {
   hasChanges: false,
   onClickMenuButton: onClickMenuButtonMock,
   onClickPublish: onClickPublishMock,
-  onClickEdit: onClickEditMock,
-  isFormOpen: false,
-  onEditSubmit: jest.fn(),
-  closeForm: closeFormMock,
-  isDisabledEditField: false,
   onClickDelete: onClickDeleteMock,
   onClickUnlink: onClickUnlinkMock,
   onClickDuplicate: onClickDuplicateMock,
@@ -69,11 +81,13 @@ const renderComponent = (props?: object, entry = '/') => {
   );
 
   return render(
-    <CardHeader
-      {...cardHeaderProps}
-      titleComponent={titleComponent}
-      {...props}
-    />,
+    <CourseAuthoringProvider courseId="course-v1:TestX+TST101+2026">
+      <CardHeader
+        {...cardHeaderProps}
+        titleComponent={titleComponent}
+        {...props}
+      />
+    </CourseAuthoringProvider>,
     {
       path: '/',
       routerProps: {
@@ -86,6 +100,8 @@ const renderComponent = (props?: object, entry = '/') => {
 describe('<CardHeader />', () => {
   beforeEach(() => {
     initializeMocks();
+    mockUpdateCourseBlockName.isPending = false;
+    mockUpdateCourseBlockName.mutate.mockReset();
   });
 
   it('render CardHeader component correctly', async () => {
@@ -196,24 +212,22 @@ describe('<CardHeader />', () => {
     expect(screen.queryByText(messages.menuManageTags.defaultMessage)).not.toBeInTheDocument();
   });
 
-  it('calls onClickEdit when the button is clicked', async () => {
+  it('opens the edit field when the rename button is clicked', async () => {
     renderComponent();
 
     const editButton = await screen.findByTestId('subsection-edit-button');
     await act(async () => fireEvent.click(editButton));
-    expect(onClickEditMock).toHaveBeenCalled();
+    expect(await screen.findByTestId('subsection-edit-field')).toBeInTheDocument();
   });
 
-  it('check is field visible when isFormOpen is true', async () => {
-    renderComponent({
-      ...cardHeaderProps,
-      isFormOpen: true,
-    });
+  it('hides the title controls while the edit field is open', async () => {
+    renderComponent();
 
+    await act(async () => fireEvent.click(await screen.findByTestId('subsection-edit-button')));
     expect(await screen.findByTestId('subsection-edit-field')).toBeInTheDocument();
-    waitFor(() => {
+    await waitFor(() => {
       expect(screen.queryByTestId('subsection-card-header__expanded-btn')).not.toBeInTheDocument();
-      expect(screen.queryByTestId('edit-button')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('subsection-edit-button')).not.toBeInTheDocument();
     });
   });
 
@@ -229,7 +243,8 @@ describe('<CardHeader />', () => {
   });
 
   it('check editing is disabled when saving is in progress', async () => {
-    renderComponent({ ...cardHeaderProps, savingStatus: RequestStatus.IN_PROGRESS });
+    mockUpdateCourseBlockName.isPending = true;
+    renderComponent({ ...cardHeaderProps });
 
     expect(await screen.findByTestId('subsection-edit-button')).toBeDisabled();
 

@@ -1,11 +1,9 @@
-import { useContext, useEffect, useMemo } from 'react';
+import { useContext, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import { Tag } from '@openedx/paragon/icons';
-import { ComponentCountSnippet, getItemIcon } from '@src/generic/block-type-utils';
-import { SidebarContent, SidebarSection, SidebarTitle } from '@src/generic/sidebar';
-import { ContentTagsSnippet } from '@src/content-tags-drawer';
+import { getItemIcon } from '@src/generic/block-type-utils';
+import { SidebarContent, SidebarTitle } from '@src/generic/sidebar';
 import {
   Tab,
   Tabs,
@@ -23,7 +21,7 @@ import {
 } from '@src/course-outline/data/apiHooks';
 import { useConfigureUnitWithPageUpdates } from '@src/course-unit/data/apiHooks';
 import DeleteModal from '@src/generic/delete-modal/DeleteModal';
-import { getCourseUnitData, getCourseVerticalChildren } from '@src/course-unit/data/selectors';
+import { getCourseUnitData } from '@src/course-unit/data/selectors';
 import { messageTypes } from '@src/course-unit/constants';
 import { fetchCourseSectionVerticalData } from '@src/course-unit/data/thunk';
 import { extractCourseUnitId } from '@src/course-unit/legacy-sidebar/utils';
@@ -33,49 +31,22 @@ import { useUnitSidebarContext } from '../UnitSidebarContext';
 import messages from './messages';
 
 /**
- * Component to show unit details: Publish status, Component counts and Content Tags.
+ * Component to show the compact unit publication details.
  *
  * It's using in the details tab of the unit info sidebar.
  */
 const UnitInfoDetails = () => {
-  const intl = useIntl();
   const { blockId } = useParams();
   const { isVertical } = useUnitSidebarContext();
-  const courseVerticalChildren = useSelector(getCourseVerticalChildren);
 
   if (blockId === undefined) {
     // istanbul ignore next - This shouldn't be possible; it's just here to satisfy the type checker.
     throw new Error('Error: route is missing blockId.');
   }
 
-  const componentData: Record<string, number> = useMemo(() => (
-    // @ts-ignore
-    courseVerticalChildren.children.reduce<Record<string, number>>(
-      (acc, { blockType }) => {
-        acc[blockType] = (acc[blockType] ?? 0) + 1;
-        return acc;
-      },
-      {},
-    )
-  ), [courseVerticalChildren.children]);
-
   return (
     <SidebarContent>
       {isVertical && <PublishControls blockId={blockId} hideCopyButton />}
-      <SidebarSection
-        title={isVertical
-          ? intl.formatMessage(messages.sidebarSectionSummary)
-          : intl.formatMessage(messages.sidebarSectionSummaryDefault)}
-        icon={getItemIcon('unit')}
-      >
-        {componentData && <ComponentCountSnippet componentData={componentData} />}
-      </SidebarSection>
-      <SidebarSection
-        title={intl.formatMessage(messages.sidebarSectionTaxonomies)}
-        icon={Tag}
-      >
-        <ContentTagsSnippet contentId={blockId} />
-      </SidebarSection>
     </SidebarContent>
   );
 };

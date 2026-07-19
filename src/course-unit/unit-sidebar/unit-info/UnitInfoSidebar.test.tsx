@@ -155,8 +155,8 @@ describe('<UnitInfoSidebar /> - rendering', () => {
     renderComponent();
 
     expect(screen.getByText('Unit title')).toBeInTheDocument();
-    expect(screen.getByText(/ComponentCount/)).toBeInTheDocument();
-    expect(screen.getByText(`ContentTags:${unitId}`)).toBeInTheDocument();
+    expect(screen.queryByText(/ComponentCount/)).not.toBeInTheDocument();
+    expect(screen.queryByText(`ContentTags:${unitId}`)).not.toBeInTheDocument();
     expect(setCurrentTabKey).toHaveBeenCalledWith('details');
   });
 
@@ -173,7 +173,7 @@ describe('<UnitInfoSidebar /> - rendering', () => {
     expect(screen.getByText('GenericUnitInfoSettings')).toBeInTheDocument();
   });
 
-  it('shows PublishControls and vertical section title when isVertical is true', () => {
+  it('shows compact publication controls when isVertical is true', () => {
     unitSidebarContext.useUnitSidebarContext.mockReturnValue({
       currentTabKey: 'details',
       setCurrentTabKey: jest.fn(),
@@ -183,11 +183,10 @@ describe('<UnitInfoSidebar /> - rendering', () => {
     renderComponent();
 
     expect(screen.getByText('PublishControls')).toBeInTheDocument();
-    expect(screen.getByText('Unit Content Summary')).toBeInTheDocument();
-    expect(screen.queryByText('Content Summary')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Content Summary/)).not.toBeInTheDocument();
   });
 
-  it('hides PublishControls and shows default section title when isVertical is false', () => {
+  it('hides publication controls and the removed summary section when isVertical is false', () => {
     unitSidebarContext.useUnitSidebarContext.mockReturnValue({
       currentTabKey: 'details',
       setCurrentTabKey: jest.fn(),
@@ -197,8 +196,7 @@ describe('<UnitInfoSidebar /> - rendering', () => {
     renderComponent();
 
     expect(screen.queryByText('PublishControls')).not.toBeInTheDocument();
-    expect(screen.getByText('Content Summary')).toBeInTheDocument();
-    expect(screen.queryByText('Unit Content Summary')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Content Summary/)).not.toBeInTheDocument();
   });
 
   it('shows Settings tab when isVertical is true', () => {

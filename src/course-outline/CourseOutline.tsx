@@ -248,7 +248,7 @@ const CourseOutline = () => {
           />
           <hr className="mt-4 mb-0 w-100 text-light-400" />
           <div className="d-flex align-items-start">
-            <div className="flex-fill">
+            <div className="course-outline-main flex-fill">
               <article>
                 <div>
                   <ActionRow className="mt-3">

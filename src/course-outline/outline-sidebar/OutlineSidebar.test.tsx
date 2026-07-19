@@ -73,4 +73,16 @@ describe('<OutlineSidebar>', () => {
     await userEvent.click(toggleButton);
     expect(screen.queryByText('Creating your course organization')).not.toBeInTheDocument();
   });
+
+  it('opens the requested page when a sidebar page action is clicked', async () => {
+    renderComponent();
+
+    expect(screen.queryByText('Test Course')).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Info' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Course')).toBeInTheDocument();
+    });
+  });
 });

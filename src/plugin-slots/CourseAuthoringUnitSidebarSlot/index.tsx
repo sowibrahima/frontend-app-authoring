@@ -1,4 +1,4 @@
-import { PluginSlot } from '@openedx/frontend-plugin-framework/dist';
+import { PluginSlot } from '@openedx/frontend-plugin-framework';
 import classNames from 'classnames';
 
 import { UnitSidebar } from '@src/course-unit/unit-sidebar/UnitSidebar';

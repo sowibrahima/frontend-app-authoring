@@ -5,12 +5,13 @@
   height: 100vh;
   max-height: 100vh;
   display: flex;
+  flex: 0 0 auto;
   flex-direction: column;
   margin-left: 1rem;
 
   .sidebar-content {
     flex: 0 1 auto;
-    min-width: 440px;
+    width: 100%;
     overflow: hidden auto;
 
     /*
@@ -45,11 +46,14 @@
 
   .sidebar-shell {
     align-items: flex-start !important;
+    flex: 0 0 auto;
   }
 
   .sidebar-page-selector {
     width: 100%;
     margin-bottom: .75rem;
+    padding-inline: .25rem;
+    overflow: visible;
   }
 
   .sidebar-page-selector__toggle.btn {
@@ -57,13 +61,20 @@
     align-items: center;
     gap: .45rem;
     min-height: 2.25rem;
-    max-width: 100%;
+    width: auto;
+    min-width: max-content;
+    max-width: calc(100% - .5rem);
+    overflow: visible;
     border: 1px solid var(--wuti-color-border);
     border-radius: 999px;
     padding: .35rem .75rem !important;
     color: var(--wuti-color-brand) !important;
     background: var(--wuti-color-surface) !important;
     line-height: 1.2;
+
+    .pgn__icon {
+      flex: 0 0 auto;
+    }
   }
 
   .sidebar-page-selector__toggle.btn::after {
