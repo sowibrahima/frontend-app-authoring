@@ -1,7 +1,8 @@
-.sidebar {
+.sidebar-shell {
   position: sticky;
   top: 0;
   align-self: flex-start;
+  align-items: flex-start !important;
   height: 100vh;
   max-height: 100vh;
   display: flex;
@@ -29,7 +30,7 @@
       }
 
       .pgn__tab_more {
-        display: none;
+        display: none !important;
       }
 
       /*
@@ -37,16 +38,11 @@
        * and hidden from dom. We unset all changes.
        */
       .pgn__tab_invisible {
-        position: relative;
-        pointer-events: unset;
-        visibility: unset;
+        position: relative !important;
+        pointer-events: auto !important;
+        visibility: visible !important;
       }
     }
-  }
-
-  .sidebar-shell {
-    align-items: flex-start !important;
-    flex: 0 0 auto;
   }
 
   .sidebar-page-selector {

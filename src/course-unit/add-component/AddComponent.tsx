@@ -6,7 +6,7 @@ import { useIntl, FormattedMessage } from '@edx/frontend-platform/i18n';
 import {
   ActionRow, Button, Icon, StandardModal, useToggle,
 } from '@openedx/paragon';
-import { ArrowRight } from '@openedx/paragon/icons';
+import { Add, ArrowRight } from '@openedx/paragon/icons';
 
 import { useWaffleFlags } from '@src/data/apiHooks';
 import { COMPONENT_TYPE_ICON_MAP, COMPONENT_TYPES } from '@src/generic/block-type-utils/constants';
@@ -455,36 +455,31 @@ const AddComponent = ({
 
   if (isUnitVerticalType || isSplitTestType || isProblemBankType) {
     return (
-      <div className="py-4">
+      <div className="ws-add-component-region">
         {componentTemplateList.length && isUnitVerticalType ? (
           <>
             {isEmptyUnit && (
-              <section className="ws-lesson-builder">
-                <div className="ws-lesson-builder__header">
-                  <p className="ws-lesson-builder__eyebrow">
-                    {intl.formatMessage(messages.lessonBuilderEyebrow)}
-                  </p>
-                  <h5 className="ws-lesson-builder__title">
-                    {intl.formatMessage(messages.lessonBuilderTitle)}
-                  </h5>
-                  <p className="ws-lesson-builder__description">
-                    {intl.formatMessage(messages.lessonBuilderDescription)}
-                  </p>
-                </div>
-
-                {activityPickerStep !== 'root' && (
-                  <Button
-                    variant="tertiary"
-                    className="ws-activity-picker__back mb-3"
-                    onClick={() => setActivityPickerStep('root')}
-                  >
-                    {intl.formatMessage(messages.activityBack)}
-                  </Button>
-                )}
-                {activityPickerStep === 'root' && renderActivityCards(activityGroups)}
-                {activityPickerStep === 'read' && renderActivityCards(readChoices)}
-                {activityPickerStep === 'exercise' && renderActivityCards(exerciseChoices)}
-                {activityPickerStep === 'other' && renderLegacyComponents()}
+              <section className="ws-unit-empty-state">
+                <span className="ws-unit-empty-state__icon" aria-hidden="true">
+                  <Icon src={COMPONENT_TYPE_ICON_MAP[COMPONENT_TYPES.html]} />
+                </span>
+                <h2>{intl.formatMessage(messages.emptyUnitTitle)}</h2>
+                <p className="ws-unit-empty-state__description">
+                  {intl.formatMessage(messages.emptyUnitDescription)}
+                </p>
+                <p className="ws-unit-empty-state__definition">
+                  {intl.formatMessage(messages.emptyUnitDefinition)}
+                </p>
+                <Button
+                  variant="primary"
+                  iconBefore={Add}
+                  onClick={() => {
+                    setActivityPickerStep('root');
+                    openActivityPicker();
+                  }}
+                >
+                  {intl.formatMessage(messages.addNewComponent)}
+                </Button>
               </section>
             )}
             {!isEmptyUnit && (
@@ -496,7 +491,7 @@ const AddComponent = ({
                     openActivityPicker();
                   }}
                 >
-                  {intl.formatMessage(messages.title)}
+                  {intl.formatMessage(messages.addNewComponent)}
                 </Button>
               </div>
             )}

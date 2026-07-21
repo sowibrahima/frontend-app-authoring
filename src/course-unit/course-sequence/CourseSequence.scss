@@ -1,5 +1,5 @@
 .sequence-container {
-  margin-bottom: 1.75rem;
+  margin: 1.25rem 0 1.75rem;
   width: 100%;
 }
 
@@ -12,15 +12,28 @@
 
   .btn {
     position: relative;
+    border-color: var(--wuti-color-border);
+    border-radius: 999px;
+    background: var(--wuti-color-surface);
     white-space: nowrap;
-    color: var(--pgn-color-gray-700);
+    color: var(--wuti-color-muted);
 
     &.btn-primary {
-      color: var(--pgn-color-white);
+      border-color: var(--wuti-color-action);
+      background: var(--wuti-color-action);
+      color: var(--wuti-color-action-text);
     }
 
-    &:focus {
+    &:focus-visible {
       z-index: 1;
+      outline: 3px solid var(--wuti-color-focus);
+      outline-offset: 2px;
+    }
+
+    &:hover:not(:disabled):not(.btn-primary) {
+      border-color: var(--wuti-color-brand);
+      background: var(--wuti-color-hover);
+      color: var(--wuti-color-brand);
     }
   }
 
@@ -85,8 +98,8 @@
       }
 
       &.btn-primary {
-        background-color: var(--pgn-color-primary-500);
-        color: var(--pgn-color-white);
+        background-color: var(--wuti-color-action);
+        color: var(--wuti-color-action-text);
       }
     }
   }

@@ -15,11 +15,13 @@ import messages from './messages';
 interface PublishControlsProps {
   blockId: string;
   hideCopyButton?: boolean;
+  compact?: boolean;
 }
 
 const PublishControls = ({
   blockId,
   hideCopyButton = false,
+  compact = false,
 }: PublishControlsProps) => {
   const unitData = useSelector(getCourseUnitData);
   const {
@@ -64,6 +66,33 @@ const PublishControls = ({
       groupAccess: null,
     });
   };
+
+  const discardChangesModal = (
+    <ModalNotification
+      title={intl.formatMessage(messages.modalDiscardUnitChangesTitle)}
+      isOpen={isDiscardModalOpen}
+      actionButtonText={intl.formatMessage(messages.modalDiscardUnitChangesActionButtonText)}
+      cancelButtonText={intl.formatMessage(messages.modalDiscardUnitChangesCancelButtonText)}
+      handleAction={handleCourseUnitDiscardChanges}
+      handleCancel={closeDiscardModal}
+      message={intl.formatMessage(messages.modalDiscardUnitChangesDescription)}
+      icon={InfoOutlineIcon}
+    />
+  );
+
+  if (compact) {
+    return (
+      <div className="ws-unit-info-sidebar__publish-actions">
+        <SidebarFooter
+          locationId={locationId}
+          openDiscardModal={openDiscardModal}
+          handlePublishing={handleCourseUnitPublish}
+          hideCopyButton={hideCopyButton}
+        />
+        {discardChangesModal}
+      </div>
+    );
+  }
 
   return (
     <div className={`course-unit-publish-controls border p-3 ${publishCardClass}`}>
@@ -131,16 +160,7 @@ const PublishControls = ({
         handlePublishing={handleCourseUnitPublish}
         hideCopyButton={hideCopyButton}
       />
-      <ModalNotification
-        title={intl.formatMessage(messages.modalDiscardUnitChangesTitle)}
-        isOpen={isDiscardModalOpen}
-        actionButtonText={intl.formatMessage(messages.modalDiscardUnitChangesActionButtonText)}
-        cancelButtonText={intl.formatMessage(messages.modalDiscardUnitChangesCancelButtonText)}
-        handleAction={handleCourseUnitDiscardChanges}
-        handleCancel={closeDiscardModal}
-        message={intl.formatMessage(messages.modalDiscardUnitChangesDescription)}
-        icon={InfoOutlineIcon}
-      />
+      {discardChangesModal}
     </div>
   );
 };

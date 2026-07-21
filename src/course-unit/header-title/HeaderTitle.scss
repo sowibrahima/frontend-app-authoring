@@ -20,3 +20,20 @@
     }
   }
 }
+
+.unit-header-title-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.unit-header-title__eyebrow {
+  margin-bottom: .5rem;
+  color: var(--wuti-color-brand);
+  font-family: "JetBrains Mono", monospace;
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .13em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}

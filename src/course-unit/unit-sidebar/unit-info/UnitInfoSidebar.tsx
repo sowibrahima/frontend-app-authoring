@@ -1,14 +1,19 @@
-import { useContext, useEffect } from 'react';
+import { useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import { getItemIcon } from '@src/generic/block-type-utils';
-import { SidebarContent, SidebarTitle } from '@src/generic/sidebar';
+import type { IntlShape } from 'react-intl';
 import {
-  Tab,
-  Tabs,
+  Button,
+  Icon,
   useToggle,
 } from '@openedx/paragon';
+import {
+  AccessTimeFilled,
+  Person,
+} from '@openedx/paragon/icons';
+import { getItemIcon } from '@src/generic/block-type-utils';
+import { InfoSidebarMenu } from '@src/generic/sidebar/InfoSidebarMenu';
 import { useIframe } from '@src/generic/hooks/context/hooks';
 import { getLibraryId } from '@src/generic/key-utils';
 import { useClipboard } from '@src/generic/clipboard';
@@ -22,39 +27,15 @@ import {
 import { useConfigureUnitWithPageUpdates } from '@src/course-unit/data/apiHooks';
 import DeleteModal from '@src/generic/delete-modal/DeleteModal';
 import { getCourseUnitData } from '@src/course-unit/data/selectors';
-import { messageTypes } from '@src/course-unit/constants';
+import { messageTypes, UNIT_VISIBILITY_STATES } from '@src/course-unit/constants';
 import { fetchCourseSectionVerticalData } from '@src/course-unit/data/thunk';
 import { extractCourseUnitId } from '@src/course-unit/legacy-sidebar/utils';
-import { GenericUnitInfoSettings } from '@src/course-unit/unit-sidebar/unit-info/GenericUnitInfoSettings';
+import { GenericUnitInfoSettings } from './GenericUnitInfoSettings';
 import PublishControls from './PublishControls';
-import { useUnitSidebarContext } from '../UnitSidebarContext';
 import messages from './messages';
 
 /**
- * Component to show the compact unit publication details.
- *
- * It's using in the details tab of the unit info sidebar.
- */
-const UnitInfoDetails = () => {
-  const { blockId } = useParams();
-  const { isVertical } = useUnitSidebarContext();
-
-  if (blockId === undefined) {
-    // istanbul ignore next - This shouldn't be possible; it's just here to satisfy the type checker.
-    throw new Error('Error: route is missing blockId.');
-  }
-
-  return (
-    <SidebarContent>
-      {isVertical && <PublishControls blockId={blockId} hideCopyButton />}
-    </SidebarContent>
-  );
-};
-
-/**
  * Component with forms to edit unit settings.
- *
- * It's using in the settings tab of the unit info sidebar.
  */
 export const UnitInfoSettings = () => {
   const { sendMessageToIframe } = useIframe();
@@ -81,23 +62,72 @@ export const UnitInfoSettings = () => {
   );
 };
 
+type UnitStateData = {
+  currentlyVisibleToStudents?: boolean;
+  hasChanges?: boolean;
+  published?: boolean;
+  visibilityState?: string;
+};
+
+const getUnitState = (unit: UnitStateData, intl: IntlShape) => {
+  if (unit.visibilityState === UNIT_VISIBILITY_STATES.staffOnly) {
+    return {
+      key: 'staff',
+      label: intl.formatMessage(messages.compactStateStaffLabel),
+      title: intl.formatMessage(messages.compactStateStaffTitle),
+      description: intl.formatMessage(messages.compactStateStaffDescription),
+    };
+  }
+
+  if (unit.published && unit.hasChanges) {
+    return {
+      key: 'draft',
+      label: intl.formatMessage(messages.compactStateDraftLabel),
+      title: intl.formatMessage(messages.compactStateChangesTitle),
+      description: intl.formatMessage(messages.compactStateChangesDescription),
+    };
+  }
+
+  if (unit.currentlyVisibleToStudents) {
+    return {
+      key: 'live',
+      label: intl.formatMessage(messages.compactStateLiveLabel),
+      title: intl.formatMessage(messages.compactStateLiveTitle),
+      description: intl.formatMessage(messages.compactStateLiveDescription),
+    };
+  }
+
+  if (unit.published) {
+    return {
+      key: 'scheduled',
+      label: intl.formatMessage(messages.compactStateScheduledLabel),
+      title: intl.formatMessage(messages.compactStateScheduledTitle),
+      description: intl.formatMessage(messages.compactStateScheduledDescription),
+    };
+  }
+
+  return {
+    key: 'draft',
+    label: intl.formatMessage(messages.compactStateDraftLabel),
+    title: intl.formatMessage(messages.compactStateDraftTitle),
+    description: intl.formatMessage(messages.compactStateDraftDescription),
+  };
+};
+
 /**
- * Component that renders the tabs of the info sidebar for units.
+ * Compact, information-first sidebar for the course unit page.
  */
 export const UnitInfoSidebar = () => {
   const intl = useIntl();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { blockId } = useParams();
   const { copyToClipboard } = useClipboard();
   const currentItemData = useSelector(getCourseUnitData);
-  const {
-    currentTabKey,
-    isVertical,
-    setCurrentTabKey,
-  } = useUnitSidebarContext();
   const { showToast } = useContext(ToastContext);
   const { courseId } = useCourseAuthoringContext();
 
+  const [isEditingSettings, openEditingSettings, closeEditingSettings] = useToggle(false);
   const [isUnlinkModalOpen, openUnlinkModal, closeUnlinkModal] = useToggle(false);
   const [isDeleteModalOpen, openDeleteModal, closeDeleteModal] = useToggle(false);
   const { mutateAsync: unlinkDownstream } = useUnlinkDownstream();
@@ -106,10 +136,26 @@ export const UnitInfoSidebar = () => {
   const subsectionId = currentItemData?.ancestorInfo?.ancestors?.[0]?.id;
   const sectionId = currentItemData?.ancestorInfo?.ancestors?.[1]?.id;
   const { data: subsection } = useCourseItemData(subsectionId);
-  // re-create actions object for customizations
-  const actions = { ...currentItemData.actions };
+  const actions = { ...(currentItemData.actions ?? {}) };
   actions.deletable = actions.deletable && !subsection?.upstreamInfo?.upstreamRef;
   actions.duplicable = actions.duplicable && !subsection?.upstreamInfo?.upstreamRef;
+
+  const state = getUnitState(currentItemData, intl);
+  const selectedGroupsLabel = currentItemData.userPartitionInfo?.selectedGroupsLabel;
+  const visibleToStaffOnly = currentItemData.visibilityState === UNIT_VISIBILITY_STATES.staffOnly;
+  const visibilityLabel = visibleToStaffOnly
+    ? intl.formatMessage(messages.compactAccessStaffOnly)
+    : intl.formatMessage(messages.compactAccessAllLearners);
+  const groupLabel = selectedGroupsLabel || intl.formatMessage(messages.compactAccessNoGroup);
+  const discussionLabel = currentItemData.discussionEnabled
+    ? intl.formatMessage(messages.compactDiscussionEnabled)
+    : intl.formatMessage(messages.compactDiscussionDisabled);
+  const publicationLabel = currentItemData.publishedOn
+    ? intl.formatMessage(messages.publishLastPublished)
+    : intl.formatMessage(messages.compactPublicationPlanned);
+  const publicationValue = currentItemData.publishedOn
+    || currentItemData.releaseDate
+    || intl.formatMessage(messages.compactPublicationUnscheduled);
 
   const handleDeleteSubmit = async () => {
     await deleteCourseItem({
@@ -137,11 +183,6 @@ export const UnitInfoSidebar = () => {
     });
   };
 
-  useEffect(() => {
-    // Set default Tab key
-    setCurrentTabKey('details');
-  }, []);
-
   const handleCopyLocation = () => {
     const locationId = extractCourseUnitId(currentItemData.id);
     if (!locationId) {
@@ -149,11 +190,8 @@ export const UnitInfoSidebar = () => {
     }
 
     if (navigator.clipboard) {
-      // Modern approach: requires HTTPS (secure context)
       void navigator.clipboard.writeText(locationId);
     } /* istanbul ignore next */ else {
-      // Fallback for HTTP (non-secure) dev environments
-      // Note: execCommand is deprecated but still widely supported as fallback
       const textarea = document.createElement('textarea');
       textarea.value = locationId;
       document.body.appendChild(textarea);
@@ -164,53 +202,115 @@ export const UnitInfoSidebar = () => {
     showToast(intl.formatMessage(messages.locationCopiedText));
   };
 
+  if (blockId === undefined) {
+    // istanbul ignore next - This shouldn't be possible; it's just here to satisfy the type checker.
+    throw new Error('Error: route is missing blockId.');
+  }
+
   return (
-    <>
-      <SidebarTitle
-        title={currentItemData.displayName}
-        icon={getItemIcon('unit')}
-        menuProps={{
-          itemId: currentItemData.id,
-          index: -1,
-          actions,
-          onClickUnlink: openUnlinkModal,
-          onClickDelete: openDeleteModal,
-          onClickViewLibrary: () => {
-            const upstreamRef = currentItemData?.upstreamInfo?.upstreamRef;
-            if (upstreamRef) {
-              const libId = getLibraryId(upstreamRef);
-              navigate(`/library/${libId}/unit/${upstreamRef}`);
-            }
-          },
-          onClickCopy: () => copyToClipboard(currentItemData.id),
-          onClickCopyLocation: handleCopyLocation,
-        }}
-      />
-      <Tabs
-        id="unit-info-sidebar-tabs"
-        className="my-2 mx-n3.5"
-        activeKey={currentTabKey}
-        onSelect={setCurrentTabKey}
-      >
-        <Tab
-          eventKey="details"
-          title={intl.formatMessage(messages.sidebarInfoDetailsTab)}
-        >
-          <div className="mt-4">
-            <UnitInfoDetails />
+    <div className="ws-unit-info-sidebar__inner">
+      <header className="ws-unit-info-sidebar__header">
+        <p className="ws-unit-info-sidebar__eyebrow">
+          {intl.formatMessage(messages.compactSidebarEyebrow)}
+        </p>
+        <div className="ws-unit-info-sidebar__title-row">
+          <div className="ws-unit-info-sidebar__title">
+            <Icon src={getItemIcon('unit')} aria-hidden />
+            <h2>{currentItemData.displayName}</h2>
           </div>
-        </Tab>
-        {isVertical && (
-          <Tab
-            eventKey="settings"
-            title={intl.formatMessage(messages.sidebarInfoSettingsTab)}
-          >
-            <div className="mt-4">
-              <UnitInfoSettings />
+          <div className="ws-unit-info-sidebar__title-actions">
+            <span className={`ws-unit-info-sidebar__badge is-${state.key}`}>{state.label}</span>
+            <InfoSidebarMenu
+              itemId={currentItemData.id}
+              index={-1}
+              actions={actions}
+              onClickUnlink={openUnlinkModal}
+              onClickDelete={openDeleteModal}
+              onClickViewLibrary={() => {
+                const upstreamRef = currentItemData?.upstreamInfo?.upstreamRef;
+                if (upstreamRef) {
+                  const libId = getLibraryId(upstreamRef);
+                  navigate(`/library/${libId}/unit/${upstreamRef}`);
+                }
+              }}
+              onClickCopy={() => copyToClipboard(currentItemData.id)}
+              onClickCopyLocation={handleCopyLocation}
+            />
+          </div>
+        </div>
+      </header>
+
+      <div className="ws-unit-info-sidebar__body">
+        <section className="ws-unit-info-sidebar__section">
+          <h3>{intl.formatMessage(messages.compactStateSectionTitle)}</h3>
+          <div className="ws-unit-info-sidebar__state">
+            <span className={`ws-unit-info-sidebar__state-dot is-${state.key}`} aria-hidden />
+            <div>
+              <strong>{state.title}</strong>
+              <p>{state.description}</p>
             </div>
-          </Tab>
-        )}
-      </Tabs>
+          </div>
+        </section>
+
+        <section className="ws-unit-info-sidebar__section">
+          <h3>{intl.formatMessage(messages.compactActivitySectionTitle)}</h3>
+          {currentItemData.editedOn && (
+            <div className="ws-unit-info-sidebar__activity-row">
+              <Icon src={Person} aria-hidden />
+              <div>
+                <span>{intl.formatMessage(messages.compactLastModified)}</span>
+                <strong>
+                  {currentItemData.editedBy ? `${currentItemData.editedBy} · ` : ''}
+                  {currentItemData.editedOn}
+                </strong>
+              </div>
+            </div>
+          )}
+          <div className="ws-unit-info-sidebar__activity-row">
+            <Icon src={AccessTimeFilled} aria-hidden />
+            <div>
+              <span>{publicationLabel}</span>
+              <strong>{publicationValue}</strong>
+            </div>
+          </div>
+          <PublishControls blockId={blockId} hideCopyButton compact />
+        </section>
+
+        <section className="ws-unit-info-sidebar__section">
+          <div className="ws-unit-info-sidebar__section-heading">
+            <h3>{intl.formatMessage(messages.compactAccessSectionTitle)}</h3>
+            {!isEditingSettings && (
+              <Button variant="tertiary" size="sm" onClick={openEditingSettings}>
+                {intl.formatMessage(messages.compactEditAction)}
+              </Button>
+            )}
+          </div>
+          {isEditingSettings ? (
+            <div className="ws-unit-info-sidebar__settings">
+              <UnitInfoSettings />
+              <Button variant="outline-primary" size="sm" onClick={closeEditingSettings}>
+                {intl.formatMessage(messages.compactDoneAction)}
+              </Button>
+            </div>
+          ) : (
+            <div className="ws-unit-info-sidebar__access-list">
+              <div>
+                <span>{intl.formatMessage(messages.sidebarInfoVisibilityTitle)}</span>
+                <strong>{visibilityLabel}</strong>
+              </div>
+              <div>
+                <span>{intl.formatMessage(messages.compactGroupRestrictionLabel)}</span>
+                <strong>{groupLabel}</strong>
+              </div>
+              <div>
+                <span>{intl.formatMessage(messages.compactDiscussionsLabel)}</span>
+                <strong>{discussionLabel}</strong>
+              </div>
+            </div>
+          )}
+        </section>
+      </div>
+
       <DeleteModal
         isOpen={isDeleteModalOpen}
         close={closeDeleteModal}
@@ -224,6 +324,6 @@ export const UnitInfoSidebar = () => {
         displayName={currentItemData.displayName}
         category="vertical"
       />
-    </>
+    </div>
   );
 };

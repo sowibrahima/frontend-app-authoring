@@ -57,7 +57,7 @@ export const useContentMenuItems = (courseId: string) => {
   return items;
 };
 
-export const useSettingMenuItems = (courseId: string) => {
+export const useSettingMenuItems = (courseId?: string) => {
   const intl = useIntl();
   const { canAccessAdvancedSettings: legacyCanAccessAdvancedSettings } = useSelector(getStudioHomeData);
   const waffleFlags = useWaffleFlags(courseId);
@@ -67,11 +67,11 @@ export const useSettingMenuItems = (courseId: string) => {
     If authz.enable_course_authoring flag is enabled, validate permissions using AuthZ API.
     Otherwise, fallback to existing logic.
   */
-  const isAuthzEnabled = waffleFlags.enableAuthzCourseAuthoring;
+  const isAuthzEnabled = Boolean(courseId) && waffleFlags.enableAuthzCourseAuthoring;
   const { isLoading: isLoadingUserPermissions, data: userPermissions } = useUserPermissions({
     canManageAdvancedSettings: {
       action: COURSE_PERMISSIONS.MANAGE_ADVANCED_SETTINGS,
-      scope: courseId,
+      scope: courseId ?? '',
     },
   }, isAuthzEnabled);
 
@@ -82,6 +82,10 @@ export const useSettingMenuItems = (courseId: string) => {
   const canAccessAdvancedSettings = isAuthzEnabled
     ? authzCanManageAdvancedSettings
     : legacyCanAccessAdvancedSettings;
+
+  if (!courseId) {
+    return [];
+  }
 
   const items = [
     {

@@ -350,8 +350,8 @@ const LibraryAuthoringPage = ({
   ));
 
   return (
-    <div className="d-flex">
-      <div className="flex-grow-1">
+    <div className="d-flex library-authoring-shell">
+      <div className="flex-grow-1 library-authoring-main">
         {libraryData
           && (
             <>
@@ -373,7 +373,7 @@ const LibraryAuthoringPage = ({
               )}
             </>
           )}
-        <Container className="px-4 mt-4 mb-5 library-authoring-page">
+        <Container className="px-4 mt-4 mb-5 library-authoring-page flex-grow-1">
           <SearchContextProvider
             extraFilter={extraFilter}
             overrideTypesFilter={overrideTypesFilter}

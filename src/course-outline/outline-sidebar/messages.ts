@@ -111,17 +111,17 @@ const messages = defineMessages({
     description: 'Tab title for adding existing library components in outline using sidebar',
   },
   sidebarTabsAddExisitingSectionToParent: {
-    id: 'course-authoring.course-outline.sidebar.sidebar-section-add.add-existing-tab',
+    id: 'course-authoring.course-outline.sidebar.sidebar-section-add.add-existing-section-to-parent',
     defaultMessage: 'Adding section to course',
     description: 'Tab title for adding existing library section to a specific parent in outline using sidebar',
   },
   sidebarTabsAddExisitingSubsectionToParent: {
-    id: 'course-authoring.course-outline.sidebar.sidebar-section-add.add-existing-tab',
+    id: 'course-authoring.course-outline.sidebar.sidebar-section-add.add-existing-subsection-to-parent',
     defaultMessage: 'Adding subsection to {name}',
     description: 'Tab title for adding existing library subsection to a specific parent in outline using sidebar',
   },
   sidebarTabsAddExisitingUnitToParent: {
-    id: 'course-authoring.course-outline.sidebar.sidebar-section-add.add-existing-tab',
+    id: 'course-authoring.course-outline.sidebar.sidebar-section-add.add-existing-unit-to-parent',
     defaultMessage: 'Adding unit to {name}',
     description: 'Tab title for adding existing library unit to a specific parent in outline using sidebar',
   },

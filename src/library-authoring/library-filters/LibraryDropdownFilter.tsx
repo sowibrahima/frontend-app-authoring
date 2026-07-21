@@ -111,6 +111,7 @@ export const LibraryDropdownFilter = () => {
         <Dropdown.Toggle
           id="library-filter-dropdown-toggle"
           iconBefore={Newsstand}
+          variant="outline-primary"
           className="text-overflow text-primary-500 p-2 px-4 mr-2"
         >
           {truncate(label, { length: 30 })}

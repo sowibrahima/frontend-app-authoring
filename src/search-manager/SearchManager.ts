@@ -47,6 +47,7 @@ export interface SearchContextData {
   fetchNextPage: () => void;
   closeSearchModal: () => void;
   hasError: boolean;
+  retrySearch: () => void;
   usageKey: string;
 }
 
@@ -173,7 +174,12 @@ export const SearchContextProvider: React.FC<{
   }, []);
 
   // Initialize a connection to Meilisearch:
-  const { client, indexName, hasConnectionError } = useContentSearchConnection();
+  const {
+    client,
+    indexName,
+    hasConnectionError,
+    retryConnection,
+  } = useContentSearchConnection();
 
   // Run the search
   const result = useContentSearchResults({
@@ -209,9 +215,13 @@ export const SearchContextProvider: React.FC<{
       setSearchSortOrder,
       defaultSearchSortOrder,
       closeSearchModal: props.closeSearchModal ?? (() => {}),
-      hasError: hasConnectionError || result.isError,
       usageKey,
       ...result,
+      hasError: hasConnectionError || result.isError,
+      retrySearch: () => {
+        retryConnection();
+        result.retrySearch();
+      },
     },
   }, props.children);
 };

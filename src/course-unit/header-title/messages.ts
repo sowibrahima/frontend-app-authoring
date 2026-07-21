@@ -1,6 +1,11 @@
 import { defineMessages } from '@edx/frontend-platform/i18n';
 
 const messages = defineMessages({
+  unitEyebrow: {
+    id: 'course-authoring.course-unit.heading.eyebrow',
+    defaultMessage: 'Course unit',
+    description: 'Short label displayed above the unit title.',
+  },
   altButtonEdit: {
     id: 'course-authoring.course-unit.heading.button.edit.alt',
     defaultMessage: 'Edit',

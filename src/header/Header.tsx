@@ -46,7 +46,9 @@ const Header = ({
   const meiliSearchEnabled = [true, 'true'].includes(getConfig().MEILISEARCH_ENABLED);
 
   const contentMenuItems = useContentMenuItems(contextId);
-  const settingMenuItems = useSettingMenuItems(contextId);
+  // A library key is not a course ID. Passing it to the course settings hook
+  // makes Studio request /course_waffle_flags/lib:..., which is always a 404.
+  const settingMenuItems = useSettingMenuItems(isLibrary ? undefined : contextId);
   const toolsMenuItems = useToolsMenuItems(contextId);
   const libraryToolsMenuItems = useLibraryToolsMenuItems(contextId);
   const libraryToolsSettingsItems = useLibrarySettingsMenuItems(contextId, readOnly);

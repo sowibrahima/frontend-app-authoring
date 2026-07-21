@@ -26,6 +26,26 @@ const messages = defineMessages({
     defaultMessage: 'You have not added any content to this library yet.',
     description: 'Message displayed when the library is empty',
   },
+  noReusableContent: {
+    id: 'course-authoring.library-authoring.no-reusable-content',
+    defaultMessage: 'No published library content is available to reuse.',
+    description: 'Message displayed when the component picker has no published content to reuse.',
+  },
+  searchUnavailableTitle: {
+    id: 'course-authoring.library-authoring.search-unavailable.title',
+    defaultMessage: 'Library content could not be loaded',
+    description: 'Title shown when the library search service cannot be reached.',
+  },
+  searchUnavailableBody: {
+    id: 'course-authoring.library-authoring.search-unavailable.body',
+    defaultMessage: 'Check your connection and try loading the library content again.',
+    description: 'Message shown when the library search service cannot be reached.',
+  },
+  retrySearch: {
+    id: 'course-authoring.library-authoring.search-unavailable.retry',
+    defaultMessage: 'Try again',
+    description: 'Button label used to retry loading library content.',
+  },
   addComponent: {
     id: 'course-authoring.library-authoring.add-component',
     defaultMessage: 'Add component',

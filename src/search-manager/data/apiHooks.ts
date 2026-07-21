@@ -27,8 +27,9 @@ export const useContentSearchConnection = (): {
   client?: MeiliSearch;
   indexName?: string;
   hasConnectionError: boolean;
+  retryConnection: () => void;
 } => {
-  const { data: connectionDetails, isError: hasConnectionError } = useQuery({
+  const query = useQuery({
     queryKey: ['content_search'],
     queryFn: getContentSearchConfig,
     gcTime: 60 * 60_000, // Even if we're not actively using the search modal, keep it in memory up to an hour
@@ -37,16 +38,28 @@ export const useContentSearchConnection = (): {
     refetchOnWindowFocus: false, // This doesn't need to be refreshed when the user switches back to this tab.
     refetchOnMount: false,
   });
+  const { data: connectionDetails, isError: hasConnectionError } = query;
 
   const indexName = connectionDetails?.indexName;
   const client = React.useMemo(() => {
     if (connectionDetails?.apiKey === undefined || connectionDetails?.url === undefined) {
       return undefined;
     }
-    return new MeiliSearch({ host: connectionDetails.url, apiKey: connectionDetails.apiKey });
+    return new MeiliSearch({
+      host: connectionDetails.url,
+      apiKey: connectionDetails.apiKey,
+      // A missing DNS/tunnel route must become a visible recoverable error,
+      // rather than leaving the library on an endless spinner.
+      timeout: 12_000,
+    });
   }, [connectionDetails?.apiKey, connectionDetails?.url]);
 
-  return { client, indexName, hasConnectionError };
+  return {
+    client,
+    indexName,
+    hasConnectionError,
+    retryConnection: () => { void query.refetch(); },
+  };
 };
 
 export const buildSearchQueryKey = ({
@@ -183,6 +196,7 @@ export const useContentSearchResults = ({
     isPending: query.isPending,
     isError: query.isError,
     error: query.error,
+    retrySearch: () => { void query.refetch(); },
     isFetchingNextPage: query.isFetchingNextPage,
     // Call this to load more pages. We include some "safety" features recommended by the docs: this should never be
     // called while already fetching a page, and parameters (like 'event') should not be passed into fetchNextPage().

@@ -51,6 +51,26 @@ const messages = defineMessages({
     defaultMessage: 'Cancel',
     description: 'Modal cancel button text.',
   },
+  emptyUnitTitle: {
+    id: 'course-authoring.course-unit.empty-state.title',
+    defaultMessage: 'This unit does not contain any components yet',
+    description: 'Title shown when a course unit has no components.',
+  },
+  emptyUnitDescription: {
+    id: 'course-authoring.course-unit.empty-state.description',
+    defaultMessage: 'Add your first component to build the content learners will view in this unit.',
+    description: 'Primary guidance shown when a course unit has no components.',
+  },
+  emptyUnitDefinition: {
+    id: 'course-authoring.course-unit.empty-state.definition',
+    defaultMessage: 'A component can contain text, video, an activity, a question, or another learning element.',
+    description: 'Short explanation of what a course component can contain.',
+  },
+  addNewComponent: {
+    id: 'course-authoring.course-unit.add-new-component',
+    defaultMessage: 'Add a new component',
+    description: 'Button label for opening the course component picker.',
+  },
   lessonBuilderEyebrow: {
     id: 'course-authoring.course-unit.lesson-builder.eyebrow',
     defaultMessage: 'Lesson builder',

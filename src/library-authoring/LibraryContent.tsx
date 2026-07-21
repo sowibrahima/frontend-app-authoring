@@ -2,8 +2,9 @@ import { useEffect } from 'react';
 import { LoadingSpinner } from '@src/generic/Loading';
 import { useGetContentHits, useSearchContext } from '@src/search-manager';
 import { useLoadOnScroll } from '@src/hooks';
-import { NoComponents, NoSearchResults } from './EmptyStates';
+import { NoComponents, NoSearchResults, SearchError } from './EmptyStates';
 import { useOptionalLibraryContext } from './common/context/LibraryContext';
+import { useComponentPickerContext } from './common/context/ComponentPickerContext';
 import { useSidebarContext } from './common/context/SidebarContext';
 import CollectionCard from './components/CollectionCard';
 import ComponentCard from './components/ComponentCard';
@@ -39,10 +40,13 @@ const LibraryContent = ({ contentType = ContentType.home }: LibraryContentProps)
     hasNextPage,
     fetchNextPage,
     isPending,
+    hasError,
+    retrySearch,
     isFiltered,
     usageKey,
   } = useSearchContext();
   const { libraryId, openCreateCollectionModal, collectionId } = useOptionalLibraryContext();
+  const { componentPickerMode } = useComponentPickerContext();
   const { openAddContentSidebar, openComponentInfoSidebar } = useSidebarContext();
   const { insideCollection } = useLibraryRoutes();
   /**
@@ -83,6 +87,9 @@ const LibraryContent = ({ contentType = ContentType.home }: LibraryContentProps)
     true,
   );
 
+  if (hasError) {
+    return <SearchError onRetry={retrySearch} />;
+  }
   if (isPending) {
     return <LoadingSpinner />;
   }
@@ -98,7 +105,14 @@ const LibraryContent = ({ contentType = ContentType.home }: LibraryContentProps)
           />
         );
     }
-    return isFiltered ? <NoSearchResults /> : <NoComponents handleBtnClick={openAddContentSidebar} />;
+    return isFiltered
+      ? <NoSearchResults />
+      : (
+        <NoComponents
+          infoText={componentPickerMode ? messages.noReusableContent : messages.noComponents}
+          handleBtnClick={componentPickerMode ? undefined : openAddContentSidebar}
+        />
+      );
   }
 
   return (

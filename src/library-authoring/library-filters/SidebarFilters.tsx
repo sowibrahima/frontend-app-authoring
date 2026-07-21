@@ -25,22 +25,22 @@ export const SidebarFilters = ({ onlyOneType }: FiltersProps) => {
   const { totalHits } = useSearchContext();
 
   return (
-    <Stack gap={3} className="my-3">
-      <Stack className="flex-wrap" direction="horizontal" gap={2}>
+    <Stack gap={3} className="library-sidebar-filters my-3">
+      <Stack className="library-sidebar-filters__primary flex-wrap" direction="horizontal" gap={2}>
         <LibraryDropdownFilter />
-        <Stack direction="horizontal" gap={1}>
-          <SearchKeywordsField />
+        <Stack className="library-sidebar-filters__search" direction="horizontal" gap={1}>
+          <SearchKeywordsField className="library-sidebar-filters__search-field" />
           <IconButton
             onClick={toggle}
             alt={intl.formatMessage(messages.additionalFilterBtnAltText)}
             size="md"
             src={FilterList}
-            className="rounded-sm border ml-2"
+            className="library-sidebar-filters__toggle rounded-sm border"
           />
         </Stack>
       </Stack>
       {isOn && (
-        <Stack className="flex-wrap" direction="horizontal" gap={2}>
+        <Stack className="library-sidebar-filters__additional flex-wrap" direction="horizontal" gap={2}>
           {!onlyOneType && <FilterByBlockType />}
           <FilterByTags />
           <CollectionDropdownFilter />
@@ -50,7 +50,7 @@ export const SidebarFilters = ({ onlyOneType }: FiltersProps) => {
           />
         </Stack>
       )}
-      <div>
+      <div className="library-sidebar-filters__count">
         <FormattedMessage
           {...messages.contentBlocksCount}
           values={{

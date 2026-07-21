@@ -106,17 +106,19 @@ export const ComponentPicker = ({
         extraFilter={extraFilter}
       >
         <SidebarProvider>
-          {calcShowOnlyPublished
-            && (
-              <Alert variant="info" className="m-2">
-                <FormattedMessage {...messages.pickerInfoBanner} />
-              </Alert>
-            )}
-          <InnerComponentPicker
-            returnToLibrarySelection={returnToLibrarySelection}
-            visibleTabs={visibleTabs}
-            FiltersComponent={FiltersComponent}
-          />
+          <div className="library-component-picker">
+            {calcShowOnlyPublished
+              && (
+                <Alert variant="info" className="library-component-picker__notice">
+                  <FormattedMessage {...messages.pickerInfoBanner} />
+                </Alert>
+              )}
+            <InnerComponentPicker
+              returnToLibrarySelection={returnToLibrarySelection}
+              visibleTabs={visibleTabs}
+              FiltersComponent={FiltersComponent}
+            />
+          </div>
         </SidebarProvider>
       </ComponentPickerProvider>
     </PublishedFilterContextProvider>

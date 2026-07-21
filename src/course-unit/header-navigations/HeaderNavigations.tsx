@@ -1,20 +1,15 @@
 import { useIntl } from '@edx/frontend-platform/i18n';
 import {
   Button,
-  ButtonGroup,
   Stack,
 } from '@openedx/paragon';
 import {
-  Add,
   Edit as EditIcon,
   FindInPage,
-  InfoOutline,
 } from '@openedx/paragon/icons';
 import { COURSE_BLOCK_NAMES } from '@src/constants';
 
 import messages from './messages';
-import { isUnitPageNewDesignEnabled } from '../utils';
-import { useUnitSidebarContext } from '../unit-sidebar/UnitSidebarContext';
 
 export type HeaderNavigationActions = {
   handleViewLive: () => void;
@@ -46,10 +41,6 @@ const HeaderNavigations = ({
     handleEdit,
   } = headerNavigationsActions;
 
-  const { setCurrentPageKey, readOnly } = useUnitSidebarContext();
-
-  const showNewDesignButtons = isUnitPageNewDesignEnabled();
-
   return (
     <nav className="header-navigations ml-auto flex-shrink-0">
       {
@@ -59,43 +50,21 @@ const HeaderNavigations = ({
       }
       {category === COURSE_BLOCK_NAMES.vertical.id && (
         <Stack direction="horizontal" gap={3}>
-          {showNewDesignButtons && (
-            <>
-              <Button
-                variant="outline-primary"
-                iconBefore={InfoOutline}
-                onClick={() => setCurrentPageKey('info', null)}
-              >
-                {intl.formatMessage(messages.infoButton)}
-              </Button>
-              {!readOnly && (
-                <Button
-                  variant="outline-primary"
-                  iconBefore={Add}
-                  onClick={() => setCurrentPageKey('add', null)}
-                >
-                  {intl.formatMessage(messages.addButton)}
-                </Button>
-              )}
-            </>
-          )}
-          <ButtonGroup>
-            <Button
-              variant="outline-primary"
-              onClick={handlePreview}
-              iconBefore={FindInPage}
-            >
-              {intl.formatMessage(messages.previewButton)}
-            </Button>
-            {/* TODO: convert to <Button as="a" href="..."> since it navigates to a URL */}
-            <Button
-              variant="outline-primary"
-              onClick={handleViewLive}
-              disabled={!isPublished}
-            >
-              {intl.formatMessage(messages.viewLiveButton)}
-            </Button>
-          </ButtonGroup>
+          <Button
+            variant="outline-primary"
+            onClick={handlePreview}
+            iconBefore={FindInPage}
+          >
+            {intl.formatMessage(messages.previewButton)}
+          </Button>
+          {/* TODO: convert to <Button as="a" href="..."> since it navigates to a URL */}
+          <Button
+            variant="outline-primary"
+            onClick={handleViewLive}
+            disabled={!isPublished}
+          >
+            {intl.formatMessage(messages.viewLiveButton)}
+          </Button>
         </Stack>
       )}
       {

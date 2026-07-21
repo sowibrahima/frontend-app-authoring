@@ -1,28 +1,17 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import type { MessageDescriptor } from 'react-intl';
 import {
   Alert,
   Container,
   Button,
   TransitionReplace,
-  Stack,
-  Badge,
-  Icon,
-  OverlayTrigger,
-  Tooltip,
 } from '@openedx/paragon';
 import { FormattedMessage, useIntl } from '@edx/frontend-platform/i18n';
 import {
   Warning as WarningIcon,
   CheckCircle as CheckCircleIcon,
-  Lock,
-  AccessTimeFilled,
-  Groups,
-  QuestionAnswer,
 } from '@openedx/paragon/icons';
 import { useCourseAuthoringContext } from '@src/CourseAuthoringContext';
-import DraftIcon from '@src/generic/DraftIcon';
 import { CourseAuthoringUnitSidebarSlot } from '../plugin-slots/CourseAuthoringUnitSidebarSlot';
 
 import SubHeader from '../generic/sub-header/SubHeader';
@@ -46,120 +35,7 @@ import IframePreviewLibraryXBlockChanges from './preview-changes';
 import CourseUnitHeaderActionsSlot from '../plugin-slots/CourseUnitHeaderActionsSlot';
 import { UnitSidebarProvider } from './unit-sidebar/UnitSidebarContext';
 import { UnitSidebarPagesProvider } from './unit-sidebar/UnitSidebarPagesContext';
-import { UNIT_VISIBILITY_STATES } from './constants';
-import { isUnitPageNewDesignEnabled } from './utils';
 import { useHelpUrls } from '@src/help-urls/hooks';
-
-const StatusBar = ({ courseUnit }: { courseUnit: any; }) => {
-  const { selectedPartitionIndex, selectedGroupsLabel } = courseUnit.userPartitionInfo ?? {};
-  const hasGroups = selectedPartitionIndex !== -1 && !Number.isNaN(selectedPartitionIndex) && selectedGroupsLabel;
-  let groupsCount = 0;
-  if (hasGroups) {
-    groupsCount = selectedGroupsLabel.split(',').length;
-  }
-
-  let visibilityChipData = {
-    variant: 'warning',
-    className: 'draft-badge',
-    text: messages.statusBarDraftNeverPublished,
-    icon: DraftIcon,
-  } as {
-    variant: string;
-    className?: string;
-    text: MessageDescriptor;
-    icon: React.ComponentType;
-  };
-
-  if (courseUnit.currentlyVisibleToStudents) {
-    visibilityChipData = {
-      variant: 'success',
-      text: messages.statusBarLiveBadge,
-      icon: CheckCircleIcon,
-    };
-  } else if (courseUnit.visibilityState === UNIT_VISIBILITY_STATES.staffOnly) {
-    visibilityChipData = {
-      variant: 'secondary',
-      text: messages.statusBarStaffOnly,
-      icon: Lock,
-    };
-  } else if (courseUnit.published) {
-    visibilityChipData = {
-      variant: 'info',
-      text: messages.statusBarScheduledBadge,
-      icon: AccessTimeFilled,
-    };
-  }
-
-  return (
-    <Stack direction="horizontal" gap={3}>
-      <Badge
-        variant={visibilityChipData.variant}
-        className={`px-3 py-2 ${visibilityChipData.className || ''}`}
-      >
-        <Stack direction="horizontal" gap={2}>
-          <Icon size="xs" src={visibilityChipData.icon} />
-          <span className="badge-label">
-            <FormattedMessage {...visibilityChipData.text} />
-          </span>
-        </Stack>
-      </Badge>
-      {courseUnit.published && courseUnit.hasChanges && (
-        <Badge
-          variant="warning"
-          className="px-3 py-2 draft-badge"
-        >
-          <Stack direction="horizontal" gap={1}>
-            <Icon size="xs" src={DraftIcon} />
-            <span className="badge-label">
-              <FormattedMessage {...messages.statusBarDraftChangesBadge} />
-            </span>
-          </Stack>
-        </Badge>
-      )}
-      {groupsCount === 1 && (
-        <Stack direction="horizontal" gap={1}>
-          <Icon src={Groups} />
-          <span>
-            <FormattedMessage
-              {...messages.statusBarGroupAccessOneGroup}
-              values={{
-                groupName: selectedGroupsLabel,
-              }}
-            />
-          </span>
-        </Stack>
-      )}
-      {groupsCount > 1 && (
-        <OverlayTrigger
-          placement="top"
-          overlay={
-            <Tooltip id="unit-group-access-tooltip">
-              {selectedGroupsLabel}
-            </Tooltip>
-          }
-        >
-          <Stack direction="horizontal" gap={1}>
-            <Icon src={Groups} />
-            <span>
-              <FormattedMessage
-                {...messages.statusBarGroupAccessMultipleGroup}
-                values={{
-                  groupsCount,
-                }}
-              />
-            </span>
-          </Stack>
-        </OverlayTrigger>
-      )}
-      {courseUnit.discussionEnabled && (
-        <Stack direction="horizontal" gap={1}>
-          <Icon src={QuestionAnswer} />
-          <FormattedMessage {...messages.statusBarDiscussionsEnabled} />
-        </Stack>
-      )}
-    </Stack>
-  );
-};
 
 const CourseUnit = () => {
   const intl = useIntl();
@@ -238,7 +114,7 @@ const CourseUnit = () => {
     <UnitSidebarProvider readOnly={readOnly}>
       <UnitSidebarPagesProvider>
         <Container fluid className="course-unit px-4">
-          <section className="course-unit-container mb-4 mt-5">
+          <section className="course-unit-container mb-4">
             <TransitionReplace>
               {movedXBlockParams.isSuccess ?
                 (
@@ -295,46 +171,43 @@ const CourseUnit = () => {
                 variant="info"
               />
             )}
-            <SubHeader
-              hideBorder
-              title={
-                <HeaderTitle
-                  unitTitle={unitTitle}
-                  isTitleEditFormOpen={isTitleEditFormOpen}
-                  handleTitleEdit={handleTitleEdit}
-                  handleTitleEditSubmit={handleTitleEditSubmit}
+            <div className="course-unit-body d-flex align-items-start">
+              <div className="course-unit-content flex-fill">
+                <SubHeader
+                  hideBorder
+                  title={
+                    <HeaderTitle
+                      unitTitle={unitTitle}
+                      isTitleEditFormOpen={isTitleEditFormOpen}
+                      handleTitleEdit={handleTitleEdit}
+                      handleTitleEditSubmit={handleTitleEditSubmit}
+                    />
+                  }
+                  breadcrumbs={
+                    <Breadcrumbs
+                      courseId={courseId}
+                      parentUnitId={sequenceId}
+                    />
+                  }
+                  headerActions={
+                    <CourseUnitHeaderActionsSlot
+                      category={unitCategory}
+                      headerNavigationsActions={headerNavigationsActions}
+                      unitTitle={unitTitle}
+                      verticalBlocks={courseVerticalChildren.children}
+                      isPublished={courseUnit.published}
+                    />
+                  }
                 />
-              }
-              breadcrumbs={
-                <Breadcrumbs
-                  courseId={courseId}
-                  parentUnitId={sequenceId}
-                />
-              }
-              headerActions={
-                <CourseUnitHeaderActionsSlot
-                  category={unitCategory}
-                  headerNavigationsActions={headerNavigationsActions}
-                  unitTitle={unitTitle}
-                  verticalBlocks={courseVerticalChildren.children}
-                  isPublished={courseUnit.published}
-                />
-              }
-            />
-            <div className="unit-header-status-bar h5 mt-2 mb-4 font-weight-normal">
-              {isUnitPageNewDesignEnabled() && isUnitVerticalType && <StatusBar courseUnit={courseUnit} />}
-            </div>
-            {isUnitVerticalType && (
-              <Sequence
-                courseId={courseId}
-                sequenceId={sequenceId}
-                unitId={blockId}
-                handleCreateNewCourseXBlock={handleCreateNewCourseXBlock}
-                showPasteUnit={showPasteUnit}
-              />
-            )}
-            <div className="d-flex align-items-start">
-              <div className="flex-fill">
+                {isUnitVerticalType && (
+                  <Sequence
+                    courseId={courseId}
+                    sequenceId={sequenceId}
+                    unitId={blockId}
+                    handleCreateNewCourseXBlock={handleCreateNewCourseXBlock}
+                    showPasteUnit={showPasteUnit}
+                  />
+                )}
                 {currentlyVisibleToStudents && (
                   <AlertMessage
                     className="course-unit__alert"
@@ -375,6 +248,7 @@ const CourseUnit = () => {
                     isSplitTestType={isSplitTestType}
                     isUnitVerticalType={isUnitVerticalType}
                     isProblemBankType={isProblemBankType}
+                    isEmptyUnit={courseVerticalChildren.children.length === 0}
                     handleCreateNewCourseXBlock={handleCreateNewCourseXBlock}
                     addComponentTemplateData={addComponentTemplateData}
                   />

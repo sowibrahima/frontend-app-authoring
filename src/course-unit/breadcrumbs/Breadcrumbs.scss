@@ -5,7 +5,8 @@
 
   .sub-header-breadcrumbs {
     .course-unit-breadcrumbs {
-      min-height: 1.5rem;
+      min-height: 2rem;
+      margin-bottom: 0 !important;
     }
 
     .course-unit-breadcrumbs li {
@@ -18,6 +19,39 @@
       align-items: center;
       min-height: 1.5rem;
       line-height: 1.5rem;
+      color: var(--wuti-color-muted) !important;
+      font-weight: 650;
+    }
+
+    .course-unit-breadcrumbs__toggle:hover,
+    .course-unit-breadcrumbs__toggle:focus {
+      color: var(--wuti-color-brand) !important;
+      text-decoration: none;
+    }
+
+    .course-unit-breadcrumbs .pgn__icon {
+      color: var(--wuti-color-brand) !important;
+    }
+
+    .dropdown-menu {
+      min-width: 15rem;
+      border: 1px solid var(--wuti-color-border);
+      border-radius: 1rem;
+      padding: .45rem;
+      background: var(--wuti-color-surface);
+      box-shadow: var(--pgn-elevation-box-shadow-centered-1);
+    }
+
+    .dropdown-item {
+      border-radius: .7rem;
+      color: var(--wuti-color-text);
+      font-weight: 600;
+
+      &:hover,
+      &:focus {
+        background: var(--wuti-color-hover);
+        color: var(--wuti-color-brand);
+      }
     }
 
     .dropdown-toggle::after {

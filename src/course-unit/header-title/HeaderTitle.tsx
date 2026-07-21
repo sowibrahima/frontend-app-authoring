@@ -77,50 +77,55 @@ const HeaderTitle = ({
   }, [unitTitle]);
 
   return (
-    <div className="unit-header-title d-flex align-items-center lead" data-testid="unit-header-title">
-      {isTitleEditFormOpen ?
-        (
-          <Form.Group className="m-0">
-            <Form.Control
-              ref={(e) => e && e.focus()}
-              value={titleValue}
-              name="displayName"
-              onChange={(e) => setTitleValue(e.target.value)}
-              aria-label={intl.formatMessage(messages.ariaLabelButtonEdit)}
-              onBlur={() => handleTitleEditSubmit(titleValue)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleTitleEditSubmit(titleValue);
-                }
-              }}
+    <div className="unit-header-title-wrap">
+      <span className="unit-header-title__eyebrow">
+        {intl.formatMessage(messages.unitEyebrow)}
+      </span>
+      <div className="unit-header-title d-flex align-items-center lead" data-testid="unit-header-title">
+        {isTitleEditFormOpen ?
+          (
+            <Form.Group className="m-0">
+              <Form.Control
+                ref={(e) => e && e.focus()}
+                value={titleValue}
+                name="displayName"
+                onChange={(e) => setTitleValue(e.target.value)}
+                aria-label={intl.formatMessage(messages.ariaLabelButtonEdit)}
+                onBlur={() => handleTitleEditSubmit(titleValue)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleTitleEditSubmit(titleValue);
+                  }
+                }}
+              />
+            </Form.Group>
+          ) :
+          unitTitle}
+        <IconButton
+          alt={intl.formatMessage(messages.altButtonEdit)}
+          className="ml-1 flex-shrink-0 edit-button"
+          iconAs={EditIcon}
+          onClick={handleTitleEdit}
+        />
+        {!isUnitPageNewDesignEnabled() && (
+          <>
+            <IconButton
+              alt={intl.formatMessage(messages.altButtonSettings)}
+              className="flex-shrink-0"
+              iconAs={SettingsIcon}
+              onClick={openConfigureModal}
             />
-          </Form.Group>
-        ) :
-        unitTitle}
-      <IconButton
-        alt={intl.formatMessage(messages.altButtonEdit)}
-        className="ml-1 flex-shrink-0 edit-button"
-        iconAs={EditIcon}
-        onClick={handleTitleEdit}
-      />
-      {!isUnitPageNewDesignEnabled() && (
-        <>
-          <IconButton
-            alt={intl.formatMessage(messages.altButtonSettings)}
-            className="flex-shrink-0"
-            iconAs={SettingsIcon}
-            onClick={openConfigureModal}
-          />
-          <ConfigureModal
-            isOpen={isConfigureModalOpen}
-            onClose={closeConfigureModal}
-            onConfigureSubmit={onConfigureSubmit}
-            currentItemData={currentItemData}
-            isSelfPaced={false}
-            isXBlockComponent={isXBlockComponent}
-          />
-        </>
-      )}
+            <ConfigureModal
+              isOpen={isConfigureModalOpen}
+              onClose={closeConfigureModal}
+              onConfigureSubmit={onConfigureSubmit}
+              currentItemData={currentItemData}
+              isSelfPaced={false}
+              isXBlockComponent={isXBlockComponent}
+            />
+          </>
+        )}
+      </div>
     </div>
   );
 };

@@ -144,6 +144,126 @@ const messages = defineMessages({
     defaultMessage: 'Location ID saved in the Clipboard',
     description: 'Toast messages when the user copied an unit location ID',
   },
+  compactSidebarEyebrow: {
+    id: 'course-authoring.unit-page.sidebar.compact.eyebrow',
+    defaultMessage: 'Unit information',
+  },
+  compactStateSectionTitle: {
+    id: 'course-authoring.unit-page.sidebar.compact.state.section-title',
+    defaultMessage: 'Status',
+  },
+  compactActivitySectionTitle: {
+    id: 'course-authoring.unit-page.sidebar.compact.activity.section-title',
+    defaultMessage: 'Activity',
+  },
+  compactAccessSectionTitle: {
+    id: 'course-authoring.unit-page.sidebar.compact.access.section-title',
+    defaultMessage: 'Access and participation',
+  },
+  compactLastModified: {
+    id: 'course-authoring.unit-page.sidebar.compact.last-modified',
+    defaultMessage: 'Last modified',
+  },
+  compactPublicationPlanned: {
+    id: 'course-authoring.unit-page.sidebar.compact.publication-planned',
+    defaultMessage: 'Scheduled publication',
+  },
+  compactPublicationUnscheduled: {
+    id: 'course-authoring.unit-page.sidebar.compact.publication-unscheduled',
+    defaultMessage: 'Not scheduled',
+  },
+  compactDiscussionsLabel: {
+    id: 'course-authoring.unit-page.sidebar.compact.discussions-label',
+    defaultMessage: 'Discussions',
+  },
+  compactGroupRestrictionLabel: {
+    id: 'course-authoring.unit-page.sidebar.compact.group-restriction-label',
+    defaultMessage: 'Group restriction',
+  },
+  compactEditAction: {
+    id: 'course-authoring.unit-page.sidebar.compact.edit-action',
+    defaultMessage: 'Edit',
+  },
+  compactDoneAction: {
+    id: 'course-authoring.unit-page.sidebar.compact.done-action',
+    defaultMessage: 'Done',
+  },
+  compactStateDraftLabel: {
+    id: 'course-authoring.unit-page.sidebar.compact.state.draft-label',
+    defaultMessage: 'Draft',
+  },
+  compactStateLiveLabel: {
+    id: 'course-authoring.unit-page.sidebar.compact.state.live-label',
+    defaultMessage: 'Live',
+  },
+  compactStateStaffLabel: {
+    id: 'course-authoring.unit-page.sidebar.compact.state.staff-label',
+    defaultMessage: 'Staff only',
+  },
+  compactStateScheduledLabel: {
+    id: 'course-authoring.unit-page.sidebar.compact.state.scheduled-label',
+    defaultMessage: 'Scheduled',
+  },
+  compactStateDraftTitle: {
+    id: 'course-authoring.unit-page.sidebar.compact.state.draft-title',
+    defaultMessage: 'Unpublished draft',
+  },
+  compactStateDraftDescription: {
+    id: 'course-authoring.unit-page.sidebar.compact.state.draft-description',
+    defaultMessage: 'Learners cannot see this version yet.',
+  },
+  compactStateChangesTitle: {
+    id: 'course-authoring.unit-page.sidebar.compact.state.changes-title',
+    defaultMessage: 'Unpublished changes',
+  },
+  compactStateChangesDescription: {
+    id: 'course-authoring.unit-page.sidebar.compact.state.changes-description',
+    defaultMessage: 'Learners are still seeing the last published version.',
+  },
+  compactStateLiveTitle: {
+    id: 'course-authoring.unit-page.sidebar.compact.state.live-title',
+    defaultMessage: 'Published and live',
+  },
+  compactStateLiveDescription: {
+    id: 'course-authoring.unit-page.sidebar.compact.state.live-description',
+    defaultMessage: 'This version is available to authorized learners.',
+  },
+  compactStateStaffTitle: {
+    id: 'course-authoring.unit-page.sidebar.compact.state.staff-title',
+    defaultMessage: 'Visible to staff only',
+  },
+  compactStateStaffDescription: {
+    id: 'course-authoring.unit-page.sidebar.compact.state.staff-description',
+    defaultMessage: 'Learners cannot access this unit.',
+  },
+  compactStateScheduledTitle: {
+    id: 'course-authoring.unit-page.sidebar.compact.state.scheduled-title',
+    defaultMessage: 'Publication scheduled',
+  },
+  compactStateScheduledDescription: {
+    id: 'course-authoring.unit-page.sidebar.compact.state.scheduled-description',
+    defaultMessage: 'This unit will become available on its release date.',
+  },
+  compactAccessAllLearners: {
+    id: 'course-authoring.unit-page.sidebar.compact.access.all-learners',
+    defaultMessage: 'All learners',
+  },
+  compactAccessStaffOnly: {
+    id: 'course-authoring.unit-page.sidebar.compact.access.staff-only',
+    defaultMessage: 'Staff only',
+  },
+  compactAccessNoGroup: {
+    id: 'course-authoring.unit-page.sidebar.compact.access.no-group',
+    defaultMessage: 'None',
+  },
+  compactDiscussionEnabled: {
+    id: 'course-authoring.unit-page.sidebar.compact.discussion.enabled',
+    defaultMessage: 'Enabled',
+  },
+  compactDiscussionDisabled: {
+    id: 'course-authoring.unit-page.sidebar.compact.discussion.disabled',
+    defaultMessage: 'Disabled',
+  },
 });
 
 export default messages;
