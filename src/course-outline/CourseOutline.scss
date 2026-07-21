@@ -370,3 +370,323 @@
 .course-outline-main {
   min-width: 0;
 }
+
+.sidebar:has(.ws-outline-context-sidebar) {
+  flex: 0 0 clamp(21rem, 25vw, 25rem);
+  width: clamp(21rem, 25vw, 25rem);
+  min-width: 0;
+  align-self: stretch;
+  margin-left: clamp(1rem, 2vw, 2rem);
+}
+
+.ws-outline-context-sidebar {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  max-height: 100vh;
+  overflow-y: auto;
+  border-left: 1px solid var(--wuti-color-border);
+  background: var(--wuti-color-surface);
+  color: var(--wuti-color-text);
+}
+
+.ws-context-sidebar__inner {
+  min-height: 100%;
+}
+
+.ws-context-sidebar__header {
+  border-bottom: 1px solid var(--wuti-color-border);
+  padding: 1.75rem 1.75rem 1.5rem;
+}
+
+.ws-context-sidebar__eyebrow {
+  margin: 0 0 .9rem;
+  color: var(--wuti-color-muted);
+  font-family: "JetBrains Mono", monospace;
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.ws-context-sidebar__title-row,
+.ws-context-sidebar__title,
+.ws-context-sidebar__title-actions,
+.ws-context-sidebar__section-heading {
+  display: flex;
+  align-items: center;
+}
+
+.ws-context-sidebar__title-row,
+.ws-context-sidebar__section-heading {
+  justify-content: space-between;
+  gap: .75rem;
+}
+
+.ws-context-sidebar__title {
+  min-width: 0;
+  gap: .55rem;
+
+  h2 {
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    color: var(--wuti-color-text);
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -.025em;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pgn__icon {
+    flex: 0 0 auto;
+    color: var(--wuti-color-text);
+  }
+
+  .btn-icon {
+    flex: 0 0 auto;
+    color: var(--wuti-color-text);
+  }
+}
+
+.ws-context-sidebar__title-actions {
+  flex: 0 0 auto;
+  gap: .25rem;
+}
+
+.ws-context-sidebar__badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  border: 1px solid color-mix(in srgb, var(--wuti-color-brand) 18%, var(--wuti-color-border));
+  border-radius: 999px;
+  padding: .3rem .75rem;
+  background: color-mix(in srgb, var(--wuti-color-brand) 5%, var(--wuti-color-surface));
+  color: var(--wuti-color-brand);
+  font-size: .78rem;
+  font-weight: 750;
+
+  &.is-live {
+    border-color: color-mix(in srgb, var(--pgn-color-success-500) 26%, var(--wuti-color-border));
+    background: color-mix(in srgb, var(--pgn-color-success-500) 8%, var(--wuti-color-surface));
+    color: var(--pgn-color-success-500);
+  }
+}
+
+.ws-context-sidebar__tabs {
+  margin: 0;
+
+  .nav-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--wuti-color-border);
+    padding: 0 1.75rem;
+  }
+
+  .nav-item {
+    flex: 1 1 50%;
+    text-align: center;
+  }
+
+  .nav-link {
+    width: 100%;
+    min-height: 3.25rem;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--wuti-color-muted);
+    font-weight: 750;
+
+    &.active {
+      border-bottom-color: var(--wuti-color-brand);
+      color: var(--wuti-color-brand);
+    }
+  }
+
+  .pgn__tab_more {
+    display: none;
+  }
+}
+
+.ws-context-sidebar__body {
+  padding: 0 1.75rem 2rem;
+}
+
+.ws-context-sidebar__section {
+  border-bottom: 1px solid var(--wuti-color-border);
+  padding: 1.6rem 0;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  h3 {
+    margin: 0 0 1.15rem;
+    color: var(--wuti-color-text);
+    font-size: .9rem;
+    font-weight: 800;
+  }
+}
+
+.ws-context-sidebar__section-heading h3 {
+  margin-bottom: 0;
+}
+
+.ws-context-sidebar__state {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+
+  strong,
+  p {
+    display: block;
+  }
+
+  strong {
+    color: var(--wuti-color-text);
+    font-size: .95rem;
+  }
+
+  p {
+    margin: .35rem 0 0;
+    color: var(--wuti-color-muted);
+    font-size: .875rem;
+    line-height: 1.5;
+  }
+}
+
+.ws-context-sidebar__state-dot {
+  flex: 0 0 auto;
+  width: .6rem;
+  height: .6rem;
+  margin-top: .38rem;
+  border-radius: 50%;
+  background: var(--wuti-color-brand);
+
+  &.is-live {
+    background: var(--pgn-color-success-500);
+  }
+}
+
+.ws-context-sidebar__activity-row {
+  display: grid;
+  grid-template-columns: 1.25rem minmax(0, 1fr);
+  margin-top: 1rem;
+  gap: .65rem;
+
+  .pgn__icon {
+    width: 1rem;
+    height: 1rem;
+    margin-top: .15rem;
+    color: var(--wuti-color-muted);
+  }
+
+  span,
+  strong {
+    display: block;
+  }
+
+  span {
+    margin-bottom: .15rem;
+    color: var(--wuti-color-muted);
+    font-size: .78rem;
+  }
+
+  strong {
+    color: var(--wuti-color-text);
+    font-size: .86rem;
+    line-height: 1.45;
+  }
+}
+
+.ws-context-sidebar__facts {
+  margin: .85rem 0 0;
+
+  > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--wuti-color-border);
+    padding: .75rem 0;
+    gap: 1rem;
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+
+  dt {
+    color: var(--wuti-color-muted);
+    font-size: .85rem;
+    font-weight: 400;
+  }
+
+  dd {
+    margin: 0;
+    color: var(--wuti-color-text);
+    font-size: .85rem;
+    font-weight: 700;
+    text-align: right;
+  }
+}
+
+.ws-context-sidebar__settings {
+  padding: 1.25rem 1.75rem 2rem;
+
+  .sidebar-content {
+    padding: 0 !important;
+  }
+
+  .sidebar-content > hr {
+    border-color: var(--wuti-color-border);
+  }
+
+  .sidebar-content h3 {
+    color: var(--wuti-color-text) !important;
+    font-size: .85rem;
+  }
+
+  .btn-group {
+    width: 100%;
+
+    .btn {
+      flex: 1 1 50%;
+    }
+  }
+}
+
+.ws-context-sidebar__section .status-button.btn {
+  width: 100%;
+  min-height: 2.75rem;
+  margin: 1.25rem 0 0 !important;
+  border-color: var(--wuti-color-action);
+  border-radius: 999px !important;
+  background: var(--wuti-color-action);
+  color: var(--wuti-color-action-text);
+
+  &:hover,
+  &:focus {
+    border-color: var(--wuti-color-action-hover);
+    background: var(--wuti-color-action-hover);
+    color: var(--wuti-color-action-text);
+  }
+}
+
+@media (width <= 899px) {
+  .ws-course-outline-page .d-flex:has(> .course-outline-main) {
+    display: block !important;
+  }
+
+  .sidebar:has(.ws-outline-context-sidebar) {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .ws-outline-context-sidebar {
+    position: static;
+    max-height: none;
+    border-top: 1px solid var(--wuti-color-border);
+    border-left: 0;
+  }
+}

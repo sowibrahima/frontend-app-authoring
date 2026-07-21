@@ -2,11 +2,9 @@ import { useEffect } from 'react';
 import { isEmpty } from 'lodash';
 
 import { useIntl } from '@edx/frontend-platform/i18n';
-import { Tab, Tabs } from '@openedx/paragon';
 import { useNavigate } from 'react-router-dom';
 
 import { getItemIcon } from '@src/generic/block-type-utils';
-import { SidebarTitle } from '@src/generic/sidebar';
 import { useCourseItemData } from '@src/course-outline/data/apiHooks';
 import Loading from '@src/generic/Loading';
 import { useCourseAuthoringContext } from '@src/CourseAuthoringContext';
@@ -16,10 +14,11 @@ import { getLibraryId } from '@src/generic/key-utils';
 import { possibleSubsectionMoves } from '@src/course-outline/drag-helper/utils';
 import { XBlock } from '@src/data/types';
 
-import { InfoSection } from './InfoSection';
 import { PublishButon } from './PublishButon';
 import messages from '../messages';
 import { SubsectionSettings } from './SubsectionSettings';
+import { ContextualInfoSidebar } from './ContextualInfoSidebar';
+import { VisibilityTypes } from '@src/data/constants';
 
 export const SubsectionSidebar = () => {
   const intl = useIntl();
@@ -34,7 +33,7 @@ export const SubsectionSidebar = () => {
   } = useOutlineSidebarContext();
   const { subsectionId = '', index } = selectedContainerState ?? {};
 
-  const { data: subsectionData, isLoading } = useCourseItemData(subsectionId);
+  const { data: subsectionData, isLoading } = useCourseItemData<XBlock>(subsectionId);
 
   const availableTabs = {
     info: 'info',
@@ -125,52 +124,80 @@ export const SubsectionSidebar = () => {
     }
   };
 
+  const visibleToStaffOnly = subsectionData.visibilityState === VisibilityTypes.STAFF_ONLY;
+  const assessmentResults = subsectionData.showCorrectness === 'always'
+    ? messages.contextAssessmentAlways
+    : subsectionData.showCorrectness === 'past_due'
+    ? messages.contextAssessmentAfterDue
+    : messages.contextAssessmentHidden;
+  const specialExamConfigured = subsectionData.isTimeLimited
+    || subsectionData.isProctoredExam
+    || subsectionData.isPracticeExam
+    || subsectionData.isOnboardingExam;
+
   return (
-    <>
-      <SidebarTitle
-        title={subsectionData?.displayName || ''}
-        icon={getItemIcon(subsectionData?.category || '')}
-        onBackBtnClick={clearSelection}
-        menuProps={{
-          itemId: subsectionId,
-          index: index ?? -1,
-          actions,
-          canMoveItem: canMoveSubsection,
-          onClickDuplicate: handleDuplicateSubsectionSubmit,
-          onClickMoveUp: () => handleMove(-1),
-          onClickMoveDown: () => handleMove(1),
-          onClickUnlink: () =>
-            openUnlinkModal({
-              value: subsectionData,
-              sectionId: selectedContainerState?.sectionId,
-            }),
-          onClickDelete: openDeleteModal,
-          onClickViewLibrary: () => {
-            const upstreamRef = subsectionData?.upstreamInfo?.upstreamRef;
-            if (upstreamRef) {
-              const libId = getLibraryId(upstreamRef);
-              navigate(`/library/${libId}/subsection/${upstreamRef}`);
-            }
-          },
-        }}
-      />
-      {subsectionData?.hasChanges && <PublishButon onClick={handlePublish} />}
-      <Tabs
-        variant="tabs"
-        className="my-2 mx-n3.5"
-        id="add-content-tabs"
-        activeKey={currentTabKey}
-        onSelect={setCurrentTabKey}
-        mountOnEnter
-      >
-        <Tab eventKey={availableTabs.info} title={intl.formatMessage(messages.infoTabText)}>
-          <InfoSection itemId={subsectionId} />
-        </Tab>
-        <Tab eventKey={availableTabs.settings} title={intl.formatMessage(messages.settingsTabText)}>
-          {/* key is required to reset local state of tab */}
-          <SubsectionSettings key={subsectionId} subsectionId={subsectionId} />
-        </Tab>
-      </Tabs>
-    </>
+    <ContextualInfoSidebar
+      item={subsectionData}
+      eyebrow={intl.formatMessage(messages.contextSubsectionEyebrow)}
+      icon={getItemIcon(subsectionData.category || '')}
+      summaryTitle={intl.formatMessage(messages.contextTeachingSummary)}
+      facts={[
+        {
+          label: intl.formatMessage(messages.contextContentLabel),
+          value: intl.formatMessage(messages.contextUnitCount, {
+            units: subsectionData.childInfo?.children?.length ?? 0,
+          }),
+        },
+        {
+          label: intl.formatMessage(messages.contextGradingLabel),
+          value: subsectionData.graded
+            ? (subsectionData.format || intl.formatMessage(messages.contextGraded))
+            : intl.formatMessage(messages.contextUngraded),
+        },
+        {
+          label: intl.formatMessage(messages.contextVisibilityLabel),
+          value: intl.formatMessage(
+            visibleToStaffOnly ? messages.contextStaffOnly : messages.contextAllLearners,
+          ),
+        },
+        {
+          label: intl.formatMessage(messages.contextAssessmentResultsLabel),
+          value: intl.formatMessage(assessmentResults),
+        },
+        {
+          label: intl.formatMessage(messages.contextSpecialExamLabel),
+          value: intl.formatMessage(
+            specialExamConfigured ? messages.contextSpecialExamConfigured : messages.contextNone,
+          ),
+        },
+      ]}
+      settings={<SubsectionSettings key={subsectionId} subsectionId={subsectionId} />}
+      currentTabKey={currentTabKey}
+      setCurrentTabKey={setCurrentTabKey}
+      onBack={clearSelection}
+      publishAction={subsectionData.hasChanges ? <PublishButon onClick={handlePublish} /> : undefined}
+      menuProps={{
+        itemId: subsectionId,
+        index: index ?? -1,
+        actions,
+        canMoveItem: canMoveSubsection,
+        onClickDuplicate: handleDuplicateSubsectionSubmit,
+        onClickMoveUp: () => handleMove(-1),
+        onClickMoveDown: () => handleMove(1),
+        onClickUnlink: () =>
+          openUnlinkModal({
+            value: subsectionData,
+            sectionId: selectedContainerState?.sectionId,
+          }),
+        onClickDelete: openDeleteModal,
+        onClickViewLibrary: () => {
+          const upstreamRef = subsectionData.upstreamInfo?.upstreamRef;
+          if (upstreamRef) {
+            const libId = getLibraryId(upstreamRef);
+            navigate(`/library/${libId}/subsection/${upstreamRef}`);
+          }
+        },
+      }}
+    />
   );
 };

@@ -1,88 +1,70 @@
-import { userEvent } from '@testing-library/user-event';
+import { initializeMocks, render, screen } from '@src/testUtils';
 
-import {
-  initializeMocks,
-  render,
-  screen,
-  waitFor,
-  within,
-} from '@src/testUtils';
-import { CourseAuthoringProvider } from '@src/CourseAuthoringContext';
-import { CourseOutlineProvider } from '@src/course-outline/CourseOutlineContext';
-
-import { OutlineSidebarProvider } from './OutlineSidebarContext';
-import { OutlineSidebarPagesProvider } from './OutlineSidebarPagesContext';
 import OutlineSidebar from './OutlineSidebar';
 
-// Mock the useCourseDetails hook
-jest.mock('@src/course-outline/data/apiHooks', () => ({
-  useCourseDetails: jest.fn().mockReturnValue({ isPending: false, data: { title: 'Test Course' } }),
-  useCreateCourseBlock: jest.fn(),
-  useCourseItemData: jest.fn().mockReturnValue({ data: {} }),
-  useDuplicateItem: jest.fn().mockReturnValue({ duplicateItem: jest.fn() }),
-  useDeleteCourseItem: jest.fn().mockReturnValue({ mutateAsync: jest.fn() }),
+jest.mock('@src/generic/sidebar', () => ({
+  Sidebar: () => <div>Generic sidebar</div>,
 }));
 
-const courseId = '123';
+jest.mock('./info-sidebar/InfoSidebar', () => ({
+  InfoSidebar: () => <div>Contextual information</div>,
+}));
 
-const extraWrapper = ({ children }) => (
-  <CourseAuthoringProvider courseId={courseId}>
-    <CourseOutlineProvider>
-      <OutlineSidebarPagesProvider>
-        <OutlineSidebarProvider>
-          {children}
-        </OutlineSidebarProvider>
-      </OutlineSidebarPagesProvider>
-    </CourseOutlineProvider>
-  </CourseAuthoringProvider>
-);
+jest.mock('./OutlineSidebarContext', () => ({
+  useOutlineSidebarContext: jest.fn(),
+}));
 
-const renderComponent = () =>
-  render(
-    <OutlineSidebar />,
-    { extraWrapper },
-  );
+jest.mock('./OutlineSidebarPagesContext', () => ({
+  useOutlineSidebarPagesContext: jest.fn().mockReturnValue([]),
+}));
+
+const outlineContext = jest.requireMock('./OutlineSidebarContext') as {
+  useOutlineSidebarContext: jest.Mock;
+};
+
+const contextValue = {
+  currentPageKey: 'info',
+  setCurrentPageKey: jest.fn(),
+  isOpen: false,
+  toggle: jest.fn(),
+  selectedContainerState: undefined,
+};
 
 describe('<OutlineSidebar>', () => {
   beforeEach(() => {
     initializeMocks();
   });
 
-  it('should render the sidebar only after the user opens it', async () => {
-    renderComponent();
+  it('does not render the legacy action rail while no item is selected', () => {
+    outlineContext.useOutlineSidebarContext.mockReturnValue(contextValue);
 
-    const sidebarToggle = screen.getByTestId('sidebar-toggle');
-    expect(sidebarToggle).toBeInTheDocument();
-    expect(screen.queryByText('Test Course')).not.toBeInTheDocument();
+    render(<OutlineSidebar />);
 
-    const toggleButton = within(sidebarToggle).getByRole('button', { name: 'Toggle' });
-    expect(toggleButton).toBeInTheDocument();
-    await userEvent.click(toggleButton);
-
-    await waitFor(() => {
-      expect(screen.getByText('Test Course')).toBeInTheDocument();
-    });
-
-    // Change page
-    await userEvent.click(screen.getByRole('button', { name: 'Help' }));
-
-    // Check that the help page is rendered
-    expect(screen.getByText('Creating your course organization')).toBeInTheDocument();
-
-    // The explicit toggle still closes the sidebar.
-    await userEvent.click(toggleButton);
-    expect(screen.queryByText('Creating your course organization')).not.toBeInTheDocument();
+    expect(screen.queryByText('Generic sidebar')).not.toBeInTheDocument();
+    expect(screen.queryByText('Contextual information')).not.toBeInTheDocument();
   });
 
-  it('opens the requested page when a sidebar page action is clicked', async () => {
-    renderComponent();
-
-    expect(screen.queryByText('Test Course')).not.toBeInTheDocument();
-
-    await userEvent.click(screen.getByRole('button', { name: 'Info' }));
-
-    await waitFor(() => {
-      expect(screen.getByText('Test Course')).toBeInTheDocument();
+  it('keeps the generic sidebar for explicit add and library flows', () => {
+    outlineContext.useOutlineSidebarContext.mockReturnValue({
+      ...contextValue,
+      currentPageKey: 'add',
+      isOpen: true,
     });
+
+    render(<OutlineSidebar />);
+
+    expect(screen.getByText('Generic sidebar')).toBeInTheDocument();
+  });
+
+  it('renders contextual information after an outline item is selected', () => {
+    outlineContext.useOutlineSidebarContext.mockReturnValue({
+      ...contextValue,
+      selectedContainerState: { currentId: 'unit-1' },
+    });
+
+    render(<OutlineSidebar />);
+
+    expect(screen.getByText('Contextual information')).toBeInTheDocument();
+    expect(screen.queryByText('Generic sidebar')).not.toBeInTheDocument();
   });
 });

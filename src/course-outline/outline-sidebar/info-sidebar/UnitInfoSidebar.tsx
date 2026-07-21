@@ -2,27 +2,14 @@ import { useEffect, useContext } from 'react';
 import { isEmpty } from 'lodash';
 
 import { useIntl } from '@edx/frontend-platform/i18n';
-import {
-  Button,
-  Stack,
-  Tab,
-  Tabs,
-} from '@openedx/paragon';
-import {
-  OpenInFull,
-} from '@openedx/paragon/icons';
 
 import { getItemIcon } from '@src/generic/block-type-utils';
-
-import { SidebarTitle } from '@src/generic/sidebar';
 
 import { courseOutlineQueryKeys, useCourseItemData } from '@src/course-outline/data/apiHooks';
 import Loading from '@src/generic/Loading';
 import { useCourseAuthoringContext } from '@src/CourseAuthoringContext';
 import { useCourseOutlineContext } from '@src/course-outline/CourseOutlineContext';
-import XBlockContainerIframe from '@src/course-unit/xblock-container-iframe';
-import { IframeProvider } from '@src/generic/hooks/context/iFrameContext';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { getLibraryId } from '@src/generic/key-utils';
 import { extractCourseUnitId } from '@src/course-unit/legacy-sidebar/utils';
 import { possibleUnitMoves } from '@src/course-outline/drag-helper/utils';
@@ -31,17 +18,18 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useOutlineSidebarContext } from '../OutlineSidebarContext';
 import { PublishButon } from './PublishButon';
 import messages from '../messages';
-import { InfoSection } from './InfoSection';
 import { useClipboard } from '@src/generic/clipboard';
 import { ToastContext } from '@src/generic/toast-context';
 import { XBlock } from '@src/data/types';
+import { VisibilityTypes } from '@src/data/constants';
+import { ContextualInfoSidebar } from './ContextualInfoSidebar';
 interface Props {
   unitId: string;
 }
 
 const UnitSettingsTab = ({ unitId }: Props) => {
   const queryClient = useQueryClient();
-  const { data: unitData, isPending } = useCourseItemData(unitId);
+  const { data: unitData, isPending } = useCourseItemData<XBlock>(unitId);
   const { selectedContainerState } = useOutlineSidebarContext();
 
   if (isPending || !unitData) {
@@ -80,23 +68,19 @@ export const UnitSidebar = () => {
     currentId: unitId = /* istanbul ignore next */ '',
     index,
   } = selectedContainerState ?? {};
-  const { data: unitData, isPending } = useCourseItemData(unitId);
-  const availableTabs = {
-    preview: 'preview',
-    info: 'info',
-    settings: 'settings',
-  };
+  const { data: unitData, isPending } = useCourseItemData<XBlock>(unitId);
+  const availableTabs = { info: 'info', settings: 'settings' };
 
   useEffect(() => {
     if (!currentTabKey || !Object.values(availableTabs).includes(currentTabKey)) {
       // Set default Tab key
-      setCurrentTabKey('preview');
+      setCurrentTabKey('info');
     }
   }, [currentTabKey, setCurrentTabKey]);
 
   const { data: section } = useCourseItemData<XBlock>(selectedContainerState?.sectionId);
   const { data: subsection } = useCourseItemData<XBlock>(selectedContainerState?.subsectionId);
-  const { getUnitUrl, courseId, openUnlinkModal } = useCourseAuthoringContext();
+  const { openUnlinkModal } = useCourseAuthoringContext();
   const {
     openPublishModal,
     handleDuplicateUnitSubmit,
@@ -209,82 +193,63 @@ export const UnitSidebar = () => {
     showToast(intl.formatMessage(messages.locationCopiedText));
   };
 
+  const visibleToStaffOnly = unitData.visibilityState === VisibilityTypes.STAFF_ONLY;
+  const selectedGroupsLabel = unitData.userPartitionInfo?.selectedGroupsLabel;
+
   return (
-    <>
-      <SidebarTitle
-        title={unitData?.displayName || ''}
-        icon={getItemIcon(unitData?.category || '')}
-        onBackBtnClick={clearSelection}
-        menuProps={{
-          itemId: unitId,
-          index: index ?? -1,
-          actions,
-          canMoveItem: canMoveUnit,
-          onClickDuplicate: unitData?.actions?.duplicable ? handleDuplicateUnitSubmit : undefined,
-          onClickMoveUp: () => handleMove(-1),
-          onClickMoveDown: () => handleMove(1),
-          onClickUnlink: () =>
-            openUnlinkModal({
-              value: unitData,
-              sectionId: selectedContainerState?.sectionId,
-              subsectionId: selectedContainerState?.subsectionId,
-            }),
-          onClickDelete: openDeleteModal,
-          onClickViewLibrary: () => {
-            const upstreamRef = unitData?.upstreamInfo?.upstreamRef;
-            if (upstreamRef) {
-              const libId = getLibraryId(upstreamRef);
-              navigate(`/library/${libId}/unit/${upstreamRef}`);
-            }
-          },
-          onClickCopy: /* istanbul ignore next */ () => copyToClipboard(unitId),
-          onClickCopyLocation: handleCopyLocation,
-        }}
-      />
-      <Stack direction="horizontal" gap={1} className="mx-2">
-        <Button
-          variant="outline-primary"
-          as={Link}
-          to={getUnitUrl(unitId)}
-          iconBefore={OpenInFull}
-          block={!unitData?.hasChanges}
-        >
-          {intl.formatMessage(messages.openUnitPage)}
-        </Button>
-        {unitData?.hasChanges && <PublishButon onClick={handlePublish} />}
-      </Stack>
-      <Tabs
-        variant="tabs"
-        className="my-2 mx-n3.5"
-        id="unit-content-tabs"
-        activeKey={currentTabKey}
-        onSelect={setCurrentTabKey}
-        mountOnEnter
-      >
-        <Tab
-          eventKey={availableTabs.preview}
-          title={intl.formatMessage(messages.previewTabText)}
-          // To make sure that data is fresh
-          unmountOnExit
-        >
-          <IframeProvider>
-            <XBlockContainerIframe
-              courseId={courseId}
-              blockId={unitId}
-              isUnitVerticalType={false}
-              unitXBlockActions={{ handleDelete: () => {}, handleDuplicate: () => {}, handleUnlink: () => {} }}
-              courseVerticalChildren={[]}
-              readonly
-            />
-          </IframeProvider>
-        </Tab>
-        <Tab eventKey={availableTabs.info} title={intl.formatMessage(messages.infoTabText)}>
-          <InfoSection itemId={unitId} />
-        </Tab>
-        <Tab eventKey={availableTabs.settings} title={intl.formatMessage(messages.settingsTabText)}>
-          <UnitSettingsTab unitId={unitId} />
-        </Tab>
-      </Tabs>
-    </>
+    <ContextualInfoSidebar
+      item={unitData}
+      eyebrow={intl.formatMessage(messages.contextUnitEyebrow)}
+      icon={getItemIcon(unitData.category || '')}
+      summaryTitle={intl.formatMessage(messages.contextAccessSummary)}
+      facts={[
+        {
+          label: intl.formatMessage(messages.contextVisibilityLabel),
+          value: intl.formatMessage(
+            visibleToStaffOnly ? messages.contextStaffOnly : messages.contextAllLearners,
+          ),
+        },
+        {
+          label: intl.formatMessage(messages.contextGroupRestrictionLabel),
+          value: selectedGroupsLabel || intl.formatMessage(messages.contextNone),
+        },
+        {
+          label: intl.formatMessage(messages.contextDiscussionsLabel),
+          value: intl.formatMessage(
+            unitData.discussionEnabled ? messages.contextEnabled : messages.contextDisabled,
+          ),
+        },
+      ]}
+      settings={<UnitSettingsTab unitId={unitId} />}
+      currentTabKey={currentTabKey}
+      setCurrentTabKey={setCurrentTabKey}
+      onBack={clearSelection}
+      publishAction={unitData.hasChanges ? <PublishButon onClick={handlePublish} /> : undefined}
+      menuProps={{
+        itemId: unitId,
+        index: index ?? -1,
+        actions,
+        canMoveItem: canMoveUnit,
+        onClickDuplicate: unitData.actions?.duplicable ? handleDuplicateUnitSubmit : undefined,
+        onClickMoveUp: () => handleMove(-1),
+        onClickMoveDown: () => handleMove(1),
+        onClickUnlink: () =>
+          openUnlinkModal({
+            value: unitData,
+            sectionId: selectedContainerState?.sectionId,
+            subsectionId: selectedContainerState?.subsectionId,
+          }),
+        onClickDelete: openDeleteModal,
+        onClickViewLibrary: () => {
+          const upstreamRef = unitData.upstreamInfo?.upstreamRef;
+          if (upstreamRef) {
+            const libId = getLibraryId(upstreamRef);
+            navigate(`/library/${libId}/unit/${upstreamRef}`);
+          }
+        },
+        onClickCopy: /* istanbul ignore next */ () => copyToClipboard(unitId),
+        onClickCopyLocation: handleCopyLocation,
+      }}
+    />
   );
 };

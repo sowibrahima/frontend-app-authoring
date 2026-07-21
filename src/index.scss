@@ -44,7 +44,7 @@ div.row:has(> div > div.highlight) {
 
 // To apply selection style to selected Section/Subsecion/Units, in the Course Outline
 div.row:has(> div > div.outline-card-selected) {
-  box-shadow: 0 0 3px 3px var(--pgn-color-primary-500) !important;
+  box-shadow: 0 0 1px 2px var(--wuti-color-brand);
 }
 
 // To apply the glow effect to the selected xblock, in the Unit Outline

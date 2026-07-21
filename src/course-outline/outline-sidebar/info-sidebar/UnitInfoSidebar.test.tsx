@@ -24,20 +24,11 @@ jest.mock(
   './PublishButon',
   () => ({ PublishButon: ({ onClick }: any) => <button type="button" onClick={onClick}>Publish</button> }),
 );
-jest.mock('./InfoSection', () => ({ InfoSection: ({ itemId }: any) => <div>InfoSection:{itemId}</div> }));
 jest.mock(
   '@src/course-unit/unit-sidebar/unit-info/GenericUnitInfoSettings',
   () => ({ GenericUnitInfoSettings: () => <div>GenericUnitInfoSettings</div> }),
 );
 jest.mock('@src/generic/block-type-utils', () => ({ getItemIcon: () => () => null }));
-jest.mock('@src/course-unit/xblock-container-iframe', () =>
-  function XBlockIframe() {
-    return <div>XBlockIframe</div>;
-  });
-jest.mock(
-  '@src/generic/hooks/context/iFrameContext',
-  () => ({ IframeProvider: ({ children }: any) => <div>{children}</div> }),
-);
 
 const apiHooks = jest.requireMock('@src/course-outline/data/apiHooks') as any;
 const outlineContext = jest.requireMock('../OutlineSidebarContext') as any;
@@ -82,7 +73,8 @@ describe('UnitSidebar', () => {
     });
     render(<UnitSidebar />);
     expect(screen.getByText('Unit 1')).toBeInTheDocument();
-    expect(screen.getByText('InfoSection:unit-1')).toBeInTheDocument();
+    expect(screen.getByText('Access and participation')).toBeInTheDocument();
+    expect(screen.getByText('Visibility')).toBeInTheDocument();
   });
 
   it('shows publish button and triggers openPublishModal when unit has changes', async () => {
@@ -119,14 +111,14 @@ describe('UnitSidebar', () => {
     expect(openPublishModal).toHaveBeenCalledWith({ value: expect.any(Object), sectionId: 's1', subsectionId: 'ss1' });
   });
 
-  it('switches to preview tab and shows iframe', async () => {
-    const user = userEvent.setup();
+  it('falls back to the summary tab when the previous tab no longer exists', () => {
+    const setCurrentTabKey = jest.fn();
     outlineContext.useOutlineSidebarContext.mockReturnValue({
       selectedContainerState: { currentId: 'unit-3', sectionId: 's1', subsectionId: 'ss1' },
       clearSelection: jest.fn(),
       setSelectedContainerState: jest.fn(),
       currentTabKey: 'preview',
-      setCurrentTabKey: jest.fn(),
+      setCurrentTabKey,
     });
     apiHooks.useCourseItemData.mockReturnValue({
       data: {
@@ -139,8 +131,8 @@ describe('UnitSidebar', () => {
       isPending: false,
     });
     render(<UnitSidebar />);
-    await user.click(screen.getByRole('tab', { name: /Preview/i }));
-    expect(screen.getByText('XBlockIframe')).toBeInTheDocument();
+    expect(setCurrentTabKey).toHaveBeenCalledWith('info');
+    expect(screen.getByText('Access and participation')).toBeInTheDocument();
   });
 
   it('shows settings tab content when selected', async () => {

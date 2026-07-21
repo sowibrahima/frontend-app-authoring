@@ -1,10 +1,8 @@
 import { useEffect } from 'react';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import { Tab, Tabs } from '@openedx/paragon';
 import { useNavigate } from 'react-router-dom';
 
 import { getItemIcon } from '@src/generic/block-type-utils';
-import { SidebarTitle } from '@src/generic/sidebar';
 import { useCourseItemData } from '@src/course-outline/data/apiHooks';
 import Loading from '@src/generic/Loading';
 import { useCourseAuthoringContext } from '@src/CourseAuthoringContext';
@@ -13,10 +11,12 @@ import { useOutlineSidebarContext } from '@src/course-outline/outline-sidebar/Ou
 import { getLibraryId } from '@src/generic/key-utils';
 import { SectionSettings } from '@src/course-outline/outline-sidebar/info-sidebar/SectionSettings';
 import { canMoveSection } from '@src/course-outline/drag-helper/utils';
+import { XBlock } from '@src/data/types';
 
-import { InfoSection } from './InfoSection';
 import messages from '../messages';
 import { PublishButon } from './PublishButon';
+import { ContextualInfoSidebar } from './ContextualInfoSidebar';
+import { VisibilityTypes } from '@src/data/constants';
 
 export const SectionSidebar = () => {
   const intl = useIntl();
@@ -49,7 +49,7 @@ export const SectionSidebar = () => {
     }
   }, [currentTabKey, setCurrentTabKey]);
   const { sectionId = '', index } = selectedContainerState ?? {};
-  const { data: sectionData, isLoading } = useCourseItemData(sectionId);
+  const { data: sectionData, isLoading } = useCourseItemData<XBlock>(sectionId);
 
   const handlePublish = () => {
     if (sectionData?.hasChanges) {
@@ -73,50 +73,63 @@ export const SectionSidebar = () => {
     }
   };
 
+  const subsections = sectionData.childInfo?.children ?? [];
+  const units = subsections.reduce(
+    (count, subsection) => count + (subsection.childInfo?.children?.length ?? 0),
+    0,
+  );
+  const visibleToStaffOnly = sectionData.visibilityState === VisibilityTypes.STAFF_ONLY;
+
   return (
-    <>
-      <SidebarTitle
-        title={sectionData.displayName || ''}
-        icon={getItemIcon(sectionData.category || '')}
-        onBackBtnClick={clearSelection}
-        menuProps={{
-          itemId: sectionId,
-          index: index ?? -1,
-          actions: sectionData.actions || {},
-          canMoveItem: canMoveSection(sections),
-          onClickDuplicate: handleDuplicateSectionSubmit,
-          onClickMoveUp: () => handleMove(-1),
-          onClickMoveDown: () => handleMove(1),
-          onClickUnlink: () => openUnlinkModal({ value: sectionData, sectionId }),
-          onClickDelete: openDeleteModal,
-          onClickViewLibrary: () => {
-            const upstreamRef = sectionData.upstreamInfo?.upstreamRef;
-            if (upstreamRef) {
-              const libId = getLibraryId(upstreamRef);
-              navigate(`/library/${libId}/section/${upstreamRef}`);
-            }
-          },
-        }}
-      />
-      {sectionData.hasChanges && <PublishButon onClick={handlePublish} />}
-      <Tabs
-        variant="tabs"
-        className="my-2 mx-n3.5"
-        id="add-content-tabs"
-        activeKey={currentTabKey}
-        onSelect={setCurrentTabKey}
-        mountOnEnter
-      >
-        <Tab eventKey={availableTabs.info} title={intl.formatMessage(messages.infoTabText)}>
-          <InfoSection itemId={sectionId} />
-        </Tab>
-        <Tab
-          eventKey={availableTabs.settings}
-          title={intl.formatMessage(messages.settingsTabText)}
-        >
-          <SectionSettings key={sectionId} sectionId={sectionId} />
-        </Tab>
-      </Tabs>
-    </>
+    <ContextualInfoSidebar
+      item={sectionData}
+      eyebrow={intl.formatMessage(messages.contextSectionEyebrow)}
+      icon={getItemIcon(sectionData.category || '')}
+      summaryTitle={intl.formatMessage(messages.contextContentSummary)}
+      facts={[
+        {
+          label: intl.formatMessage(messages.contextContentLabel),
+          value: intl.formatMessage(messages.contextContentCount, {
+            subsections: subsections.length,
+            units,
+          }),
+        },
+        {
+          label: intl.formatMessage(messages.contextVisibilityLabel),
+          value: intl.formatMessage(
+            visibleToStaffOnly ? messages.contextStaffOnly : messages.contextAllLearners,
+          ),
+        },
+        {
+          label: intl.formatMessage(messages.contextHighlightsLabel),
+          value: intl.formatMessage(messages.contextHighlightsCount, {
+            count: sectionData.highlights?.length ?? 0,
+          }),
+        },
+      ]}
+      settings={<SectionSettings key={sectionId} sectionId={sectionId} />}
+      currentTabKey={currentTabKey}
+      setCurrentTabKey={setCurrentTabKey}
+      onBack={clearSelection}
+      publishAction={sectionData.hasChanges ? <PublishButon onClick={handlePublish} /> : undefined}
+      menuProps={{
+        itemId: sectionId,
+        index: index ?? -1,
+        actions: sectionData.actions || {},
+        canMoveItem: canMoveSection(sections),
+        onClickDuplicate: handleDuplicateSectionSubmit,
+        onClickMoveUp: () => handleMove(-1),
+        onClickMoveDown: () => handleMove(1),
+        onClickUnlink: () => openUnlinkModal({ value: sectionData, sectionId }),
+        onClickDelete: openDeleteModal,
+        onClickViewLibrary: () => {
+          const upstreamRef = sectionData.upstreamInfo?.upstreamRef;
+          if (upstreamRef) {
+            const libId = getLibraryId(upstreamRef);
+            navigate(`/library/${libId}/section/${upstreamRef}`);
+          }
+        },
+      }}
+    />
   );
 };

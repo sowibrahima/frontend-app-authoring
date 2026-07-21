@@ -170,6 +170,206 @@ const messages = defineMessages({
     defaultMessage: 'Settings',
     description: 'Settings tab title in container sidebar',
   },
+  contextSummaryTab: {
+    id: 'course-authoring.course-outline.sidebar.context.summary-tab',
+    defaultMessage: 'Summary',
+  },
+  contextBackAction: {
+    id: 'course-authoring.course-outline.sidebar.context.back-action',
+    defaultMessage: 'Back to the course outline',
+  },
+  contextStateSectionTitle: {
+    id: 'course-authoring.course-outline.sidebar.context.state-section-title',
+    defaultMessage: 'Status',
+  },
+  contextActivitySectionTitle: {
+    id: 'course-authoring.course-outline.sidebar.context.activity-section-title',
+    defaultMessage: 'Activity',
+  },
+  contextLastModified: {
+    id: 'course-authoring.course-outline.sidebar.context.last-modified',
+    defaultMessage: 'Last modified',
+  },
+  contextPublication: {
+    id: 'course-authoring.course-outline.sidebar.context.publication',
+    defaultMessage: 'Publication',
+  },
+  contextPublicationUnscheduled: {
+    id: 'course-authoring.course-outline.sidebar.context.publication-unscheduled',
+    defaultMessage: 'Not scheduled',
+  },
+  contextStateDraftLabel: {
+    id: 'course-authoring.course-outline.sidebar.context.state-draft-label',
+    defaultMessage: 'Draft',
+  },
+  contextStateDraftTitle: {
+    id: 'course-authoring.course-outline.sidebar.context.state-draft-title',
+    defaultMessage: 'Unpublished draft',
+  },
+  contextStateDraftDescription: {
+    id: 'course-authoring.course-outline.sidebar.context.state-draft-description',
+    defaultMessage: 'Learners cannot see this version yet.',
+  },
+  contextStateModifiedLabel: {
+    id: 'course-authoring.course-outline.sidebar.context.state-modified-label',
+    defaultMessage: 'Modified',
+  },
+  contextStateChangesTitle: {
+    id: 'course-authoring.course-outline.sidebar.context.state-changes-title',
+    defaultMessage: 'Unpublished changes',
+  },
+  contextStateChangesDescription: {
+    id: 'course-authoring.course-outline.sidebar.context.state-changes-description',
+    defaultMessage: 'Learners are still seeing the last published version.',
+  },
+  contextStateLiveLabel: {
+    id: 'course-authoring.course-outline.sidebar.context.state-live-label',
+    defaultMessage: 'Live',
+  },
+  contextStateLiveTitle: {
+    id: 'course-authoring.course-outline.sidebar.context.state-live-title',
+    defaultMessage: 'Published and live',
+  },
+  contextStateLiveDescription: {
+    id: 'course-authoring.course-outline.sidebar.context.state-live-description',
+    defaultMessage: 'This version is available to authorized learners.',
+  },
+  contextStateScheduledLabel: {
+    id: 'course-authoring.course-outline.sidebar.context.state-scheduled-label',
+    defaultMessage: 'Scheduled',
+  },
+  contextStateScheduledTitle: {
+    id: 'course-authoring.course-outline.sidebar.context.state-scheduled-title',
+    defaultMessage: 'Publication scheduled',
+  },
+  contextStateScheduledDescription: {
+    id: 'course-authoring.course-outline.sidebar.context.state-scheduled-description',
+    defaultMessage: 'This content will become available on its release date.',
+  },
+  contextStateStaffLabel: {
+    id: 'course-authoring.course-outline.sidebar.context.state-staff-label',
+    defaultMessage: 'Staff only',
+  },
+  contextStateStaffTitle: {
+    id: 'course-authoring.course-outline.sidebar.context.state-staff-title',
+    defaultMessage: 'Visible to staff only',
+  },
+  contextStateStaffDescription: {
+    id: 'course-authoring.course-outline.sidebar.context.state-staff-description',
+    defaultMessage: 'Learners cannot access this content.',
+  },
+  contextSectionEyebrow: {
+    id: 'course-authoring.course-outline.sidebar.context.section-eyebrow',
+    defaultMessage: 'Section information',
+  },
+  contextSubsectionEyebrow: {
+    id: 'course-authoring.course-outline.sidebar.context.subsection-eyebrow',
+    defaultMessage: 'Subsection information',
+  },
+  contextUnitEyebrow: {
+    id: 'course-authoring.course-outline.sidebar.context.unit-eyebrow',
+    defaultMessage: 'Unit information',
+  },
+  contextContentSummary: {
+    id: 'course-authoring.course-outline.sidebar.context.content-summary',
+    defaultMessage: 'Content',
+  },
+  contextAccessSummary: {
+    id: 'course-authoring.course-outline.sidebar.context.access-summary',
+    defaultMessage: 'Access and participation',
+  },
+  contextTeachingSummary: {
+    id: 'course-authoring.course-outline.sidebar.context.teaching-summary',
+    defaultMessage: 'Learning settings',
+  },
+  contextContentLabel: {
+    id: 'course-authoring.course-outline.sidebar.context.content-label',
+    defaultMessage: 'Content',
+  },
+  contextContentCount: {
+    id: 'course-authoring.course-outline.sidebar.context.content-count',
+    defaultMessage: '{subsections, plural, one {# subsection} other {# subsections}} · {units, plural, one {# unit} other {# units}}',
+  },
+  contextUnitCount: {
+    id: 'course-authoring.course-outline.sidebar.context.unit-count',
+    defaultMessage: '{units, plural, one {# unit} other {# units}}',
+  },
+  contextVisibilityLabel: {
+    id: 'course-authoring.course-outline.sidebar.context.visibility-label',
+    defaultMessage: 'Visibility',
+  },
+  contextAllLearners: {
+    id: 'course-authoring.course-outline.sidebar.context.all-learners',
+    defaultMessage: 'All learners',
+  },
+  contextStaffOnly: {
+    id: 'course-authoring.course-outline.sidebar.context.staff-only',
+    defaultMessage: 'Staff only',
+  },
+  contextHighlightsLabel: {
+    id: 'course-authoring.course-outline.sidebar.context.highlights-label',
+    defaultMessage: 'Highlights',
+  },
+  contextHighlightsCount: {
+    id: 'course-authoring.course-outline.sidebar.context.highlights-count',
+    defaultMessage: '{count, plural, =0 {None} one {# highlight} other {# highlights}}',
+  },
+  contextGradingLabel: {
+    id: 'course-authoring.course-outline.sidebar.context.grading-label',
+    defaultMessage: 'Grading',
+  },
+  contextGraded: {
+    id: 'course-authoring.course-outline.sidebar.context.graded',
+    defaultMessage: 'Graded',
+  },
+  contextUngraded: {
+    id: 'course-authoring.course-outline.sidebar.context.ungraded',
+    defaultMessage: 'Ungraded',
+  },
+  contextAssessmentResultsLabel: {
+    id: 'course-authoring.course-outline.sidebar.context.assessment-results-label',
+    defaultMessage: 'Assessment results',
+  },
+  contextAssessmentAlways: {
+    id: 'course-authoring.course-outline.sidebar.context.assessment-always',
+    defaultMessage: 'Always shown',
+  },
+  contextAssessmentAfterDue: {
+    id: 'course-authoring.course-outline.sidebar.context.assessment-after-due',
+    defaultMessage: 'Shown after due date',
+  },
+  contextAssessmentHidden: {
+    id: 'course-authoring.course-outline.sidebar.context.assessment-hidden',
+    defaultMessage: 'Hidden',
+  },
+  contextSpecialExamLabel: {
+    id: 'course-authoring.course-outline.sidebar.context.special-exam-label',
+    defaultMessage: 'Special exam',
+  },
+  contextSpecialExamConfigured: {
+    id: 'course-authoring.course-outline.sidebar.context.special-exam-configured',
+    defaultMessage: 'Configured',
+  },
+  contextNone: {
+    id: 'course-authoring.course-outline.sidebar.context.none',
+    defaultMessage: 'None',
+  },
+  contextGroupRestrictionLabel: {
+    id: 'course-authoring.course-outline.sidebar.context.group-restriction-label',
+    defaultMessage: 'Group restriction',
+  },
+  contextDiscussionsLabel: {
+    id: 'course-authoring.course-outline.sidebar.context.discussions-label',
+    defaultMessage: 'Discussions',
+  },
+  contextEnabled: {
+    id: 'course-authoring.course-outline.sidebar.context.enabled',
+    defaultMessage: 'Enabled',
+  },
+  contextDisabled: {
+    id: 'course-authoring.course-outline.sidebar.context.disabled',
+    defaultMessage: 'Disabled',
+  },
   cannotAddAlertMsg: {
     id: 'course-authoring.course-outline.sidebar.library.reference.add-sidebar.alert.text',
     defaultMessage: '{name} is a library {category}. Content cannot be added to Library referenced {category}s.',
