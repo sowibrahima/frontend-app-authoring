@@ -14,6 +14,9 @@ export const getUploadAssetsUrl = (courseId) =>
  * @returns {Promise<Object>}
  */
 export async function uploadAssets(courseId, fileData) {
+  // Course presentation images are rendered on public catalog/home pages.
+  // Files & Uploads uses a separate API helper and remains locked by default.
+  fileData.set('locked', 'false');
   const { data } = await getAuthenticatedHttpClient().post(
     `${getUploadAssetsUrl(courseId).href}`,
     fileData,
