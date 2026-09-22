@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 
 import {
   useLocation,
@@ -7,9 +7,7 @@ import {
 import WutiskillStudioHeader from './header/WutiskillStudioHeader';
 import WutiFooter from './footer/WutiFooter';
 import NotFoundAlert from './generic/NotFoundAlert';
-import PermissionDeniedAlert from './generic/PermissionDeniedAlert';
 import { fetchOnlyStudioHomeData } from './studio-home/data/thunks';
-import { getCourseAppsApiStatus } from './pages-and-resources/data/selectors';
 import { RequestStatus } from './data/constants';
 import Loading from './generic/Loading';
 import { useCourseAuthoringContext } from './CourseAuthoringContext';
@@ -31,17 +29,12 @@ const CourseAuthoringPage = ({ children }: Props) => {
   const courseOrg = courseDetails?.org;
   const courseTitle = courseDetails?.name;
   const inProgress = courseDetailStatus === RequestStatus.IN_PROGRESS || courseDetailStatus === RequestStatus.PENDING;
-  const courseAppsApiStatus = useSelector(getCourseAppsApiStatus);
   const { pathname } = useLocation();
   const isEditor = pathname.includes('/editor');
 
   if (courseDetailStatus === RequestStatus.NOT_FOUND && !isEditor) {
     return <NotFoundAlert />;
   }
-  if (courseAppsApiStatus === RequestStatus.DENIED) {
-    return <PermissionDeniedAlert />;
-  }
-
   // Route pages depend on CourseAuthoringContext. Mounting them while the
   // course request is still pending lets child effects issue requests with an
   // undefined course id and also produces duplicate loading indicators.

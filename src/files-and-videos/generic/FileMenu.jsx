@@ -30,6 +30,10 @@ const FileMenu = ({
   portableUrl,
   id,
   fileType,
+  permissions = {
+    canEditFiles: true,
+    canDeleteFiles: true,
+  },
 }) => {
   const intl = useIntl();
   const copyText = useCopyText();
@@ -154,7 +158,7 @@ const FileMenu = ({
             children: intl.formatMessage(messages.copyWebUrlTitle),
             onClick: () => copyText(externalUrl),
           })}
-          {renderMenuItem({
+          {permissions.canEditFiles && renderMenuItem({
             children: locked
               ? intl.formatMessage(messages.unlockMenuTitle)
               : intl.formatMessage(messages.lockMenuTitle),
@@ -170,8 +174,8 @@ const FileMenu = ({
         children: intl.formatMessage(messages.infoTitle),
         onClick: openAssetInfo,
       })}
-      <div className="dropdown-divider" role="separator" />
-      {renderMenuItem({
+      {permissions.canDeleteFiles && <div className="dropdown-divider" role="separator" />}
+      {permissions.canDeleteFiles && renderMenuItem({
         children: intl.formatMessage(messages.deleteTitle),
         onClick: openDeleteConfirmation,
         testId: 'open-delete-confirmation-button',
@@ -207,6 +211,10 @@ FileMenu.propTypes = {
   portableUrl: PropTypes.string,
   id: PropTypes.string.isRequired,
   fileType: PropTypes.string.isRequired,
+  permissions: PropTypes.shape({
+    canEditFiles: PropTypes.bool,
+    canDeleteFiles: PropTypes.bool,
+  }),
 };
 
 FileMenu.defaultProps = {

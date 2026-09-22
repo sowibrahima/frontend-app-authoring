@@ -34,6 +34,15 @@ describe('useCourseUserPermissions', () => {
     expect(result.current.canEdit).toBe(true);
   });
 
+  it('does not request or expose course permissions before a course is selected', () => {
+    mockWaffleFlags({ enableAuthzCourseAuthoring: true });
+    const { result } = renderHook(() => useCourseUserPermissions('', permissions));
+
+    expect(useUserPermissions).toHaveBeenCalledWith(permissions, false);
+    expect(result.current.canView).toBe(false);
+    expect(result.current.canEdit).toBe(false);
+  });
+
   it('returns actual permission values when authz is enabled and permissions are loaded', () => {
     mockWaffleFlags({ enableAuthzCourseAuthoring: true });
     jest.mocked(useUserPermissions).mockReturnValue({
@@ -49,7 +58,7 @@ describe('useCourseUserPermissions', () => {
     expect(result.current.canEdit).toBe(false);
   });
 
-  it('returns isLoading=true and no permission keys while authz permissions are loading', () => {
+  it('returns isLoading=true and permissions as false while authz permissions are loading', () => {
     mockWaffleFlags({ enableAuthzCourseAuthoring: true });
     jest.mocked(useUserPermissions).mockReturnValue({
       isLoading: true,
@@ -60,8 +69,8 @@ describe('useCourseUserPermissions', () => {
 
     expect(result.current.isLoading).toBe(true);
     expect(result.current.isAuthzEnabled).toBe(true);
-    expect(result.current.canView).toBeUndefined();
-    expect(result.current.canEdit).toBeUndefined();
+    expect(result.current.canView).toBe(false);
+    expect(result.current.canEdit).toBe(false);
   });
 
   it('falls back to false for permissions absent from server response when authz is enabled', () => {

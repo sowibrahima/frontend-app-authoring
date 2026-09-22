@@ -32,6 +32,18 @@ describe('course checklist data API', () => {
     });
   });
 
+  it('uses the default validation options and shares concurrent requests', async () => {
+    const params = { courseId: 'course-v1:edX+DemoX+Demo_Course' };
+    const url = getCourseLaunchApiUrl(params);
+    expect(url).toContain('graded_only=true&validate_oras=true&all=true');
+    axiosMock.onGet(url).reply(200, { is_self_paced: false });
+    const results = await Promise.all([getCourseLaunch(params), getCourseLaunch(params)]);
+    expect(results).toEqual([{ isSelfPaced: false }, { isSelfPaced: false }]);
+    expect(axiosMock.history.get).toHaveLength(1);
+    await getCourseLaunch(params);
+    expect(axiosMock.history.get).toHaveLength(2);
+  });
+
   describe('getCourseLaunch', () => {
     it('should fetch course launch validation', async () => {
       const params: CourseLaunchRequest = {

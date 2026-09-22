@@ -40,8 +40,16 @@ export interface HelpUrls {
   welcome: string;
 }
 
+let pendingHelpUrlsRequest: Promise<HelpUrls> | null = null;
+
 export async function getHelpUrls(): Promise<HelpUrls> {
-  const { data } = await getAuthenticatedHttpClient()
-    .get(getHelpUrlsApiUrl());
-  return camelCaseObject(data);
+  if (pendingHelpUrlsRequest) {
+    return pendingHelpUrlsRequest;
+  }
+  const request: Promise<HelpUrls> = getAuthenticatedHttpClient()
+    .get(getHelpUrlsApiUrl())
+    .then(({ data }) => camelCaseObject(data) as HelpUrls)
+    .finally(() => { pendingHelpUrlsRequest = null; });
+  pendingHelpUrlsRequest = request;
+  return request;
 }

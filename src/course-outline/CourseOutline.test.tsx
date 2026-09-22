@@ -2550,7 +2550,7 @@ describe('<CourseOutline />', () => {
     const btn = await screen.findByRole('button', { name: 'Collapse all' });
     expect(btn).toBeInTheDocument();
     expect(await screen.findByRole('link', { name: 'View live' })).toBeInTheDocument();
-    expect((await screen.findAllByRole('button', { name: 'Add' })).length).toEqual(2);
+    expect(await screen.findByRole('button', { name: 'Add' })).toBeInTheDocument();
     expect(await screen.findByRole('button', { name: 'Course info' })).toBeInTheDocument();
     const user = userEvent.setup();
     await user.click(btn);

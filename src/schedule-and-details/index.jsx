@@ -9,14 +9,18 @@ import {
 } from '@openedx/paragon/icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
 
-import Placeholder from '../editors/Placeholder';
-import { RequestStatus } from '../data/constants';
-import AlertMessage from '../generic/alert-message';
-import InternetConnectionAlert from '../generic/internet-connection-alert';
-import { STATEFUL_BUTTON_STATES } from '../constants';
-import getPageHeadTitle from '../generic/utils';
-import { useScrollToHashElement } from '../hooks';
-import { useCourseAuthoringContext } from '../CourseAuthoringContext';
+import Placeholder from '@src/editors/Placeholder';
+import { RequestStatus } from '@src/data/constants';
+import AlertMessage from '@src/generic/alert-message';
+import InternetConnectionAlert from '@src/generic/internet-connection-alert';
+import { STATEFUL_BUTTON_STATES } from '@src/constants';
+import getPageHeadTitle from '@src/generic/utils';
+import { useScrollToHashElement } from '@src/hooks';
+import { useCourseAuthoringContext } from '@src/CourseAuthoringContext';
+import { useCourseUserPermissions } from '@src/authz/hooks';
+import { getScheduleAndDetailsPermissions } from '@src/authz/permissionHelpers';
+import PermissionDeniedAlert from '@src/generic/PermissionDeniedAlert';
+
 import {
   fetchCourseSettingsQuery,
   fetchCourseDetailsQuery,
@@ -47,11 +51,20 @@ const ScheduleAndDetails = () => {
   const courseDetails = useSelector(getCourseDetails);
   const loadingDetailsStatus = useSelector(getLoadingDetailsStatus);
   const loadingSettingsStatus = useSelector(getLoadingSettingsStatus);
-  const isLoading = loadingDetailsStatus === RequestStatus.IN_PROGRESS
-    || loadingSettingsStatus === RequestStatus.IN_PROGRESS;
 
   const { courseId, courseDetails: course } = useCourseAuthoringContext();
   document.title = getPageHeadTitle(course?.name, intl.formatMessage(messages.headingTitle));
+
+  const {
+    isLoading: isLoadingUserPermissions,
+    canViewScheduleAndDetails,
+    canEditSchedule,
+    canEditDetails,
+  } = useCourseUserPermissions(courseId, getScheduleAndDetailsPermissions(courseId));
+
+  const isLoading = loadingDetailsStatus === RequestStatus.IN_PROGRESS
+    || loadingSettingsStatus === RequestStatus.IN_PROGRESS
+    || isLoadingUserPermissions;
 
   const {
     platformName,
@@ -145,6 +158,10 @@ const ScheduleAndDetails = () => {
     return <></>;
   }
 
+  if (!canViewScheduleAndDetails) {
+    return <PermissionDeniedAlert />;
+  }
+
   if (loadingDetailsStatus === RequestStatus.DENIED || loadingSettingsStatus === RequestStatus.DENIED) {
     return (
       <div className="row justify-content-center m-6">
@@ -152,6 +169,8 @@ const ScheduleAndDetails = () => {
       </div>
     );
   }
+
+  const canEdit = canEditSchedule || canEditDetails;
 
   const showCreditSection = creditEligibilityEnabled && isCreditCourse;
   const showRequirementsSection = aboutPageEditable || isPrerequisiteCoursesEnabled || isEntranceExamsEnabled;
@@ -227,11 +246,13 @@ const ScheduleAndDetails = () => {
           <div className="schedule-and-details__layout">
             <article className="schedule-and-details__main">
               <PacingSection
+                isEditable={canEditDetails}
                 selfPaced={selfPaced}
                 startDate={startDate}
                 onChange={handleValuesChange}
               />
               <ScheduleSection
+                isEditable={canEditSchedule}
                 endDate={endDate}
                 startDate={startDate}
                 errorFields={errorFields}
@@ -252,12 +273,14 @@ const ScheduleAndDetails = () => {
               )}
               {aboutPageEditable && (
                 <DetailsSection
+                  isEditable={canEditDetails}
                   language={language}
                   languageOptions={languageOptions}
                   onChange={handleValuesChange}
                 />
               )}
               <IntroducingSection
+                isEditable={canEditDetails}
                 title={title}
                 overview={initialOverview}
                 duration={duration}
@@ -279,10 +302,12 @@ const ScheduleAndDetails = () => {
               {enableExtendedCourseDetails && (
                 <>
                   <LearningOutcomesSection
+                    isEditable={canEditDetails}
                     learningInfo={learningInfo}
                     onChange={handleValuesChange}
                   />
                   <InstructorsSection
+                    isEditable={canEditDetails}
                     instructors={instructorInfo?.instructors}
                     onChange={handleValuesChange}
                   />
@@ -290,6 +315,7 @@ const ScheduleAndDetails = () => {
               )}
               {showRequirementsSection && (
                 <RequirementsSection
+                  isEditable={canEditDetails}
                   effort={effort}
                   errorFields={errorFields}
                   aboutPageEditable={aboutPageEditable}
@@ -306,6 +332,7 @@ const ScheduleAndDetails = () => {
               )}
               {licensingEnabled && (
                 <LicenseSection
+                  isEditable={canEditDetails}
                   license={license}
                   onChange={handleValuesChange}
                 />
@@ -356,12 +383,10 @@ const ScheduleAndDetails = () => {
             <StatefulButton
               key="save-button"
               onClick={handleUpdateValues}
-              disabled={hasErrors}
-              state={
-                isQueryPending
-                  ? STATEFUL_BUTTON_STATES.pending
-                  : STATEFUL_BUTTON_STATES.default
-              }
+              disabled={hasErrors || !canEdit}
+              state={isQueryPending
+                ? STATEFUL_BUTTON_STATES.pending
+                : STATEFUL_BUTTON_STATES.default}
               {...updateValuesButtonState}
             />,
           ].filter(Boolean)}

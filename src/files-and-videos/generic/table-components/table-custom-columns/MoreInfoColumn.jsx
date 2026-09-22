@@ -28,6 +28,10 @@ const MoreInfoColumn = ({
   handleOpenFileInfo,
   handleOpenDeleteConfirmation,
   fileType,
+  permissions = {
+    canEditFiles: true,
+    canDeleteFiles: true,
+  },
 }) => {
   const intl = useIntl();
   const copyText = useCopyText();
@@ -161,7 +165,7 @@ const MoreInfoColumn = ({
             children: intl.formatMessage(messages.copyWebUrlTitle),
             onClick: () => copyText(externalUrl),
           })}
-          {renderMenuItem({
+          {permissions.canEditFiles && renderMenuItem({
             children: locked
               ? intl.formatMessage(messages.unlockMenuTitle)
               : intl.formatMessage(messages.lockMenuTitle),
@@ -177,8 +181,8 @@ const MoreInfoColumn = ({
         children: intl.formatMessage(messages.infoTitle),
         onClick: () => handleOpenFileInfo(row.original),
       })}
-      <div className="dropdown-divider" role="separator" />
-      {renderMenuItem({
+      {permissions.canDeleteFiles && <div className="dropdown-divider" role="separator" />}
+      {permissions.canDeleteFiles && renderMenuItem({
         children: intl.formatMessage(messages.deleteTitle),
         onClick: () => handleOpenDeleteConfirmation([{ original: row.original }]),
         testId: 'open-delete-confirmation-button',
@@ -220,6 +224,10 @@ MoreInfoColumn.propTypes = {
   handleOpenFileInfo: PropTypes.func.isRequired,
   handleOpenDeleteConfirmation: PropTypes.func.isRequired,
   fileType: PropTypes.string.isRequired,
+  permissions: PropTypes.shape({
+    canEditFiles: PropTypes.bool,
+    canDeleteFiles: PropTypes.bool,
+  }),
 };
 
 MoreInfoColumn.defaultProps = {

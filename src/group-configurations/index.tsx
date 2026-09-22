@@ -3,6 +3,9 @@ import {
   Container, Layout, Stack, Row,
 } from '@openedx/paragon';
 import { Helmet } from 'react-helmet';
+import { useCourseUserPermissions } from '@src/authz/hooks';
+import { getGroupConfigurationsPermissions } from '@src/authz/permissionHelpers';
+import PermissionDeniedAlert from '@src/generic/PermissionDeniedAlert';
 
 import { LoadingSpinner } from '../generic/Loading';
 import SubHeader from '../generic/sub-header/SubHeader';
@@ -38,10 +41,19 @@ const GroupConfigurations = () => {
     experimentGroupConfigurations = [],
   } = groupConfigurations ?? {};
 
+  const {
+    isLoading: isLoadingUserPermissions,
+    canManageGroupConfigurations,
+  } = useCourseUserPermissions(courseId, getGroupConfigurationsPermissions(courseId));
+
   document.title = getPageHeadTitle(
     courseDetails?.name ?? '',
     formatMessage(messages.headingTitle),
   );
+
+  if (!isLoadingUserPermissions && !canManageGroupConfigurations) {
+    return <PermissionDeniedAlert />;
+  }
 
   if (isLoadingDenied) {
     return (
@@ -51,7 +63,7 @@ const GroupConfigurations = () => {
     );
   }
 
-  if (isLoading) {
+  if (isLoading || isLoadingUserPermissions) {
     return (
       <Row className="m-0 mt-4 justify-content-center">
         <LoadingSpinner />

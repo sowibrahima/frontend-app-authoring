@@ -20,6 +20,7 @@ import './FileInfoModalSidebar.scss';
 const FileInfoModalSidebar = ({
   asset,
   handleLockedAsset,
+  canLockFile = true,
 }) => {
   const intl = useIntl();
   const copyText = useCopyText();
@@ -80,26 +81,28 @@ const FileInfoModalSidebar = ({
           onClick={() => copyText(asset?.externalUrl)}
         />
       </ActionRow>
-      <ActionRow className=" border-top mt-3 pt-3">
-        <div className="font-weight-bold">
-          <FormattedMessage {...messages.lockFileTitle} />
-        </div>
-        <IconButtonWithTooltip
-          key="lock-file-info"
-          tooltipPlacement="top"
-          tooltipContent={intl.formatMessage(messages.lockFileTooltipContent)}
-          src={InfoOutline}
-          iconAs={Icon}
-          alt="Info"
-          size="inline"
-        />
-        <ActionRow.Spacer />
-        <CheckboxControl
-          checked={lockedState}
-          onChange={handleLock}
-          aria-label="Checkbox"
-        />
-      </ActionRow>
+      {canLockFile && (
+        <ActionRow className=" border-top mt-3 pt-3">
+          <div className="font-weight-bold">
+            <FormattedMessage {...messages.lockFileTitle} />
+          </div>
+          <IconButtonWithTooltip
+            key="lock-file-info"
+            tooltipPlacement="top"
+            tooltipContent={intl.formatMessage(messages.lockFileTooltipContent)}
+            src={InfoOutline}
+            iconAs={Icon}
+            alt="Info"
+            size="inline"
+          />
+          <ActionRow.Spacer />
+          <CheckboxControl
+            checked={lockedState}
+            onChange={handleLock}
+            aria-label="Checkbox"
+          />
+        </ActionRow>
+      )}
     </Stack>
   );
 };
@@ -112,11 +115,12 @@ FileInfoModalSidebar.propTypes = {
     thumbnail: PropTypes.string,
     id: PropTypes.string.isRequired,
     portableUrl: PropTypes.string.isRequired,
-    dateAdded: PropTypes.string.isRequired,
+    dateAdded: PropTypes.number.isRequired,
     fileSize: PropTypes.number.isRequired,
     usageLocations: PropTypes.arrayOf(PropTypes.string),
   }).isRequired,
   handleLockedAsset: PropTypes.func.isRequired,
+  canLockFile: PropTypes.bool,
 };
 
 export default FileInfoModalSidebar;

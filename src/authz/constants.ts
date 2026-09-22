@@ -16,8 +16,36 @@ export const CONTENT_LIBRARY_PERMISSIONS = {
 };
 
 export const COURSE_PERMISSIONS = {
+  VIEW_COURSE: 'courses.view_course',
+  EDIT_COURSE_CONTENT: 'courses.edit_course_content',
+
   MANAGE_ADVANCED_SETTINGS: 'courses.manage_advanced_settings',
 
   VIEW_GRADING_SETTINGS: 'courses.view_grading_settings',
   EDIT_GRADING_SETTINGS: 'courses.edit_grading_settings',
+
+  VIEW_SCHEDULE_AND_DETAILS: 'courses.view_schedule_and_details',
+  EDIT_SCHEDULE: 'courses.edit_schedule',
+  EDIT_DETAILS: 'courses.edit_details',
+  VIEW_COURSE_UPDATES: 'courses.view_course_updates',
+  MANAGE_COURSE_UPDATES: 'courses.manage_course_updates',
+
+  VIEW_PAGES_AND_RESOURCES: 'courses.view_pages_and_resources',
+  MANAGE_PAGES_AND_RESOURCES: 'courses.manage_pages_and_resources',
+  VIEW_FILES: 'courses.view_files',
+  CREATE_FILES: 'courses.create_files',
+  DELETE_FILES: 'courses.delete_files',
+  EDIT_FILES: 'courses.edit_files',
+
+  MANAGE_LIBRARY_UPDATES: 'courses.manage_library_updates',
+
+  VIEW_COURSE_TEAM: 'courses.view_course_team',
+
+  MANAGE_GROUP_CONFIGURATIONS: 'courses.manage_group_configurations',
+  MANAGE_CERTIFICATES: 'courses.manage_certificates',
+
+  VIEW_CHECKLISTS: 'courses.view_checklists',
+  IMPORT_COURSE: 'courses.import_course',
+  EXPORT_COURSE: 'courses.export_course',
+  EXPORT_TAGS: 'courses.export_tags',
 };

@@ -1,6 +1,9 @@
 import { Helmet } from 'react-helmet';
 
 import { useCourseAuthoringContext } from '@src/CourseAuthoringContext';
+import { useCourseUserPermissions } from '@src/authz/hooks';
+import { getCertificatesPermissions } from '@src/authz/permissionHelpers';
+import PermissionDeniedAlert from '@src/generic/PermissionDeniedAlert';
 import Placeholder from '../editors/Placeholder';
 import { RequestStatus } from '../data/constants';
 import Loading from '../generic/Loading';
@@ -32,6 +35,15 @@ const Certificates = () => {
     hasCertificateModes,
   } = useCertificates({ courseId });
 
+  const {
+    isLoading: isLoadingUserPermissions,
+    canManageCertificates,
+  } = useCourseUserPermissions(courseId, getCertificatesPermissions(courseId));
+
+  if (!isLoadingUserPermissions && !canManageCertificates) {
+    return <PermissionDeniedAlert />;
+  }
+
   if (isLoading) {
     return <Loading />;
   }
@@ -51,7 +63,7 @@ const Certificates = () => {
       <Helmet>
         <title>{pageHeadTitle}</title>
       </Helmet>
-      <MainLayout courseId={courseId} showHeaderButtons={hasCertificateModes && certificates?.length > 0}>
+      <MainLayout showHeaderButtons={hasCertificateModes && certificates?.length > 0}>
         <ModeComponent courseId={courseId} />
       </MainLayout>
     </>
